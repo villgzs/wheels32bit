@@ -226,16 +226,16 @@ jobs:
             --apk "${{ matrix.apk }}" \
             --test
 
-          docker start "wheels-${{ matrix.kind }}"
-          docker exec "wheels-${{ matrix.kind }}" python3 -c "import Cython; print('Használt Cython verzió:', Cython.__version__)"
-
+          echo "=== Cython verzió ellenőrzése ==="
+          docker run --rm --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }} python3 -c "import Cython; print('Használt Cython verzió:', Cython.__version__)" || true
+          
           # Forrás bemásolása a konténerbe
           docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
 
           # Build indítása
           set +e
-          docker exec "wheels-${{ matrix.kind }}" /entrypoint.sh
-          # docker start -a "wheels-${{ matrix.kind }}"
+          # docker exec "wheels-${{ matrix.kind }}" /entrypoint.sh
+          docker start -a "wheels-${{ matrix.kind }}"
           RC=$?
           set -e
 
