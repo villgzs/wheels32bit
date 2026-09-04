@@ -185,15 +185,19 @@ jobs:
           echo "Használt requirements: $REQ"
           wc -l "$REQ"
 
+      - name: Pull 32-bit builder image
+        run: |
+          docker pull --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }}
+
       - name: Build wheels with custom armv7 builder
         working-directory: ha-core
         run: |
           set -euo pipefail
           OUT_DIR="${{ github.workspace }}/wheels-out/${{ matrix.kind }}"
           mkdir -p "$OUT_DIR"
-
-          # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
+      
           docker create --name "wheels-${{ matrix.kind }}" -t \
+            --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
             ${{ env.BUILDER_IMAGE }} \
@@ -206,6 +210,8 @@ jobs:
             --skip-binary "${{ matrix.skip_binary }}" \
             --apk "${{ matrix.apk }}" \
             --test
+
+    # ... docker cp, docker start -a, stb. változatlan
 
           # Forrás bemásolása a konténerbe
           docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
