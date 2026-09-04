@@ -237,7 +237,7 @@ jobs:
 
           # 5. Cython downgrade (<3.1.0) ÉS a verzió kiírása
           echo "=== Cython visszabutítása és ellenőrzése ==="
-          # docker exec "wheels-${{ matrix.kind }}" pip install "cython<3.1.0" setuptools wheel
+          docker exec "wheels-${{ matrix.kind }}" pip install "cython<3.1.0" setuptools wheel
           docker exec "wheels-${{ matrix.kind }}" python3 -c "import Cython; print('Használt Cython verzió:', Cython.__version__)"
 
           # 6. Main Builder futtatása (apk paraméter nélkül, mert fent már felraktuk)
