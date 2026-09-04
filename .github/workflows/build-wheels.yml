@@ -145,6 +145,18 @@ jobs:
           name: ha-core-prepared
           path: ha-core
 
+      - name: Create env-file
+        working-directory: ha-core
+        run: |
+          cat > .env_file << 'EOF'
+          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
+          GRPC_PYTHON_BUILD_WITH_CYTHON=true
+          CARGO_NET_GIT_FETCH_WITH_CLI=true
+          CI_BUILD=1
+          ENABLE_HEADLESS=1
+          REQUIRE_SQLALCHEMY_CEXT=1
+          EOF
+
       - name: Set up QEMU (armv7)
         uses: docker/setup-qemu-action@v3
 
