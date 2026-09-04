@@ -38,9 +38,9 @@ jobs:
             runs-on: ubuntu-24.04   # QEMU-val emulálva
 
           # i386 (32-bit x86)
-          - arch: i386
-            platform: linux/386
-            runs-on: ubuntu-latest
+          # - arch: i386
+          #  platform: linux/386
+          #  runs-on: ubuntu-latest
 
     steps:
       - name: Checkout the repository
@@ -85,7 +85,8 @@ jobs:
           cache-from: type=registry,ref=${{ steps.info.outputs.name }}:dev
           cache-to: type=inline
           build-args: |
-            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base-python:${{ matrix.base }}
+            BUILD_FROM=dockergzs/base-python:3.14-alpine3.24-armv7   # armv7 esetén
+            # BUILD_FROM=BUILD_FROM=ghcr.io/${{ github.repository_owner }}/base-python:3.14-alpine3.24-${{ matrix.arch }}
             BUILD_ARCH=${{ matrix.arch }}
             CPYTHON_ABI=${{ matrix.abi }}
           tags: |
