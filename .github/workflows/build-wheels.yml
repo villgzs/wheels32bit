@@ -1,0 +1,324 @@
+name: Build armv7 wheels
+
+on:
+  workflow_dispatch:
+    inputs:
+      core_version:
+        description: "Home Assistant Core verzió (üres = legfrissebb stable)"
+        required: false
+        default: ""
+  # schedule:
+  #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
+
+env:
+  ABI: cp314
+  TAG: musllinux_1_2
+  ARCH: armv7
+  # A te 32 bites builder image-ed
+  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
+jobs:
+  # --------------------------------------------------
+  # 1) Core verzió + requirements előkészítés
+  # --------------------------------------------------
+  init:
+    name: Initialize (Core version + requirements)
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Determine Core version
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.core_version }}" ]; then
+            VERSION="${{ inputs.core_version }}"
+          else
+            VERSION=$(gh api repos/home-assistant/core/releases/latest --jq '.tag_name')
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Home Assistant Core: ${VERSION}"
+
+      - name: Checkout home-assistant/core
+        uses: actions/checkout@v4
+        with:
+          repository: home-assistant/core
+          ref: ${{ steps.version.outputs.version }}
+          path: ha-core
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ha-core/.python-version
+
+      - name: Create venv and install tools
+        working-directory: ha-core
+        run: |
+          python -m venv venv
+          . venv/bin/activate
+          pip install "$(grep '^uv' < requirements.txt || true)"
+          # uv lehet, hogy nem kell; ha nincs a requirements-ben, skip
+          if grep -q '^uv' requirements.txt 2>/dev/null; then
+            uv pip install -r requirements.txt
+          else
+            pip install -r requirements.txt
+          fi
+
+      - name: Generate requirements_all_wheels
+        working-directory: ha-core
+        run: |
+          . venv/bin/activate
+          python -m script.gen_requirements_all ci || true
+          # Ha a script nem fut le (pl. hiányzó deps), legalább a meglévő fájlokat használjuk
+          ls -la requirements*.txt requirements_all_wheels_*.txt 2>/dev/null || true
+
+      - name: Write env-file
+        working-directory: ha-core
+        run: |
+          cat > .env_file << 'EOF'
+          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
+          GRPC_PYTHON_BUILD_WITH_CYTHON=true
+          CARGO_NET_GIT_FETCH_WITH_CLI=true
+          CI_BUILD=1
+          ENABLE_HEADLESS=1
+          REQUIRE_SQLALCHEMY_CEXT=1
+          EOF
+
+      - name: Prepare requirements_diff (full rebuild)
+        working-directory: ha-core
+        run: |
+          # Üres diff = minden csomagot újraépít
+          touch requirements_diff.txt
+
+      - name: Adjust requirements (uv kihagyása)
+        working-directory: ha-core
+        run: |
+          sed -i "/^uv/d" requirements.txt || true
+          sed -i "/^uv/d" requirements_diff.txt || true
+          # numpy pin eltávolítása az integrations buildhez (hivatalos gyakorlat)
+          if [ -f homeassistant/package_constraints.txt ]; then
+            sed -i "/numpy/d" homeassistant/package_constraints.txt || true
+          fi
+
+      - name: Upload prepared Core tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: ha-core-prepared
+          path: ha-core
+          retention-days: 1
+
+  # --------------------------------------------------
+  # 2) Wheels építés – mátrix: core + integrations
+  # --------------------------------------------------
+  build:
+    name: Build ${{ matrix.kind }} wheels (armv7)
+    needs: init
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Core alap függőségek
+          - kind: core
+            requirements: requirements.txt
+            apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev"
+            skip_binary: "aiohttp;multidict;propcache;yarl;SQLAlchemy"
+
+          # Összes integráció függősége
+          - kind: integrations
+            # armv7-re nincs hivatalos requirements_all_wheels_armv7;
+            # a generált vagy az all fájlt használjuk
+            requirements: requirements_all.txt
+            apk: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev"
+            skip_binary: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
+
+    steps:
+      - name: Download prepared Core tree
+        uses: actions/download-artifact@v4
+        with:
+          name: ha-core-prepared
+          path: ha-core
+
+      - name: Set up QEMU (armv7)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR (builder image pull)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull 32-bit builder image
+        run: |
+          docker pull ${{ env.BUILDER_IMAGE }}
+
+      - name: Select requirements file
+        id: req
+        working-directory: ha-core
+        run: |
+          REQ="${{ matrix.requirements }}"
+          # integrations: ha van arch-specifikus, azt preferáljuk
+          if [ "${{ matrix.kind }}" = "integrations" ]; then
+            if [ -f requirements_all_wheels_armv7.txt ]; then
+              REQ=requirements_all_wheels_armv7.txt
+            elif [ -f requirements_all_wheels_amd64.txt ]; then
+              # fallback – legalább a lista megvan (evdev stb. eltérhet)
+              REQ=requirements_all.txt
+            fi
+          fi
+          if [ ! -f "$REQ" ]; then
+            echo "Hiányzó requirements fájl: $REQ"
+            ls -la requirements*.txt || true
+            exit 1
+          fi
+          echo "file=$REQ" >> $GITHUB_OUTPUT
+          echo "Használt requirements: $REQ"
+          wc -l "$REQ"
+
+      - name: Build wheels with custom armv7 builder
+        working-directory: ha-core
+        run: |
+          set -euo pipefail
+          OUT_DIR="${{ github.workspace }}/wheels-out/${{ matrix.kind }}"
+          mkdir -p "$OUT_DIR"
+
+          # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
+          docker create --name "wheels-${{ matrix.kind }}" -t \
+            --workdir /data \
+            --env-file .env_file \
+            ${{ env.BUILDER_IMAGE }} \
+            --index "https://wheels.home-assistant.io" \
+            --upload rsync \
+            --remote "/data/output" \
+            --requirement "${{ steps.req.outputs.file }}" \
+            --requirement-diff "requirements_diff.txt" \
+            --constraint "homeassistant/package_constraints.txt" \
+            --skip-binary "${{ matrix.skip_binary }}" \
+            --apk "${{ matrix.apk }}" \
+            --test
+
+          # Forrás bemásolása a konténerbe
+          docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
+
+          # Build indítása
+          set +e
+          docker start -a "wheels-${{ matrix.kind }}"
+          RC=$?
+          set -e
+
+          # Kimenet kimentése
+          docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || \
+          docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
+
+          docker rm -f "wheels-${{ matrix.kind }}" || true
+
+          echo "Exit code: $RC"
+          echo "=== Kimenet ==="
+          find "$OUT_DIR" -type f -name "*.whl" | head -50
+          WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
+          echo "Talált .whl fájlok: $WHL_COUNT"
+
+          # Ha egyáltalán nincs wheel, bukjon el a job
+          if [ "$WHL_COUNT" -eq 0 ]; then
+            echo "Nem készült .whl fájl"
+            # a builder néha /data alá rakja a wheel-eket
+            find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -20
+            exit 1
+          fi
+
+      - name: Upload wheels artifact (mátrix szerint jelölve)
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-armv7-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          path: wheels-out/${{ matrix.kind }}
+          if-no-files-found: error
+          retention-days: 14
+
+  # --------------------------------------------------
+  # 3) Összefűzés + feltöltés villgzs alá
+  # --------------------------------------------------
+  publish:
+    name: Publish wheels under villgzs
+    needs: [init, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download core wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-armv7-core-${{ needs.init.outputs.version }}
+          path: dist/core
+
+      - name: Download integrations wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-armv7-integrations-${{ needs.init.outputs.version }}
+          path: dist/integrations
+
+      - name: Summary
+        run: |
+          echo "## armv7 wheels – HA ${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### core" >> $GITHUB_STEP_SUMMARY
+          find dist/core -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### integrations" >> $GITHUB_STEP_SUMMARY
+          find dist/integrations -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+
+      # Opcionális: GitHub Release a villgzs/wheels32bit repo-n
+      - name: Checkout wheels32bit (release feltöltéshez)
+        uses: actions/checkout@v4
+        with:
+          path: wheels32bit-repo
+
+      - name: Create / update GitHub Release with wheels
+        working-directory: wheels32bit-repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="wheels-${{ needs.init.outputs.version }}-armv7"
+          TITLE="Wheels for Home Assistant ${{ needs.init.outputs.version }} (armv7)"
+
+          # Release létrehozása, ha még nincs
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes "Prebuilt musllinux armv7 wheels for HA ${{ needs.init.outputs.version }}.
+
+          - **core**: requirements.txt alapú wheel-ek
+          - **integrations**: requirements_all.txt alapú wheel-ek
+          - ABI: ${{ env.ABI }}
+          - Tag: ${{ env.TAG }}
+          - Builder: ${{ env.BUILDER_IMAGE }}
+          "
+          fi
+
+          # Feltöltés mátrix szerint elnevezett fájlokkal
+          # (a .whl neveket megtartjuk, alcélba rendezve zip-pel opcionálisan)
+          mkdir -p /tmp/upload
+          cp -r ../dist/core /tmp/upload/core
+          cp -r ../dist/integrations /tmp/upload/integrations
+
+          (
+            cd /tmp/upload
+            zip -r "wheels-armv7-core-${{ needs.init.outputs.version }}.zip" core
+            zip -r "wheels-armv7-integrations-${{ needs.init.outputs.version }}.zip" integrations
+          )
+
+          gh release upload "$TAG" \
+            /tmp/upload/wheels-armv7-core-${{ needs.init.outputs.version }}.zip \
+            /tmp/upload/wheels-armv7-integrations-${{ needs.init.outputs.version }}.zip \
+            --clobber
