@@ -158,10 +158,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull 32-bit builder image
-        run: |
-          docker pull ${{ env.BUILDER_IMAGE }}
-
       - name: Select requirements file
         id: req
         working-directory: ha-core
