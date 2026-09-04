@@ -19,7 +19,6 @@ jobs:
     permissions:
       packages: write
       contents: read
-    if: github.repository_owner == 'villgzs'
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
@@ -45,8 +44,29 @@ jobs:
           #   runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the repository
+      # 1. A te repo-d (csak a 32 bites Dockerfile miatt)
+      - name: Checkout this repository (a te Dockerfile-od miatt)
         uses: actions/checkout@v4
+        with:
+          path: build-repo
+
+      # 2. Hivatalos home-assistant/wheels 2026.07.0 (rootfs, builder, requirements stb.)
+      - name: Checkout official Home Assistant wheels (2026.07.0)
+        uses: actions/checkout@v4
+        with:
+          repository: home-assistant/wheels
+          ref: 2026.07.0
+          path: wheels
+
+      # 3. A te 32 bites Dockerfile-od felülírja a hivatalosat
+      - name: Replace Dockerfile with your 32-bit version
+        run: |
+          echo "=== Dockerfile másolása ==="
+          cp build-repo/Dockerfile wheels/Dockerfile
+          echo "Sikeresen másolva: build-repo/Dockerfile → wheels/Dockerfile"
+          echo ""
+          echo "=== A használt Dockerfile eleje ==="
+          head -n 20 wheels/Dockerfile
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -59,7 +79,6 @@ jobs:
         shell: bash
         run: |
           # Saját registry / image név
-          # Cseréld a saját username-edre / org-odra!
           name="ghcr.io/${{ github.repository_owner }}/wheels32bit/${{ matrix.arch }}/${{ matrix.tag }}/${{ matrix.abi }}"
 
           version=$(echo "${{ github.ref }}" | awk -F"/" '{print $NF}')
@@ -78,19 +97,18 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 4. Build a hivatalos wheels struktúrából + a te Dockerfile-oddal
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          # A wheels32bit repo gyökerében lévő Dockerfile-t használja
-          file: ./Dockerfile
+          context: ./wheels
+          file: ./wheels/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           platforms: ${{ matrix.platform }}
           cache-from: type=registry,ref=${{ steps.info.outputs.name }}:dev
           cache-to: type=inline
           build-args: |
             BUILD_FROM=dockergzs/base-python:3.14-alpine3.24-armv7
-            # BUILD_FROM=dockergzs/base-python:3.14-alpine3.24-${{ matrix.arch }}
             # BUILD_FROM=ghcr.io/${{ github.repository_owner }}/base-python:3.14-alpine3.24-${{ matrix.arch }}
             BUILD_ARCH=${{ matrix.arch }}
             CPYTHON_ABI=${{ matrix.abi }}
