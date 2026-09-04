@@ -90,6 +90,7 @@ jobs:
           cache-to: type=inline
           build-args: |
             BUILD_FROM=dockergzs/base-python:3.14-alpine3.24-armv7
+            # BUILD_FROM=dockergzs/base-python:3.14-alpine3.24-${{ matrix.arch }}
             # BUILD_FROM=ghcr.io/${{ github.repository_owner }}/base-python:3.14-alpine3.24-${{ matrix.arch }}
             BUILD_ARCH=${{ matrix.arch }}
             CPYTHON_ABI=${{ matrix.abi }}
