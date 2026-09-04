@@ -26,7 +26,8 @@ jobs:
         abi: ["cp314"]
         tag: ["musllinux_1_2"]
         # 32 bites architektúrák
-        arch: ["armv7", "i386"]
+        # arch: ["armv7", "i386"]
+        arch: ["armv7"]
         include:
           # Python / Alpine base image
           - abi: cp314
