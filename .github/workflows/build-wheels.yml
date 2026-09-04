@@ -221,7 +221,6 @@ jobs:
             --requirement-diff "requirements_diff.txt" \
             --constraint "homeassistant/package_constraints.txt" \
             --skip-binary "${{ matrix.skip_binary }}" \
-            --apk "${{ matrix.apk }}" \
             --test
 
           # 2. Forrás bemásolása a konténerbe
@@ -230,12 +229,18 @@ jobs:
           # 3. Konténer indítása háttérben
           docker start "wheels-${{ matrix.kind }}"
 
-          # 4. Cython telepítése ÉS a verzió kiírása (az entrypoint felülbírálásával)
-          echo "=== Cython telepítése és ellenőrzése ==="
+          # 4. APK csomagok manuális telepítése (hogy a builder ne zárolja az apk adatbázist)
+          echo "=== APK csomagok telepítése ==="
+          # A mátrixból jövő pontoszórásos apk listát szóközökre cseréljük
+          APK_PACKAGES=$(echo "${{ matrix.apk }}" | tr ';' ' ')
+          docker exec "wheels-${{ matrix.kind }}" apk add --no-progress --no-cache $APK_PACKAGES
+
+          # 5. Cython downgrade (<3.1.0) ÉS a verzió kiírása
+          echo "=== Cython visszabutítása és ellenőrzése ==="
           # docker exec "wheels-${{ matrix.kind }}" pip install "cython<3.1.0" setuptools wheel
           docker exec "wheels-${{ matrix.kind }}" python3 -c "import Cython; print('Használt Cython verzió:', Cython.__version__)"
 
-          # 5. Build indítása (most már a belépési pontként futó builder-rel)
+          # 6. Main Builder futtatása (apk paraméter nélkül, mert fent már felraktuk)
           set +e
           docker exec "wheels-${{ matrix.kind }}" python3 -m builder \
             --index "https://wheels.home-assistant.io" \
@@ -245,7 +250,6 @@ jobs:
             --requirement-diff "requirements_diff.txt" \
             --constraint "homeassistant/package_constraints.txt" \
             --skip-binary "${{ matrix.skip_binary }}" \
-            --apk "${{ matrix.apk }}" \
             --test
           RC=$?
           set -e
