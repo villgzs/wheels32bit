@@ -211,8 +211,6 @@ jobs:
             --apk "${{ matrix.apk }}" \
             --test
 
-    # ... docker cp, docker start -a, stb. változatlan
-
           # Forrás bemásolása a konténerbe
           docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
 
