@@ -88,6 +88,7 @@ jobs:
           CI_BUILD=1
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
+          PIP_NO_BUILD_ISOLATION=0
           EOF
 
       - name: Prepare requirements_diff (full rebuild)
@@ -155,6 +156,7 @@ jobs:
           CI_BUILD=1
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
+          PIP_NO_BUILD_ISOLATION=0
           EOF
 
       - name: Set up QEMU (armv7)
@@ -203,11 +205,16 @@ jobs:
           set -euo pipefail
           OUT_DIR="${{ github.workspace }}/wheels-out/${{ matrix.kind }}"
           mkdir -p "$OUT_DIR"
-      
+
+          # echo "=== Konténer Cython verziója ==="
+          # docker run --rm --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }} python3 -c "import Cython; print(Cython.__version__)" || echo "Cython nincs előre telepítve"
+
           docker create --name "wheels-${{ matrix.kind }}" -t \
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
+            -e PIP_NO_BUILD_ISOLATION=1 \
+            -e PIP_BUILD_ISOLATION=false \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
@@ -219,12 +226,16 @@ jobs:
             --apk "${{ matrix.apk }}" \
             --test
 
+          docker start "wheels-${{ matrix.kind }}"
+          docker exec "wheels-${{ matrix.kind }}" python3 -c "import Cython; print('Használt Cython verzió:', Cython.__version__)"
+
           # Forrás bemásolása a konténerbe
           docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
 
           # Build indítása
           set +e
-          docker start -a "wheels-${{ matrix.kind }}"
+          docker exec "wheels-${{ matrix.kind }}" /entrypoint.sh
+          # docker start -a "wheels-${{ matrix.kind }}"
           RC=$?
           set -e
 
