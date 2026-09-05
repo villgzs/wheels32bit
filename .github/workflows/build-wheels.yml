@@ -189,10 +189,18 @@ jobs:
           APK_PACKAGES=$(echo "${{ env.APK_DEPS }}" | tr ';' ' ')
           docker exec "wheels-core" apk add --no-progress --no-cache $APK_PACKAGES
 
-          echo "=== Cython ellenőrzése ==="
-          docker exec "wheels-core" python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
+          # echo "=== Cython ellenőrzése ==="
+          # docker exec "wheels-core" python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
 
           set +e
+          echo "=== Memória ellenőrzés ==="
+          free -h
+          echo "--- Container memória ---"
+          docker exec "wheels-core" free -h
+
+          echo "--- Cgroup memória események induláskor ---"
+          docker exec "wheels-core" sh -c 'cat /sys/fs/cgroup/memory.events 2>/dev/null || true'
+          
           docker exec "wheels-core" python3 -m builder \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
@@ -202,7 +210,22 @@ jobs:
             --constraint "homeassistant/package_constraints.txt" \
             --skip-binary "${{ env.SKIP_BINARY }}" \
             --test
+          
           RC=$?
+
+          echo "=== Builder eredmény ==="
+          echo "Builder exit code: $RC"
+
+         
+          echo "=== Docker állapot ==="
+          docker inspect wheels-core --format 'Status={{.State.Status}} OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}}'
+
+          echo "--- Cgroup memória események a build után ---"
+          docker exec "wheels-core" sh -c 'cat /sys/fs/cgroup/memory.events 2>/dev/null || true'
+          
+          echo "--- Memória a build után ---"
+          docker exec "wheels-core" free -h
+
           set -e
 
           docker cp "wheels-core:/data/output/." "$OUT_DIR/" 2>/dev/null || \
