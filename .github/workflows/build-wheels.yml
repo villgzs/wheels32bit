@@ -127,7 +127,7 @@ jobs:
           # Core alap függőségek
           - kind: core
             requirements: requirements.txt
-            apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev"
+            apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev"
             skip_binary: "aiohttp;multidict;propcache;yarl;SQLAlchemy"
 
           # Összes integráció függősége
