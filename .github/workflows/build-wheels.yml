@@ -160,7 +160,7 @@ jobs:
 
       - name: Pull 32-bit builder image
         run: |
-          docker pull ${{ env.BUILDER_IMAGE }}
+          docker pull --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }}
 
       - name: Select requirements file
         id: req
@@ -194,6 +194,7 @@ jobs:
 
           # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
           docker create --name "wheels-${{ matrix.kind }}" -t \
+            --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
             ${{ env.BUILDER_IMAGE }} \
