@@ -158,6 +158,8 @@ jobs:
           PIP_NO_BUILD_ISOLATION=0
           PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
           UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          MAKEFLAGS="-j2" \
+          CARGO_BUILD_JOBS=1 \
           EOF
 
       - name: Build wheels with custom armv7 builder
