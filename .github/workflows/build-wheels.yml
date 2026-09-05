@@ -145,6 +145,21 @@ jobs:
         run: |
           docker pull --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }}
 
+      - name: Create build env
+        working-directory: ha-core
+        run: |
+          cat > .env_file << 'EOF'
+          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
+          GRPC_PYTHON_BUILD_WITH_CYTHON=true
+          CARGO_NET_GIT_FETCH_WITH_CLI=true
+          CI_BUILD=1
+          ENABLE_HEADLESS=1
+          REQUIRE_SQLALCHEMY_CEXT=1
+          PIP_NO_BUILD_ISOLATION=0
+          PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          EOF
+
       - name: Build wheels with custom armv7 builder
         working-directory: ha-core
         run: |
@@ -265,6 +280,21 @@ jobs:
       - name: Pull 32-bit builder image
         run: |
           docker pull --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }}
+
+      - name: Create build env
+        working-directory: ha-core
+        run: |
+          cat > .env_file << 'EOF'
+          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
+          GRPC_PYTHON_BUILD_WITH_CYTHON=true
+          CARGO_NET_GIT_FETCH_WITH_CLI=true
+          CI_BUILD=1
+          ENABLE_HEADLESS=1
+          REQUIRE_SQLALCHEMY_CEXT=1
+          PIP_NO_BUILD_ISOLATION=0
+          PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          EOF
 
       - name: Build wheels with custom armv7 builder
         working-directory: ha-core
