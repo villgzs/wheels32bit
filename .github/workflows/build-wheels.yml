@@ -145,6 +145,24 @@ jobs:
           name: ha-core-prepared
           path: ha-core
 
+      - name: Create env-file
+        working-directory: ha-core
+        run: |
+          echo "cython<3.2.7" > ./pip-build-constraints.txt
+          cat > .env_file << 'EOF'
+          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
+          GRPC_PYTHON_BUILD_WITH_CYTHON=true
+          CARGO_NET_GIT_FETCH_WITH_CLI=true
+          CI_BUILD=1
+          ENABLE_HEADLESS=1
+          REQUIRE_SQLALCHEMY_CEXT=1
+          PIP_NO_BUILD_ISOLATION=0
+          PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
+          UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
+          MAKEFLAGS="-j2" \
+          CARGO_BUILD_JOBS=1 \
+          EOF
+
       - name: Set up QEMU (armv7)
         uses: docker/setup-qemu-action@v3
 
@@ -197,6 +215,7 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
+            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
