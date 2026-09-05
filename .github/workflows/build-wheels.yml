@@ -7,15 +7,18 @@ on:
         description: "Home Assistant Core verzió (üres = legfrissebb stable)"
         required: false
         default: ""
+  # schedule:
+  #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
 
 env:
   ABI: cp314
   TAG: musllinux_1_2
   ARCH: armv7
+  # A te 32 bites builder image-ed
   BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
 
 permissions:
-  contents: write
+  contents: read
   packages: write
   actions: write
 
@@ -47,7 +50,7 @@ jobs:
         with:
           repository: home-assistant/core
           ref: ${{ steps.version.outputs.version }}
-          path: ha-core      
+          path: ha-core
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -57,11 +60,10 @@ jobs:
       - name: Create venv and install tools
         working-directory: ha-core
         run: |
-          # Előkészítés a hoston (pl. a ha-core könyvtáradban)
-          echo "cython<3.2.7" > ./pip-build-constraints.txt
           python -m venv venv
           . venv/bin/activate
           pip install "$(grep '^uv' < requirements.txt || true)"
+          # uv lehet, hogy nem kell; ha nincs a requirements-ben, skip
           if grep -q '^uv' requirements.txt 2>/dev/null; then
             uv pip install -r requirements.txt
           else
@@ -73,6 +75,7 @@ jobs:
         run: |
           . venv/bin/activate
           python -m script.gen_requirements_all ci || true
+          # Ha a script nem fut le (pl. hiányzó deps), legalább a meglévő fájlokat használjuk
           ls -la requirements*.txt requirements_all_wheels_*.txt 2>/dev/null || true
 
       - name: Write env-file
@@ -85,21 +88,20 @@ jobs:
           CI_BUILD=1
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
-          PIP_NO_BUILD_ISOLATION=0
-          PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
-          UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
           EOF
 
       - name: Prepare requirements_diff (full rebuild)
         working-directory: ha-core
         run: |
+          # Üres diff = minden csomagot újraépít
           touch requirements_diff.txt
 
-      - name: Adjust requirements
+      - name: Adjust requirements (uv kihagyása)
         working-directory: ha-core
         run: |
           sed -i "/^uv/d" requirements.txt || true
           sed -i "/^uv/d" requirements_diff.txt || true
+          # numpy pin eltávolítása az integrations buildhez (hivatalos gyakorlat)
           if [ -f homeassistant/package_constraints.txt ]; then
             sed -i "/numpy/d" homeassistant/package_constraints.txt || true
           fi
@@ -112,15 +114,30 @@ jobs:
           retention-days: 1
 
   # --------------------------------------------------
-  # 2) Core Wheels építése
+  # 2) Wheels építés – mátrix: core + integrations
   # --------------------------------------------------
-  build-core:
-    name: Build Core wheels (armv7)
+  build:
+    name: Build ${{ matrix.kind }} wheels (armv7)
     needs: init
     runs-on: ubuntu-24.04
-    env:
-      APK_DEPS: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev"
-      SKIP_BINARY: "aiohttp;multidict;propcache;yarl;SQLAlchemy"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Core alap függőségek
+          - kind: core
+            requirements: requirements.txt
+            apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev"
+            skip_binary: "aiohttp;multidict;propcache;yarl;SQLAlchemy"
+
+          # Összes integráció függősége
+          - kind: integrations
+            # armv7-re nincs hivatalos requirements_all_wheels_armv7;
+            # a generált vagy az all fájlt használjuk
+            requirements: requirements_all.txt
+            apk: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev"
+            skip_binary: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
+
     steps:
       - name: Download prepared Core tree
         uses: actions/download-artifact@v4
@@ -134,7 +151,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GHCR
+      - name: Login to GHCR (builder image pull)
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -143,153 +160,21 @@ jobs:
 
       - name: Pull 32-bit builder image
         run: |
-          docker pull --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }}
-
-      - name: Create build env
-        working-directory: ha-core
-        run: |
-          cat > .env_file << 'EOF'
-          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
-          GRPC_PYTHON_BUILD_WITH_CYTHON=true
-          CARGO_NET_GIT_FETCH_WITH_CLI=true
-          CI_BUILD=1
-          ENABLE_HEADLESS=1
-          REQUIRE_SQLALCHEMY_CEXT=1
-          PIP_NO_BUILD_ISOLATION=0
-          PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
-          UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
-          MAKEFLAGS="-j2" \
-          CARGO_BUILD_JOBS=1 \
-          EOF
-
-      - name: Build wheels with custom armv7 builder
-        working-directory: ha-core
-        run: |
-          set -euo pipefail
-          OUT_DIR="${{ github.workspace }}/wheels-out/core"
-          mkdir -p "$OUT_DIR"
-
-          docker create --name "wheels-core" -t \
-            --platform linux/arm/v7 \
-            --workdir /data \
-            --env-file .env_file \
-            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
-            ${{ env.BUILDER_IMAGE }} \
-            --index "https://wheels.home-assistant.io" \
-            --upload rsync \
-            --remote "/data/output" \
-            --requirement "requirements.txt" \
-            --requirement-diff "requirements_diff.txt" \
-            --constraint "homeassistant/package_constraints.txt" \
-            --skip-binary "${{ env.SKIP_BINARY }}" \
-            --test
-
-          docker cp "${{ github.workspace }}/ha-core/." "wheels-core:/data"
-          docker start "wheels-core"
-
-          echo "=== APK csomagok telepítése ==="
-          APK_PACKAGES=$(echo "${{ env.APK_DEPS }}" | tr ';' ' ')
-          docker exec "wheels-core" apk add --no-progress --no-cache $APK_PACKAGES
-
-          # echo "=== Cython ellenőrzése ==="
-          # docker exec "wheels-core" python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
-
-          set +e
-          echo "=== Memória ellenőrzés ==="
-          free -h
-          echo "--- Container memória ---"
-          docker exec "wheels-core" free -h
-
-          echo "--- Cgroup memória események induláskor ---"
-          docker exec "wheels-core" sh -c 'cat /sys/fs/cgroup/memory.events 2>/dev/null || true'
-          
-          docker exec "wheels-core" python3 -m builder \
-            --index "https://wheels.home-assistant.io" \
-            --upload rsync \
-            --remote "/data/output" \
-            --requirement "requirements.txt" \
-            --requirement-diff "requirements_diff.txt" \
-            --constraint "homeassistant/package_constraints.txt" \
-            --skip-binary "${{ env.SKIP_BINARY }}" \
-            --test
-          
-          RC=$?
-
-          echo "=== Builder eredmény ==="
-          echo "Builder exit code: $RC"
-
-         
-          echo "=== Docker állapot ==="
-          docker inspect wheels-core --format 'Status={{.State.Status}} OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}}'
-
-          echo "--- Cgroup memória események a build után ---"
-          docker exec "wheels-core" sh -c 'cat /sys/fs/cgroup/memory.events 2>/dev/null || true'
-          
-          echo "--- Memória a build után ---"
-          docker exec "wheels-core" free -h
-
-          set -e
-
-          docker cp "wheels-core:/data/output/." "$OUT_DIR/" 2>/dev/null || \
-          docker cp "wheels-core:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
-
-          docker rm -f "wheels-core" || true
-
-          echo "Exit code: $RC"
-          find "$OUT_DIR" -type f -name "*.whl" | head -50
-          WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
-          echo "Talált .whl fájlok: $WHL_COUNT"
-
-          if [ "$WHL_COUNT" -eq 0 ]; then
-            echo "Nem készült .whl fájl"
-            exit 1
-          fi
-
-      - name: Upload Core wheels artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-armv7-core-${{ needs.init.outputs.version }}
-          path: wheels-out/core
-          if-no-files-found: error
-          retention-days: 14
-
-  # --------------------------------------------------
-  # 3) Integrations Wheels építése
-  # --------------------------------------------------
-  build-integrations:
-    name: Build Integrations wheels (armv7)
-    needs: [init, build-core]
-    runs-on: ubuntu-24.04
-    env:
-      APK_DEPS: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev"
-      SKIP_BINARY: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
-    steps:
-      - name: Download prepared Core tree
-        uses: actions/download-artifact@v4
-        with:
-          name: ha-core-prepared
-          path: ha-core
-
-      - name: Set up QEMU (armv7)
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          docker pull ${{ env.BUILDER_IMAGE }}
 
       - name: Select requirements file
         id: req
         working-directory: ha-core
         run: |
-          REQ="requirements_all.txt"
-          if [ -f requirements_all_wheels_armv7.txt ]; then
-            REQ=requirements_all_wheels_armv7.txt
+          REQ="${{ matrix.requirements }}"
+          # integrations: ha van arch-specifikus, azt preferáljuk
+          if [ "${{ matrix.kind }}" = "integrations" ]; then
+            if [ -f requirements_all_wheels_armv7.txt ]; then
+              REQ=requirements_all_wheels_armv7.txt
+            elif [ -f requirements_all_wheels_amd64.txt ]; then
+              # fallback – legalább a lista megvan (evdev stb. eltérhet)
+              REQ=requirements_all.txt
+            fi
           fi
           if [ ! -f "$REQ" ]; then
             echo "Hiányzó requirements fájl: $REQ"
@@ -300,37 +185,17 @@ jobs:
           echo "Használt requirements: $REQ"
           wc -l "$REQ"
 
-      - name: Pull 32-bit builder image
-        run: |
-          docker pull --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }}
-
-      - name: Create build env
-        working-directory: ha-core
-        run: |
-          cat > .env_file << 'EOF'
-          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
-          GRPC_PYTHON_BUILD_WITH_CYTHON=true
-          CARGO_NET_GIT_FETCH_WITH_CLI=true
-          CI_BUILD=1
-          ENABLE_HEADLESS=1
-          REQUIRE_SQLALCHEMY_CEXT=1
-          PIP_NO_BUILD_ISOLATION=0
-          PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
-          UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
-          EOF
-
       - name: Build wheels with custom armv7 builder
         working-directory: ha-core
         run: |
           set -euo pipefail
-          OUT_DIR="${{ github.workspace }}/wheels-out/integrations"
+          OUT_DIR="${{ github.workspace }}/wheels-out/${{ matrix.kind }}"
           mkdir -p "$OUT_DIR"
 
-          docker create --name "wheels-integrations" -t \
-            --platform linux/arm/v7 \
+          # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
+          docker create --name "wheels-${{ matrix.kind }}" -t \
             --workdir /data \
             --env-file .env_file \
-            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
@@ -338,61 +203,53 @@ jobs:
             --requirement "${{ steps.req.outputs.file }}" \
             --requirement-diff "requirements_diff.txt" \
             --constraint "homeassistant/package_constraints.txt" \
-            --skip-binary "${{ env.SKIP_BINARY }}" \
+            --skip-binary "${{ matrix.skip_binary }}" \
+            --apk "${{ matrix.apk }}" \
             --test
 
-          docker cp "${{ github.workspace }}/ha-core/." "wheels-integrations:/data"
-          docker start "wheels-integrations"
+          # Forrás bemásolása a konténerbe
+          docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
 
-          echo "=== APK csomagok telepítése ==="
-          APK_PACKAGES=$(echo "${{ env.APK_DEPS }}" | tr ';' ' ')
-          docker exec "wheels-integrations" apk add --no-progress --no-cache $APK_PACKAGES
-
-          echo "=== Cython ellenőrzése ==="
-          docker exec "wheels-integrations" python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
-
+          # Build indítása
           set +e
-          docker exec "wheels-integrations" python3 -m builder \
-            --index "https://wheels.home-assistant.io" \
-            --upload rsync \
-            --remote "/data/output" \
-            --requirement "${{ steps.req.outputs.file }}" \
-            --requirement-diff "requirements_diff.txt" \
-            --constraint "homeassistant/package_constraints.txt" \
-            --skip-binary "${{ env.SKIP_BINARY }}" \
-            --test
+          docker start -a "wheels-${{ matrix.kind }}"
           RC=$?
           set -e
 
-          docker cp "wheels-integrations:/data/output/." "$OUT_DIR/" 2>/dev/null || \
-          docker cp "wheels-integrations:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
+          # Kimenet kimentése
+          docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || \
+          docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
 
-          docker rm -f "wheels-integrations" || true
+          docker rm -f "wheels-${{ matrix.kind }}" || true
 
           echo "Exit code: $RC"
+          echo "=== Kimenet ==="
           find "$OUT_DIR" -type f -name "*.whl" | head -50
           WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
           echo "Talált .whl fájlok: $WHL_COUNT"
 
+          # Ha egyáltalán nincs wheel, bukjon el a job
           if [ "$WHL_COUNT" -eq 0 ]; then
             echo "Nem készült .whl fájl"
+            # a builder néha /data alá rakja a wheel-eket
+            find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -20
             exit 1
           fi
 
-      - name: Upload Integrations wheels artifact
+      - name: Upload wheels artifact (mátrix szerint jelölve)
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-armv7-integrations-${{ needs.init.outputs.version }}
-          path: wheels-out/integrations
+          name: wheels-armv7-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          path: wheels-out/${{ matrix.kind }}
           if-no-files-found: error
           retention-days: 14
 
   # --------------------------------------------------
-  # 4) Összefűzés + feltöltés villgzs alá
+  # 3) Összefűzés + feltöltés villgzs alá
   # --------------------------------------------------
   publish:
     name: Publish wheels under villgzs
-    needs: [init, build-core, build-integrations]
+    needs: [init, build]
     runs-on: ubuntu-latest
     steps:
       - name: Download core wheels
@@ -421,6 +278,7 @@ jobs:
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
+      # Opcionális: GitHub Release a villgzs/wheels32bit repo-n
       - name: Checkout wheels32bit (release feltöltéshez)
         uses: actions/checkout@v4
         with:
@@ -434,6 +292,7 @@ jobs:
           TAG="wheels-${{ needs.init.outputs.version }}-armv7"
           TITLE="Wheels for Home Assistant ${{ needs.init.outputs.version }} (armv7)"
 
+          # Release létrehozása, ha még nincs
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" \
               --title "$TITLE" \
@@ -447,6 +306,8 @@ jobs:
           "
           fi
 
+          # Feltöltés mátrix szerint elnevezett fájlokkal
+          # (a .whl neveket megtartjuk, alcélba rendezve zip-pel opcionálisan)
           mkdir -p /tmp/upload
           cp -r ../dist/core /tmp/upload/core
           cp -r ../dist/integrations /tmp/upload/integrations
