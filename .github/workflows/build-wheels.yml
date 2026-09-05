@@ -126,7 +126,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ha-core-prepared
-          path: .
+          path: ha-core
 
       - name: Set up QEMU (armv7)
         uses: docker/setup-qemu-action@v3
@@ -230,7 +230,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ha-core-prepared
-          path: .
+          path: ha-core
 
       - name: Set up QEMU (armv7)
         uses: docker/setup-qemu-action@v3
