@@ -7,8 +7,6 @@ on:
         description: "Home Assistant Core verzió (üres = legfrissebb stable)"
         required: false
         default: ""
-  # schedule:
-  #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
 
 env:
   ABI: cp314
@@ -86,6 +84,8 @@ jobs:
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
           PIP_NO_BUILD_ISOLATION=0
+          PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
           EOF
 
       - name: Prepare requirements_diff (full rebuild)
@@ -154,8 +154,8 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
-            -e PIP_NO_BUILD_ISOLATION=1 \
-            -e PIP_BUILD_ISOLATION=false \
+            -e PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
+            -e UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
@@ -169,13 +169,15 @@ jobs:
           docker cp "${{ github.workspace }}/ha-core/." "wheels-core:/data"
           docker start "wheels-core"
 
+          echo "=== Constraint beállítása (Cython < 3.2.7) ==="
+          docker exec "wheels-core" sh -c 'echo "cython<3.2.7" > /etc/pip-build-constraints.txt'
+
           echo "=== APK csomagok telepítése ==="
           APK_PACKAGES=$(echo "${{ env.APK_DEPS }}" | tr ';' ' ')
           docker exec "wheels-core" apk add --no-progress --no-cache $APK_PACKAGES
 
-          echo "=== Cython visszabutítása és ellenőrzése ==="
-          docker exec "wheels-core" pip install "cython<3.1.0" setuptools wheel
-          docker exec "wheels-core" python3 -c "import Cython; print('Használt Cython verzió:', Cython.__version__)"
+          echo "=== Cython ellenőrzése ==="
+          docker exec "wheels-core" python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
 
           set +e
           docker exec "wheels-core" python3 -m builder \
@@ -275,8 +277,8 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
-            -e PIP_NO_BUILD_ISOLATION=1 \
-            -e PIP_BUILD_ISOLATION=false \
+            -e PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
+            -e UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
@@ -290,13 +292,15 @@ jobs:
           docker cp "${{ github.workspace }}/ha-core/." "wheels-integrations:/data"
           docker start "wheels-integrations"
 
+          echo "=== Constraint beállítása (Cython < 3.2.7) ==="
+          docker exec "wheels-integrations" sh -c 'echo "cython<3.2.7" > /etc/pip-build-constraints.txt'
+
           echo "=== APK csomagok telepítése ==="
           APK_PACKAGES=$(echo "${{ env.APK_DEPS }}" | tr ';' ' ')
           docker exec "wheels-integrations" apk add --no-progress --no-cache $APK_PACKAGES
 
-          echo "=== Cython visszabutítása és ellenőrzése ==="
-          docker exec "wheels-integrations" pip install "cython<3.1.0" setuptools wheel
-          docker exec "wheels-integrations" python3 -c "import Cython; print('Használt Cython verzió:', Cython.__version__)"
+          echo "=== Cython ellenőrzése ==="
+          docker exec "wheels-integrations" python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
 
           set +e
           docker exec "wheels-integrations" python3 -m builder \
