@@ -86,8 +86,8 @@ jobs:
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
           PIP_NO_BUILD_ISOLATION=0
-          PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
-          UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
+          UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
           EOF
 
       - name: Prepare requirements_diff (full rebuild)
@@ -156,8 +156,8 @@ jobs:
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
           PIP_NO_BUILD_ISOLATION=0
-          PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
-          UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
+          UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
           MAKEFLAGS="-j2" \
           CARGO_BUILD_JOBS=1 \
           EOF
@@ -173,7 +173,7 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
-            -v ./pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
+            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
@@ -315,8 +315,8 @@ jobs:
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
           PIP_NO_BUILD_ISOLATION=0
-          PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
-          UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt
+          PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
+          UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
           EOF
 
       - name: Build wheels with custom armv7 builder
@@ -330,7 +330,7 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
-            -v ./pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
+            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
