@@ -156,7 +156,6 @@ jobs:
           CI_BUILD=1
           ENABLE_HEADLESS=1
           REQUIRE_SQLALCHEMY_CEXT=1
-          PIP_NO_BUILD_ISOLATION=0
           PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
           UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
           MAKEFLAGS="-j2" \
