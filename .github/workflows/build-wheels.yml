@@ -171,7 +171,7 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
-            -v $(pwd)/pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
+            -v ./pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
@@ -328,7 +328,7 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
-            -v $(pwd)/pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
+            -v ./pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
             ${{ env.BUILDER_IMAGE }} \
             --index "https://wheels.home-assistant.io" \
             --upload rsync \
