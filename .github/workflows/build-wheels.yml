@@ -47,7 +47,7 @@ jobs:
         with:
           repository: home-assistant/core
           ref: ${{ steps.version.outputs.version }}
-          path: ha-core
+          path: ha-core      
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -57,6 +57,8 @@ jobs:
       - name: Create venv and install tools
         working-directory: ha-core
         run: |
+          # Előkészítés a hoston (pl. a ha-core könyvtáradban)
+          echo "cython<3.2.7" > ./pip-build-constraints.txt
           python -m venv venv
           . venv/bin/activate
           pip install "$(grep '^uv' < requirements.txt || true)"
@@ -154,6 +156,7 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
+            -v $(pwd)/pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
             -e PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
             -e UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
             ${{ env.BUILDER_IMAGE }} \
@@ -168,9 +171,6 @@ jobs:
 
           docker cp "${{ github.workspace }}/ha-core/." "wheels-core:/data"
           docker start "wheels-core"
-
-          echo "=== Constraint beállítása (Cython < 3.2.7) ==="
-          docker exec "wheels-core" sh -c 'echo "cython<3.2.7" > /etc/pip-build-constraints.txt'
 
           echo "=== APK csomagok telepítése ==="
           APK_PACKAGES=$(echo "${{ env.APK_DEPS }}" | tr ';' ' ')
@@ -277,6 +277,7 @@ jobs:
             --platform linux/arm/v7 \
             --workdir /data \
             --env-file .env_file \
+            -v $(pwd)/pip-build-constraints.txt:/etc/pip-build-constraints.txt:ro \
             -e PIP_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
             -e UV_BUILD_CONSTRAINT=/etc/pip-build-constraints.txt \
             ${{ env.BUILDER_IMAGE }} \
@@ -291,9 +292,6 @@ jobs:
 
           docker cp "${{ github.workspace }}/ha-core/." "wheels-integrations:/data"
           docker start "wheels-integrations"
-
-          echo "=== Constraint beállítása (Cython < 3.2.7) ==="
-          docker exec "wheels-integrations" sh -c 'echo "cython<3.2.7" > /etc/pip-build-constraints.txt'
 
           echo "=== APK csomagok telepítése ==="
           APK_PACKAGES=$(echo "${{ env.APK_DEPS }}" | tr ';' ' ')
