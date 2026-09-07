@@ -99,6 +99,7 @@ jobs:
             echo "REQUIRE_SQLALCHEMY_CEXT=1"
 
             echo "PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt" 
+            echo "PIP_VERBOSE=1"
           ) > .env_file
 
       - name: Upload env_file      
@@ -241,6 +242,37 @@ jobs:
 
           # Forrás bemásolása a konténerbe
           docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
+
+          docker create --name "wheels-${{ matrix.kind }}-aux" -t \
+            --platform linux/arm/v7 \
+            --workdir /data \
+            --env-file .env_file \
+            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
+            --entrypoint /bin/sh \
+            ${{ env.BUILDER_IMAGE }} \
+            -c "while true; do sleep 3600; done"
+
+          # Forrás bemásolása a konténerbe
+          docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}-aux:/data"            
+
+          #docker start "wheels-${{ matrix.kind }}-aux"
+          #echo "=== Cython ellenőrzése ==="
+          #docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
+          #docker exec "wheels-${{ matrix.kind }}-aux" cat /pip-build-constraints.txt
+
+          docker start "wheels-${{ matrix.kind }}-aux"
+
+          echo "=== Cython ellenőrzése ==="
+          docker exec "wheels-${{ matrix.kind }}-aux" \
+            python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
+
+          echo "=== Build constraints ==="
+          docker exec "wheels-${{ matrix.kind }}-aux" \
+            cat /pip-build-constraints.txt
+
+          echo "=== Aux konténer leállítása és törlése ==="
+          docker stop "wheels-${{ matrix.kind }}-aux"
+          docker rm "wheels-${{ matrix.kind }}-aux"
 
           # Build indítása
           set +e
