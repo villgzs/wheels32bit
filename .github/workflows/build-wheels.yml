@@ -62,6 +62,29 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: ha-core/.python-version
+          
+      - name: Pin Cython version in pyproject.toml
+        run: |
+          python3 - <<'EOF'
+          from pathlib import Path
+          import re
+
+          path = Path("ha-core/pyproject.toml")
+          content = path.read_text()
+
+          # A [build-system] requires listába beszúrja a cython<3.2.7-et
+          pattern = r'(requires\s*=\s*\[\s*"setuptools==78\.1\.1")(\s*\])'
+          replacement = r'\1, "cython<3.2.7"\2'
+
+          new_content, count = re.subn(pattern, replacement, content, count=1)
+
+          if count == 0:
+              raise SystemExit("Nem találtam a setuptools==78.1.1 sort a pyproject.toml-ben!")
+
+          path.write_text(new_content)
+          print("Sikeresen módosítva:")
+          print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
+          EOF
 
       - name: Create venv and install tools
         working-directory: ha-core
