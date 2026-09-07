@@ -79,6 +79,7 @@ jobs:
           updated_content = re.sub(r"_ARCH_PLAT\s*=\s*\{[^}]*\}", new_arch_plat, content)
           file_path.write_text(updated_content, encoding="utf-8")
           '
+          head -n 30 wheels//builder/wheel.py
 
       # 3. A te 32 bites Dockerfile-od felülírja a hivatalosat
       - name: Replace Dockerfile with your 32-bit version
