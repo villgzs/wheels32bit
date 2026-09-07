@@ -97,6 +97,8 @@ jobs:
 
             # Use C-Extension for SQLAlchemy
             echo "REQUIRE_SQLALCHEMY_CEXT=1"
+
+            echo "PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt" 
           ) > .env_file
 
       - name: Upload env_file      
@@ -167,6 +169,11 @@ jobs:
         with:
           name: env_file
           path: ha-core
+
+      - name: maximize cython version
+        working-directory: ha-core
+        run: |
+            (echo "cython<3.2.7" >> pip-build-constraints.txt)
 
       - name: Set up QEMU (armv7)
         uses: docker/setup-qemu-action@v3
