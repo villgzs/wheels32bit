@@ -62,13 +62,9 @@ jobs:
         run: |
           python -m venv venv
           . venv/bin/activate
-          pip install "$(grep '^uv' < requirements.txt || true)"
-          # uv lehet, hogy nem kell; ha nincs a requirements-ben, skip
-          if grep -q '^uv' requirements.txt 2>/dev/null; then
-            uv pip install -r requirements.txt
-          else
-            pip install -r requirements.txt
-          fi
+          python --version
+          pip install "$(grep '^uv' < requirements.txt)"
+          uv pip install -r requirements.txt
 
       - name: Generate requirements_all_wheels
         working-directory: ha-core
@@ -81,14 +77,28 @@ jobs:
       - name: Write env-file
         working-directory: ha-core
         run: |
-          cat > .env_file << 'EOF'
-          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
-          GRPC_PYTHON_BUILD_WITH_CYTHON=true
-          CARGO_NET_GIT_FETCH_WITH_CLI=true
-          CI_BUILD=1
-          ENABLE_HEADLESS=1
-          REQUIRE_SQLALCHEMY_CEXT=1
-          EOF
+          (
+            echo "GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true"
+            echo "GRPC_PYTHON_BUILD_WITH_CYTHON=true"
+
+            # Fix out of memory issues with rust
+            echo "CARGO_NET_GIT_FETCH_WITH_CLI=true"
+
+            # OpenCV headless installation
+            echo "CI_BUILD=1"
+            echo "ENABLE_HEADLESS=1"
+
+            # Use C-Extension for SQLAlchemy
+            echo "REQUIRE_SQLALCHEMY_CEXT=1"
+          ) > .env_file
+
+      - name: Upload env_file
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: env_file
+          path: ./.env_file
+          include-hidden-files: true
+          overwrite: true          
 
       - name: Prepare requirements_diff (full rebuild)
         working-directory: ha-core
@@ -144,23 +154,6 @@ jobs:
         with:
           name: ha-core-prepared
           path: ha-core
-
-      - name: Create env-file
-        working-directory: ha-core
-        run: |
-          echo "cython<3.2.7" > ./pip-build-constraints.txt
-          cat > .env_file << 'EOF'
-          GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
-          GRPC_PYTHON_BUILD_WITH_CYTHON=true
-          CARGO_NET_GIT_FETCH_WITH_CLI=true
-          CI_BUILD=1
-          ENABLE_HEADLESS=1
-          REQUIRE_SQLALCHEMY_CEXT=1
-          # PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt
-          # UV_BUILD_CONSTRAINT=/pip-build-constraints.txt
-          # MAKEFLAGS="-j2" \
-          # CARGO_BUILD_JOBS=1 \
-          EOF
 
       - name: Set up QEMU (armv7)
         uses: docker/setup-qemu-action@v3
