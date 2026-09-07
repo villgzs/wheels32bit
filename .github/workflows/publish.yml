@@ -58,6 +58,28 @@ jobs:
           ref: 2026.07.0
           path: wheels
 
+      - name: Update _ARCH_PLAT in builder/wheel.py
+        shell: bash
+        run: |
+          python3 -c '
+          import re
+          from pathlib import Path
+
+          file_path = Path("wheels/builder/wheel.py")
+          content = file_path.read_text(encoding="utf-8")
+
+          new_arch_plat = """_ARCH_PLAT = {
+              "amd64": "x86_64",
+              "i386": "i686",
+              "aarch64": "aarch64",
+              "armhf": "armv6l",
+              "armv7": "armv7l",
+          }"""
+
+          updated_content = re.sub(r"_ARCH_PLAT\s*=\s*\{[^}]*\}", new_arch_plat, content)
+          file_path.write_text(updated_content, encoding="utf-8")
+          '
+
       # 3. A te 32 bites Dockerfile-od felülírja a hivatalosat
       - name: Replace Dockerfile with your 32-bit version
         run: |
