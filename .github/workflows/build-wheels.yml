@@ -123,6 +123,10 @@ jobs:
 
             echo "PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt" 
             echo "PIP_VERBOSE=0"
+
+            echo "UV_BUILD_CONSTRAINT=/pip-build-constraints.txt"
+            echo "UV_CONSTRAINT=/pip-build-constraints.txt"
+
           ) > .env_file
 
       - name: Upload env_file      
