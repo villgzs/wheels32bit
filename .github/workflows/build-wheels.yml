@@ -32,6 +32,12 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
+      - name: Checkout wheels32bit
+        uses: actions/checkout@v4
+        with:
+          repository: villgzs/wheels32bit
+          path: wheels32bit
+          
       - name: Determine Core version
         id: version
         env:
@@ -69,8 +75,10 @@ jobs:
       - name: Generate requirements_all_wheels
         working-directory: ha-core
         run: |
-          . venv/bin/activate
-          python -m script.gen_requirements_all ci || true
+          . venv/bin/activate          
+          # python -m script.gen_requirements_all ci || true
+          python ../wheels32bit/script/gen_requirements_all.py ci || true 
+          
           # Ha a script nem fut le (pl. hiányzó deps), legalább a meglévő fájlokat használjuk
           ls -la requirements*.txt requirements_all_wheels_*.txt 2>/dev/null || true
 
