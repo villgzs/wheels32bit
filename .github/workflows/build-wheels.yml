@@ -412,14 +412,16 @@ jobs:
           mkdir -p musllinux
       
           # Kerekek másolása
-          cp -v ../dist/core/musllinux/*.whl musllinux/ 2>/dev/null || true
-          cp -v ../dist/integrations/musllinux/*.whl musllinux/ 2>/dev/null || true
+          cp -v ../dist/core/musllinux/*.whl musllinux-index/ 2>/dev/null || true
+          cp -v ../dist/integrations/musllinux/*.whl musllinux-index/ 2>/dev/null || true
       
           # README.md frissítése a kerekek linkjeivel
           cat README > README.md
           echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
           echo "### Musllinux armv7 wheels" >> README.md
-          for f in musllinux/*.whl; do
+          echo "-  [musllinux-index](https://villgzs.github.io/wheels32bit/musllinux-index/)" >> README.md
+          echo "  " >> README.md
+          for f in musllinux-index/*.whl; do
             if [ -f "$f" ]; then
               filename=$(basename "$f")
               echo "* [$filename](./$f)" >> README.md
@@ -432,7 +434,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       
-          git add musllinux/ README.md .nojekyll
+          git add musllinux-index/ README.md .nojekyll
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
