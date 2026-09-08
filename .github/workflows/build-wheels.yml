@@ -263,6 +263,7 @@ jobs:
           echo "file=$REQ" >> $GITHUB_OUTPUT
           echo "Használt requirements: $REQ"
           wc -l "$REQ"
+          head -n 20 "$REQ"
 
       - name: Build wheels with custom armv7 builder
         working-directory: ha-core
