@@ -284,7 +284,8 @@ jobs:
             --requirement "${{ steps.req.outputs.file }}" \
             --requirement-diff "requirements_diff.txt" \
             --constraint "homeassistant/package_constraints.txt" \
-            --skip-binary "${{ matrix.skip_binary }}" \
+            #--skip-binary "${{ matrix.skip_binary }}" \
+            --skip-binary ":none:" \
             --apk "${{ matrix.apk }}"
 
           # Forrás bemásolása a konténerbe
