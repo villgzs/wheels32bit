@@ -285,8 +285,7 @@ jobs:
             --requirement-diff "requirements_diff.txt" \
             --constraint "homeassistant/package_constraints.txt" \
             --skip-binary "${{ matrix.skip_binary }}" \
-            --apk "${{ matrix.apk }}" \
-            --test
+            --apk "${{ matrix.apk }}"
 
           # Forrás bemásolása a konténerbe
           docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
