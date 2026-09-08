@@ -117,7 +117,7 @@ jobs:
           if [ "$TEST_BUILD" = "true" ]; then
             echo "Rövidített requirements fájlok használata teszteléshez... 11. sortól vágás"
             for f in requirements*.txt; do
-              [ -f "$f" ] && sed -i '11,$d' "$f"
+              [ -f "$f" ] && sed -i '6,$d' "$f"
             done
           else
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
@@ -384,11 +384,15 @@ jobs:
           find dist/core -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
           echo ls -las dist/core
           ls -las dist/core
+          echo " "
+          ls -las dist/core/musllinux
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### integrations" >> $GITHUB_STEP_SUMMARY
           find dist/integrations -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
           echo ls -las dist/integrations
           ls -las dist/integrations
+          echo " "
+          ls -las dist/integrations/musllinux
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
