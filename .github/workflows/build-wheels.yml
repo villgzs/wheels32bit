@@ -361,6 +361,8 @@ jobs:
     name: Publish wheels under villgzs
     needs: [init, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download core wheels
         uses: actions/download-artifact@v4
