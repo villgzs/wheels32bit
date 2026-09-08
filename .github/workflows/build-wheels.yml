@@ -382,9 +382,13 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### core" >> $GITHUB_STEP_SUMMARY
           find dist/core -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+          echo ls -las dist/core
+          ls -las dist/core
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### integrations" >> $GITHUB_STEP_SUMMARY
           find dist/integrations -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+          echo ls -las dist/integrations
+          ls -las dist/integrations
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
