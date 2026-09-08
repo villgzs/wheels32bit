@@ -111,11 +111,8 @@ jobs:
           python -m script.gen_requirements_all ci || true
           # python ../wheels32bit/script/gen_requirements_all.py ci || true 
 
-          # Rövidítés teszteléshez.
-          head -n 30 requirements_all.txt > short_list.txt
-          mv short_list.txt requirements_all.txt
-          # Ha a script nem fut le (pl. hiányzó deps), legalább a meglévő fájlokat használjuk
-          ls -la requirements*.txt requirements_all_wheels_*.txt 2>/dev/null || true
+          # Rövidítés teszteléshez. ---=== ELŐTTE ===---
+          ls -la requirements*.txt  2>/dev/null || true
 
           if [ "$TEST_BUILD" = "true" ]; then
             echo "Rövidített requirements fájlok használata teszteléshez..."
@@ -126,7 +123,7 @@ jobs:
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
           fi
 
-          # Tisztázott kilistázás minta-átfedés nélkül
+          # Tisztázott kilistázás minta-átfedés nélkül ---=== UTÁNA ===---
           ls -la requirements.txt requirements_all.txt requirements_all_wheels_*.txt requirements_test*.txt 2>/dev/null || true
           
       - name: Write env-file
