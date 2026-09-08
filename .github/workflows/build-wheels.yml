@@ -426,7 +426,7 @@ jobs:
           done
       
           # Egy üres .nojekyll fájl, hogy a ponttal/alulvonással kezdődő fájlokat is kiszolgálja
-          touch .nojekyll
+          # touch .nojekyll
       
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
