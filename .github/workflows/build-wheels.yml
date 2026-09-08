@@ -394,13 +394,13 @@ jobs:
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Publish wheels to musllinux index (gh-pages)
+      - name: Publish wheels to musllinux index (main)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
       
-          git clone --depth 1 --branch gh-pages \
+          git clone --depth 1 --branch main \
             https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           cd index-repo
 
@@ -423,5 +423,5 @@ jobs:
             echo "Nincs változás, nem commitolok."
           else
             git commit -m "Update armv7 wheels for HA ${{ needs.init.outputs.version }}"
-            git push origin gh-pages
+            git push origin main
           fi
