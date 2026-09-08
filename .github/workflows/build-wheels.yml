@@ -6,7 +6,7 @@ on:
       core_version:
         description: "Home Assistant Core verzió (üres = legfrissebb stable)"
         required: false
-        default: ""
+        default: "2026.9.1"
       test_build:
         description: 'Teszt üzemmód (csak az első 30 sor feldolgozása)'
         required: false
