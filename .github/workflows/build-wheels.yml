@@ -390,47 +390,25 @@ jobs:
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
-      # Opcionális: GitHub Release a villgzs/wheels32bit repo-n
-      - name: Checkout wheels32bit (release feltöltéshez)
-        uses: actions/checkout@v4
-        with:
-          path: wheels32bit-repo
-
-      - name: Create / update GitHub Release with wheels
-        working-directory: wheels32bit-repo
+      - name: Publish wheels to index repository
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # vagy egy PAT, ha másik repo
         run: |
-          TAG="wheels-${{ needs.init.outputs.version }}-armv7"
-          TITLE="Wheels for Home Assistant ${{ needs.init.outputs.version }} (armv7)"
-
-          # Release létrehozása, ha még nincs
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" \
-              --title "$TITLE" \
-              --notes "Prebuilt musllinux armv7 wheels for HA ${{ needs.init.outputs.version }}.
-
-          - **core**: requirements.txt alapú wheel-ek
-          - **integrations**: requirements_all.txt alapú wheel-ek
-          - ABI: ${{ env.ABI }}
-          - Tag: ${{ env.TAG }}
-          - Builder: ${{ env.BUILDER_IMAGE }}
-          "
-          fi
-
-          # Feltöltés mátrix szerint elnevezett fájlokkal
-          # (a .whl neveket megtartjuk, alcélba rendezve zip-pel opcionálisan)
-          mkdir -p /tmp/upload
-          cp -r ../dist/core /tmp/upload/core
-          cp -r ../dist/integrations /tmp/upload/integrations
-
-          (
-            cd /tmp/upload
-            zip -r "wheels-armv7-core-${{ needs.init.outputs.version }}.zip" core
-            zip -r "wheels-armv7-integrations-${{ needs.init.outputs.version }}.zip" integrations
-          )
-
-          gh release upload "$TAG" \
-            /tmp/upload/wheels-armv7-core-${{ needs.init.outputs.version }}.zip \
-            /tmp/upload/wheels-armv7-integrations-${{ needs.init.outputs.version }}.zip \
-            --clobber
+          # Klónozzuk az index repo-t
+          git clone --depth 1 https://x-access-token:${GH_TOKEN}@github.com/<felhasználó>/ha-wheels-armv7.git index-repo
+          cd index-repo
+      
+          # Töröljük a régi armv7 wheel-eket (opcionális, de tiszta)
+          # rm -f musllinux/*armv7l*.whl || true
+          mkdir -p musllinux
+      
+          # Új wheel-ek bemásolása
+          cp ../dist/core/*.whl musllinux/ 2>/dev/null || true
+          cp ../dist/integrations/*.whl musllinux/ 2>/dev/null || true
+      
+          # Commit + push
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add musllinux/
+          git commit -m "Update armv7 wheels for HA ${{ needs.init.outputs.version }}" || echo "No changes"
+          git push
