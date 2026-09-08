@@ -99,12 +99,18 @@ jobs:
         working-directory: ha-core
         run: |
           . venv/bin/activate          
-          # python -m script.gen_requirements_all ci || true
-          python ../wheels32bit/script/gen_requirements_all.py ci || true 
+          cp ../wheels32bit/script/gen_requirements_all.py script/gen_requirements_all.py
           
+          python -m script.gen_requirements_all ci || true
+          # python ../wheels32bit/script/gen_requirements_all.py ci || true 
+
+          # Rövidítés teszteléshez.
+          head -n 30 requirements_all.txt > short_list.txt
+          mv short_list.txt requirements_all.txt
+                    
           # Ha a script nem fut le (pl. hiányzó deps), legalább a meglévő fájlokat használjuk
           ls -la requirements*.txt requirements_all_wheels_*.txt 2>/dev/null || true
-
+          
       - name: Write env-file
         run: |
           (
