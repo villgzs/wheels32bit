@@ -284,7 +284,7 @@ jobs:
             --remote "/data/output" \
             --requirement "${{ steps.req.outputs.file }}" \
             --requirement-diff "requirements_diff.txt" \
-            --constraint "homeassistant/package_constraints.txt" \            
+            --constraint "homeassistant/package_constraints.txt" \
             --skip-binary ":none:" \
             --apk "${{ matrix.apk }}"
 
