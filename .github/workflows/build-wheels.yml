@@ -411,10 +411,11 @@ jobs:
           mkdir -p musllinux
       
           # Kerekek másolása
-          cp -v ../dist/core/*.whl musllinux/ 2>/dev/null || true
-          cp -v ../dist/integrations/*.whl musllinux/ 2>/dev/null || true
+          cp -v ../dist/core/musllinux/*.whl musllinux/ 2>/dev/null || true
+          cp -v ../dist/integrations/musllinux/*.whl musllinux/ 2>/dev/null || true
       
           # README.md frissítése a kerekek linkjeivel
+          cat README > README.md
           echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
           echo "### Musllinux armv7 wheels" >> README.md
           for f in musllinux/*.whl; do
