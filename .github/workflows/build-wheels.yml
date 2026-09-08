@@ -279,7 +279,7 @@ jobs:
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             ${{ env.BUILDER_IMAGE }} \
-            --index "https://wheels.home-assistant.io" \
+            --index "https://villgzs.github.io/wheels32bit" \
             --upload rsync \
             --remote "/data/output" \
             --requirement "${{ steps.req.outputs.file }}" \
@@ -390,25 +390,33 @@ jobs:
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Publish wheels to index repository
+      - name: Publish wheels to musllinux index
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # vagy egy PAT, ha másik repo
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Klónozzuk az index repo-t
-          git clone --depth 1 https://x-access-token:${GH_TOKEN}@github.com/<felhasználó>/ha-wheels-armv7.git index-repo
+          set -euo pipefail
+      
+          git clone --depth 1 \
+            https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           cd index-repo
       
-          # Töröljük a régi armv7 wheel-eket (opcionális, de tiszta)
-          # rm -f musllinux/*armv7l*.whl || true
           mkdir -p musllinux
       
           # Új wheel-ek bemásolása
-          cp ../dist/core/*.whl musllinux/ 2>/dev/null || true
-          cp ../dist/integrations/*.whl musllinux/ 2>/dev/null || true
+          cp -v ../dist/core/*.whl musllinux/ 2>/dev/null || true
+          cp -v ../dist/integrations/*.whl musllinux/ 2>/dev/null || true
       
-          # Commit + push
+          echo "=== musllinux tartalma ==="
+          ls -la musllinux/ | head -30
+          echo "Wheel count: $(find musllinux -name '*.whl' | wc -l)"
+      
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      
           git add musllinux/
-          git commit -m "Update armv7 wheels for HA ${{ needs.init.outputs.version }}" || echo "No changes"
-          git push
+          if git diff --staged --quiet; then
+            echo "Nincs változás, nem commitolok."
+          else
+            git commit -m "Update armv7 wheels for HA ${{ needs.init.outputs.version }}"
+            git push
+          fi
