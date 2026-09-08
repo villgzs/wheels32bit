@@ -419,7 +419,7 @@ jobs:
           cat README > README.md
           echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
           echo "### Musllinux armv7 wheels" >> README.md
-          echo "-  [musllinux-index](https://villgzs.github.io/wheels32bit/musllinux-index/)" >> README.md
+          echo "-  [musllinux-index](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)" >> README.md
           echo "  " >> README.md
           for f in musllinux-index/*.whl; do
             if [ -f "$f" ]; then
@@ -428,9 +428,6 @@ jobs:
             fi
           done
       
-          # Egy üres .nojekyll fájl, hogy a ponttal/alulvonással kezdődő fájlokat is kiszolgálja
-          # touch .nojekyll
-      
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       
@@ -438,6 +435,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} [skip ci]"
+            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }}"
             git push origin main
           fi
