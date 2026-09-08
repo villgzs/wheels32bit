@@ -409,7 +409,7 @@ jobs:
             https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           cd index-repo
       
-          mkdir -p musllinux
+          mkdir -p musllinux-index
       
           # Kerekek másolása
           cp -v ../dist/core/musllinux/*.whl musllinux-index/ 2>/dev/null || true
