@@ -117,7 +117,7 @@ jobs:
           if [ "$TEST_BUILD" = "true" ]; then
             echo "Rövidített requirements fájlok használata teszteléshez... 11. sortól vágás"
             for f in requirements*.txt; do
-              [ -f "$f" ] && sed -i '6,$d' "$f"
+              [ -f "$f" ] && sed -i '9,$d' "$f"
             done
           else
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
