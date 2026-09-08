@@ -8,7 +8,7 @@ on:
         required: false
         default: "2026.9.1"
       test_build:
-        description: 'Teszt üzemmód (csak az első 30 sor feldolgozása)'
+        description: 'Teszt üzemmód (csak az első néhány sor feldolgozása)'
         required: false
         type: boolean
         default: true  # Alapértelmezetten bepipálva
@@ -115,9 +115,9 @@ jobs:
           ls -la requirements*.txt  2>/dev/null || true
 
           if [ "$TEST_BUILD" = "true" ]; then
-            echo "Rövidített requirements fájlok használata teszteléshez..."
+            echo "Rövidített requirements fájlok használata teszteléshez... 11. sortól vágás"
             for f in requirements*.txt; do
-              [ -f "$f" ] && sed -i '31,$d' "$f"
+              [ -f "$f" ] && sed -i '11,$d' "$f"
             done
           else
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
