@@ -394,7 +394,7 @@ jobs:
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Publish wheels to musllinux index (main)
+      - name: Publish wheels and update README
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -403,25 +403,33 @@ jobs:
           git clone --depth 1 --branch main \
             https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           cd index-repo
-
-          echo "---=== ELŐTTE ===---"
-          ls -las
       
           mkdir -p musllinux
       
+          # Kerekek másolása
           cp -v ../dist/core/*.whl musllinux/ 2>/dev/null || true
           cp -v ../dist/integrations/*.whl musllinux/ 2>/dev/null || true
-
-          echo "---=== UTÁNA ===---"
-          ls -las
+      
+          # README.md frissítése a kerekek linkjeivel
+          echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
+          echo "### Musllinux armv7 wheels" >> README.md
+          for f in musllinux/*.whl; do
+            if [ -f "$f" ]; then
+              filename=$(basename "$f")
+              echo "* [$filename](./$f)" >> README.md
+            fi
+          done
+      
+          # Egy üres .nojekyll fájl, hogy a ponttal/alulvonással kezdődő fájlokat is kiszolgálja
+          touch .nojekyll
       
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       
-          git add musllinux/
+          git add musllinux/ README.md .nojekyll
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update armv7 wheels for HA ${{ needs.init.outputs.version }}"
+            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} [skip ci]"
             git push origin main
           fi
