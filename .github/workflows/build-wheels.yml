@@ -272,6 +272,7 @@ jobs:
           mkdir -p "$OUT_DIR"
 
           # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
+          # 
           docker create --name "wheels-${{ matrix.kind }}" -t \
             --platform linux/arm/v7 \
             --workdir /data \
@@ -283,8 +284,7 @@ jobs:
             --remote "/data/output" \
             --requirement "${{ steps.req.outputs.file }}" \
             --requirement-diff "requirements_diff.txt" \
-            --constraint "homeassistant/package_constraints.txt" \
-            #--skip-binary "${{ matrix.skip_binary }}" \
+            --constraint "homeassistant/package_constraints.txt" \            
             --skip-binary ":none:" \
             --apk "${{ matrix.apk }}"
 
