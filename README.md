@@ -2,3 +2,29 @@
 
 ## Legutóbbi build: HA 2026.9.1
 ### Musllinux armv7 wheels
+
+## Legutóbbi build: HA 2026.9.1
+### Musllinux armv7 wheels
+-  [musllinux-index](https://villgzs.github.io/wheels32bit/musllinux-index/)
+  
+* [AEMET_OpenData-0.6.4-py3-none-any.whl](./musllinux-index/AEMET_OpenData-0.6.4-py3-none-any.whl)
+* [aiodns-4.0.4-py3-none-any.whl](./musllinux-index/aiodns-4.0.4-py3-none-any.whl)
+* [aiogithubapi-26.0.0-py3-none-any.whl](./musllinux-index/aiogithubapi-26.0.0-py3-none-any.whl)
+* [aiohappyeyeballs-2.7.1-py3-none-any.whl](./musllinux-index/aiohappyeyeballs-2.7.1-py3-none-any.whl)
+* [aiohttp-3.14.3-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/aiohttp-3.14.3-cp314-cp314-musllinux_1_2_armv7l.whl)
+* [aiohttp_asyncmdnsresolver-0.2.0-py3-none-any.whl](./musllinux-index/aiohttp_asyncmdnsresolver-0.2.0-py3-none-any.whl)
+* [aiosignal-1.4.0-py3-none-any.whl](./musllinux-index/aiosignal-1.4.0-py3-none-any.whl)
+* [attrs-26.1.0-py3-none-any.whl](./musllinux-index/attrs-26.1.0-py3-none-any.whl)
+* [backoff-2.2.1-py3-none-any.whl](./musllinux-index/backoff-2.2.1-py3-none-any.whl)
+* [cffi-2.0.0-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/cffi-2.0.0-cp314-cp314-musllinux_1_2_armv7l.whl)
+* [frozenlist-1.8.0-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/frozenlist-1.8.0-cp314-cp314-musllinux_1_2_armv7l.whl)
+* [geographiclib-2.1-py3-none-any.whl](./musllinux-index/geographiclib-2.1-py3-none-any.whl)
+* [geopy-2.5.0-py3-none-any.whl](./musllinux-index/geopy-2.5.0-py3-none-any.whl)
+* [idna-3.19-py3-none-any.whl](./musllinux-index/idna-3.19-py3-none-any.whl)
+* [ifaddr-0.2.0-py3-none-any.whl](./musllinux-index/ifaddr-0.2.0-py3-none-any.whl)
+* [multidict-6.7.1-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/multidict-6.7.1-cp314-cp314-musllinux_1_2_armv7l.whl)
+* [propcache-0.5.2-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/propcache-0.5.2-cp314-cp314-musllinux_1_2_armv7l.whl)
+* [pycares-5.0.1-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/pycares-5.0.1-cp314-cp314-musllinux_1_2_armv7l.whl)
+* [pycparser-3.0-py3-none-any.whl](./musllinux-index/pycparser-3.0-py3-none-any.whl)
+* [yarl-1.24.5-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/yarl-1.24.5-cp314-cp314-musllinux_1_2_armv7l.whl)
+* [zeroconf-0.151.1-cp314-cp314-musllinux_1_2_armv7l.whl](./musllinux-index/zeroconf-0.151.1-cp314-cp314-musllinux_1_2_armv7l.whl)
