@@ -154,9 +154,9 @@ jobs:
           (
             echo "GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true"
             echo "GRPC_PYTHON_BUILD_WITH_CYTHON=true"
-            echo "GRPC_PYTHON_BUILD_SYSTEM_ZLIB=true"
-            echo "GRPC_PYTHON_BUILD_SYSTEM_CARES=true"
-            echo "GRPC_PYTHON_BUILD_SYSTEM_RE2=true"
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_ZLIB=true"
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_CARES=true"
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_RE2=true"
             # opcionális, de Alpine-on hasznos:
             echo "GRPC_PYTHON_DISABLE_LIBC_COMPATIBILITY=true"
             # ha abseil is elérhető a builder image-ben:
