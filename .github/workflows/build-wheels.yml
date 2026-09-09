@@ -226,7 +226,7 @@ jobs:
           - kind: core
             requirements: requirements.txt
             apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev"
-            skip_binary: "aiohttp;multidict;propcache;yarl;SQLAlchemy"
+            skip_binary: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy"
 
           # Összes integráció függősége
           - kind: integrations
