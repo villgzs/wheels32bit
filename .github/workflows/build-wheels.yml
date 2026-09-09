@@ -136,9 +136,9 @@ jobs:
           # head -n 50 requirements_all.txt || true
           # head -n 50 requirements_test.txt || true
 
-          cat -n 50 requirements.txt || true
-          cat -n 50 requirements_all.txt || true
-          cat -n 50 requirements_test.txt || true
+          cat requirements.txt || true
+          cat requirements_all.txt || true
+          cat requirements_test.txt || true
 
           # Tisztázott kilistázás minta-átfedés nélkül ---=== UTÁNA ===---
           ls -la requirements.txt requirements_all.txt requirements_all_wheels_*.txt requirements_test*.txt 2>/dev/null || true
