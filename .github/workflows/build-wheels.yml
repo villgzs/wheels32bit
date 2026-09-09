@@ -100,6 +100,15 @@ jobs:
           pip install "$(grep '^uv' < requirements.txt)"
           uv pip install -r requirements.txt
 
+      - name: Create requirements_diff file
+        working-directory: ha-core
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" =~ (schedule|workflow_dispatch) ]]; then
+            touch requirements_diff.txt
+          else
+            curl -s -o requirements_diff.txt https://raw.githubusercontent.com/home-assistant/core/master/requirements.txt
+          fi
+
       - name: Generate requirements_all_wheels
         working-directory: ha-core
         env:
@@ -119,9 +128,13 @@ jobs:
             for f in requirements*.txt; do
               [ -f "$f" ] && sed -i '9,$d' "$f"
             done
+            
           else
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
           fi
+          head -n 50 requirements.txt || true
+          head -n 50 requirements_all.txt || true
+          head -n 50 requirements_test.txt || true
 
           # Tisztázott kilistázás minta-átfedés nélkül ---=== UTÁNA ===---
           ls -la requirements.txt requirements_all.txt requirements_all_wheels_*.txt requirements_test*.txt 2>/dev/null || true
@@ -131,7 +144,14 @@ jobs:
           (
             echo "GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true"
             echo "GRPC_PYTHON_BUILD_WITH_CYTHON=true"
-
+            echo "GRPC_PYTHON_BUILD_SYSTEM_ZLIB=true"
+            echo "GRPC_PYTHON_BUILD_SYSTEM_CARES=true"
+            echo "GRPC_PYTHON_BUILD_SYSTEM_RE2=true"
+            # opcionális, de Alpine-on hasznos:
+            echo "GRPC_PYTHON_DISABLE_LIBC_COMPATIBILITY=true"
+            # ha abseil is elérhető a builder image-ben:
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_ABSL=true"
+            
             # Fix out of memory issues with rust
             echo "CARGO_NET_GIT_FETCH_WITH_CLI=true"
 
@@ -156,7 +176,7 @@ jobs:
           name: env_file
           path: ./.env_file
           include-hidden-files: true
-          overwrite: true          
+          overwrite: true
 
       - name: Prepare requirements_diff (full rebuild)
         working-directory: ha-core
@@ -222,7 +242,11 @@ jobs:
       - name: maximize cython version
         working-directory: ha-core
         run: |
-            (echo "cython<3.2.7" >> pip-build-constraints.txt)
+            echo "cython<3.2.7" >> pip-build-constraints.txt
+            echo "HA-CORE lista...."
+            ls -las 
+            head -n 20 requirements.txt || true
+            head -n 20 requirements_all.txt || true
 
       - name: Set up QEMU (armv7)
         uses: docker/setup-qemu-action@v3
@@ -425,6 +449,7 @@ jobs:
             if [ -f "$f" ]; then
               filename=$(basename "$f")
               echo "* [$filename](./$f)" >> README.md
+              echo "* [$filename](./$f)" >> musllinux-index/README.md
             fi
           done
       
