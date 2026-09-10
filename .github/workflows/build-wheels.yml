@@ -18,9 +18,9 @@ on:
 env:
   ABI: cp314
   TAG: musllinux_1_2
-  ARCH: armv7
+  # ARCH: armv7
   # A te 32 bites builder image-ed
-  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
+  ## BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
 
 permissions:
   contents: read
@@ -215,12 +215,13 @@ jobs:
   # 2) Wheels építés – mátrix: core + integrations
   # --------------------------------------------------
   build:
-    name: Build ${{ matrix.kind }} wheels (armv7)
+    name: Build ${{ matrix.kind }} wheels (${{ matrix.arch }})
     needs: init
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
+        arch: [armv7, armhf]
         include:
           # Core alap függőségek
           - kind: core
@@ -258,7 +259,7 @@ jobs:
             head -n 20 requirements.txt || true
             head -n 20 requirements_all.txt || true
 
-      - name: Set up QEMU (armv7)
+      - name: Set up QEMU (${{ matrix.arch }})
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
@@ -271,9 +272,20 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set builder image and platform
+        id: builder
+        run: |
+          echo "image=ghcr.io/villgzs/wheels32bit/${{ matrix.arch }}/${{ env.TAG }}/${{ env.ABI }}:dev" >> $GITHUB_OUTPUT
+          
+          if [ "${{ matrix.arch }}" = "armhf" ]; then
+            echo "platform=linux/arm/v6" >> $GITHUB_OUTPUT
+          else
+            echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
+          fi
+
       - name: Pull 32-bit builder image
         run: |
-          docker pull --platform linux/arm/v7 ${{ env.BUILDER_IMAGE }}
+          docker pull --platform ${{ steps.builder.outputs.platform }} ${{ steps.builder.outputs.image }}
 
       - name: Select requirements file
         id: req
@@ -310,11 +322,11 @@ jobs:
           # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
           # 
           docker create --name "wheels-${{ matrix.kind }}" -t \
-            --platform linux/arm/v7 \
+            --platform ${{ steps.builder.outputs.platform }} \
             --workdir /data \
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
-            ${{ env.BUILDER_IMAGE }} \
+            ${{ steps.builder.outputs.image }} \
             --index "https://villgzs.github.io/wheels32bit" \
             --upload rsync \
             --remote "/data/output" \
@@ -330,12 +342,12 @@ jobs:
           echo "=== Aux konténer létrehozása és indítása ==="
 
           docker create --name "wheels-${{ matrix.kind }}-aux" -t \
-            --platform linux/arm/v7 \
+            --platform ${{ steps.builder.outputs.platform }} \
             --workdir /data \
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             --entrypoint /bin/sh \
-            ${{ env.BUILDER_IMAGE }} \
+            ${{ steps.builder.outputs.image }} \
             -c "while true; do sleep 3600; done"
 
           # Forrás bemásolása a konténerbe
@@ -370,7 +382,8 @@ jobs:
 
           echo "Exit code: $RC"
           echo "=== Kimenet ==="
-          find "$OUT_DIR" -type f -name "*.whl" | head -50
+          # Csak listázás, ne bukjon el a pipe miatt
+          find "$OUT_DIR" -type f -name "*.whl" | head -n 50 || true          
           WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
           echo "Talált .whl fájlok: $WHL_COUNT"
 
@@ -378,7 +391,7 @@ jobs:
           if [ "$WHL_COUNT" -eq 0 ]; then
             echo "Nem készült .whl fájl"
             # a builder néha /data alá rakja a wheel-eket
-            find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -20
+            find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -n 20 || true
             exit 1
           fi
 
