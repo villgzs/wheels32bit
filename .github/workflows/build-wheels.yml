@@ -383,6 +383,11 @@ jobs:
           docker exec "wheels-${{ matrix.kind }}-aux" \
             cat /pip-build-constraints.txt
 
+          echo "=== Extra checkings ==="
+          docker exec wheels-...-aux uname -m
+          docker exec wheels-...-aux python3 -c "import sysconfig; print(sysconfig.get_platform())"
+          docker exec wheels-...-aux python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
+
           echo "=== Aux konténer leállítása és törlése ==="
           docker stop "wheels-${{ matrix.kind }}-aux"
           docker rm "wheels-${{ matrix.kind }}-aux"
