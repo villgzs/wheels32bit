@@ -405,11 +405,11 @@ jobs:
           echo "=== Extra checkings ==="
           echo "uname -m"
           docker exec "wheels-${{ matrix.kind }}-aux" uname -m
-          echo "python3 -c "import sysconfig; print(sysconfig.get_platform())"
+          echo "python3 -c import sysconfig; print(sysconfig.get_platform())"
           docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import sysconfig; print(sysconfig.get_platform())"
-          echo "python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
+          echo "python3 -c import os; print(os.environ.get('BUILD_ARCH'))"
           docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
-          echo "python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
+          echo "python3 -c import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
           docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
 
           echo "=== Aux konténer leállítása és törlése ==="
