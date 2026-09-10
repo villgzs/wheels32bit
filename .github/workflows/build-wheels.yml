@@ -432,64 +432,77 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download core wheels
+      # ----- Letöltés mind a 4 artifactból -----
+      - name: Download armv7 core wheels
         uses: actions/download-artifact@v4
         with:
           name: wheels-armv7-core-${{ needs.init.outputs.version }}
-          path: dist/core
-
-      - name: Download integrations wheels
+          path: dist/armv7/core
+  
+      - name: Download armv7 integrations wheels
         uses: actions/download-artifact@v4
         with:
           name: wheels-armv7-integrations-${{ needs.init.outputs.version }}
-          path: dist/integrations
-
+          path: dist/armv7/integrations
+  
+      - name: Download armhf core wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-armhf-core-${{ needs.init.outputs.version }}
+          path: dist/armhf/core
+  
+      - name: Download armhf integrations wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-armhf-integrations-${{ needs.init.outputs.version }}
+          path: dist/armhf/integrations
+  
       - name: Summary
         run: |
-          echo "## armv7 wheels – HA ${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Wheels – HA ${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### core" >> $GITHUB_STEP_SUMMARY
-          find dist/core -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
-          echo ls -las dist/core
-          ls -las dist/core
-          echo " "
-          ls -las dist/core/musllinux
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### integrations" >> $GITHUB_STEP_SUMMARY
-          find dist/integrations -name "*.whl" | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
-          echo ls -las dist/integrations
-          ls -las dist/integrations
-          echo " "
-          ls -las dist/integrations/musllinux
-          echo "" >> $GITHUB_STEP_SUMMARY
+  
+          for arch in armv7 armhf; do
+            echo "### $arch" >> $GITHUB_STEP_SUMMARY
+            echo "#### core" >> $GITHUB_STEP_SUMMARY
+            find dist/$arch/core -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+            echo "#### integrations" >> $GITHUB_STEP_SUMMARY
+            find dist/$arch/integrations -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          done
+  
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-
+          echo "- wheels-armhf-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armhf-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+  
       - name: Publish wheels and update README
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-      
+  
           git clone --depth 1 --branch main \
             https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           cd index-repo
-      
+  
           mkdir -p musllinux-index
           echo "Last build: ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
-      
-          # Kerekek másolása
-          cp -v ../dist/core/musllinux/*.whl musllinux-index/ 2>/dev/null || true
-          cp -v ../dist/integrations/musllinux/*.whl musllinux-index/ 2>/dev/null || true
-      
-          # README.md frissítése a kerekek linkjeivel
+  
+          # ----- Összes wheel másolása (armv7 + armhf) -----
+          cp -v ../dist/armv7/core/musllinux/*.whl          musllinux-index/ 2>/dev/null || true
+          cp -v ../dist/armv7/integrations/musllinux/*.whl  musllinux-index/ 2>/dev/null || true
+          cp -v ../dist/armhf/core/musllinux/*.whl          musllinux-index/ 2>/dev/null || true
+          cp -v ../dist/armhf/integrations/musllinux/*.whl  musllinux-index/ 2>/dev/null || true
+  
+          # README frissítése
           cat README > README.md
           echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
-          echo "### Musllinux wheels ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
+          echo "### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
           echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index/) -  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)" >> README.md
           echo "  " >> README.md
-          echo "  " >> README.md
+  
           for f in musllinux-index/*.whl; do
             if [ -f "$f" ]; then
               filename=$(basename "$f")
@@ -497,14 +510,14 @@ jobs:
               echo "* [$filename](./$f)" >> musllinux-index/README.md
             fi
           done
-      
+  
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      
+  
           git add musllinux-index/ README.md
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }}"
+            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
