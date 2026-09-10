@@ -230,19 +230,31 @@ jobs:
       matrix:
         arch: [armv7, armhf]
         include:
-          # Core alap függőségek
-          - kind: core
-            requirements: requirements.txt
-            apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev"
-            skip_binary: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy"
+          # ---------- Core ----------
+        - kind: core
+          arch: armv7
+          requirements: requirements.txt
+          apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev"
+          skip_binary: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy"
 
-          # Összes integráció függősége
-          - kind: integrations
-            # armv7-re nincs hivatalos requirements_all_wheels_armv7;
-            # a generált vagy az all fájlt használjuk
-            requirements: requirements_all.txt
-            apk: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev;zlib-dev;;re2-dev"
-            skip_binary: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
+        - kind: core
+          arch: armhf
+          requirements: requirements.txt
+          apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev"
+          skip_binary: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy"
+
+        # ---------- Integrations ----------
+        - kind: integrations
+          arch: armv7
+          requirements: requirements_all.txt
+          apk: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev;zlib-dev;;re2-dev"
+          skip_binary: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
+
+        - kind: integrations
+          arch: armhf
+          requirements: requirements_all.txt
+          apk: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev;zlib-dev;;re2-dev"
+          skip_binary: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
 
     steps:
       - name: Download prepared Core tree
