@@ -448,7 +448,7 @@ jobs:
       - name: Upload wheels artifact (mátrix szerint jelölve)
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-armv7-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          name: wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
           path: wheels-out/${{ matrix.kind }}
           if-no-files-found: error
           retention-days: 14
@@ -467,24 +467,28 @@ jobs:
       - name: Download armv7 core wheels
         uses: actions/download-artifact@v4
         with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
           name: wheels-armv7-core-${{ needs.init.outputs.version }}
           path: dist/armv7/core
   
       - name: Download armv7 integrations wheels
         uses: actions/download-artifact@v4
         with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
           name: wheels-armv7-integrations-${{ needs.init.outputs.version }}
           path: dist/armv7/integrations
   
       - name: Download armhf core wheels
         uses: actions/download-artifact@v4
         with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
           name: wheels-armhf-core-${{ needs.init.outputs.version }}
           path: dist/armhf/core
   
       - name: Download armhf integrations wheels
         uses: actions/download-artifact@v4
         with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
           name: wheels-armhf-integrations-${{ needs.init.outputs.version }}
           path: dist/armhf/integrations
   
@@ -519,7 +523,7 @@ jobs:
           cd index-repo
   
           mkdir -p musllinux-index
-          echo "Last build: ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
+          echo "Last build (${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
   
           # ----- Összes wheel másolása (armv7 + armhf) -----
           cp -v ../dist/armv7/core/musllinux/*.whl          musllinux-index/ 2>/dev/null || true
