@@ -62,6 +62,13 @@ jobs:
           repository: home-assistant/core
           ref: ${{ steps.version.outputs.version }}
           path: ha-core
+          # sparse-checkout: |
+          #   requirements.txt
+          #   requirements_all.txt
+          #   homeassistant/package_constraints.txt
+          #   pyproject.toml
+          #   scripts/**
+          # sparse-checkout-cone-mode: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -458,6 +465,7 @@ jobs:
           cd index-repo
       
           mkdir -p musllinux-index
+          echo "Last build: ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
       
           # Kerekek másolása
           cp -v ../dist/core/musllinux/*.whl musllinux-index/ 2>/dev/null || true
@@ -466,7 +474,7 @@ jobs:
           # README.md frissítése a kerekek linkjeivel
           cat README > README.md
           echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
-          echo "### Musllinux armv7 wheels ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
+          echo "### Musllinux wheels ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
           echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index/) -  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)" >> README.md
           echo "  " >> README.md
           echo "  " >> README.md
