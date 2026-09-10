@@ -1,4 +1,4 @@
-name: "Build: Builder image"
+name: "Build: Docker builder image"
 
 on:
   # release:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   publish:
-    name: Publish builder (${{ matrix.arch }}/${{ matrix.abi }})
+    name: Publish builder docker image (${{ matrix.arch }}/${{ matrix.abi }})
     permissions:
       packages: write
       contents: read
