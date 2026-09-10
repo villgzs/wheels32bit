@@ -23,21 +23,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        abi: ["cp314"]
-        tag: ["musllinux_1_2"]        
-        arch: ["armv7", "armhf"] 
-        include:          
-          - abi: cp314
-            tag: musllinux_1_2
-            base: 3.14-alpine3.24
-          
+        include:
           - arch: armv7
+            abi: cp314
+            tag: musllinux_1_2
             platform: linux/arm/v7
-            runs-on: ubuntu-24.04 
-            
+            runs-on: ubuntu-24.04
+            base: 3.14-alpine3.24
+    
           - arch: armhf
+            abi: cp314
+            tag: musllinux_1_2
             platform: linux/arm/v6
             runs-on: ubuntu-latest
+            base: 3.14-alpine3.24
 
           # i386 (32-bit x86)
           # - arch: i386
