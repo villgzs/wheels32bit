@@ -18,6 +18,7 @@ on:
 env:
   ABI: cp314
   TAG: musllinux_1_2
+  BRANCH: "2026.07.0"
   # ARCH: armv7
   # A te 32 bites builder image-ed
   ## BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
@@ -294,7 +295,7 @@ jobs:
       - name: Set builder image and platform
         id: builder
         run: |
-          echo "image=ghcr.io/villgzs/wheels32bit/${{ matrix.arch }}/${{ env.TAG }}/${{ env.ABI }}:dev" >> $GITHUB_OUTPUT
+          echo "image=ghcr.io/villgzs/wheels32bit/${{ matrix.arch }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.BRANCH }}" >> $GITHUB_OUTPUT
           
           if [ "${{ matrix.arch }}" = "armhf" ]; then
             echo "platform=linux/arm/v6" >> $GITHUB_OUTPUT
