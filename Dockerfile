@@ -6,7 +6,7 @@ ARG \
     CPYTHON_ABI \
     # Ha saját wheels indexet használsz, cseréld ki:
     # PIP_EXTRA_INDEX_URL=https://wheels.home-assistant.io/musllinux-index/
-    PIP_EXTRA_INDEX_URL=https://wheels.home-assistant.io/musllinux-index/
+    PIP_EXTRA_INDEX_URL=https://villgzs.github.io/wheels32bit/musllinux-index/
 
 SHELL ["/bin/bash", "-exo", "pipefail", "-c"]
 
