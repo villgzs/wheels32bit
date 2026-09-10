@@ -466,8 +466,9 @@ jobs:
           # README.md frissítése a kerekek linkjeivel
           cat README > README.md
           echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
-          echo "### Musllinux armv7 wheels" >> README.md
-          echo "-  [musllinux-index](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)" >> README.md
+          echo "### Musllinux armv7 wheels ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
+          echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index/) -  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)" >> README.md
+          echo "  " >> README.md
           echo "  " >> README.md
           for f in musllinux-index/*.whl; do
             if [ -f "$f" ]; then
