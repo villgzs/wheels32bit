@@ -138,11 +138,11 @@ jobs:
               [ -f "$f" ] && sed -i '${{env.LISTMAX}},$d' "$f"
             done
 
-            echo "Extended by grpcio altough it came from constraints..."
-            echo " ">> requirements.txt || true
-            echo grpcio==1.78.0 >> requirements.txt || true 
-            echo grpcio-status==1.78.0  >> requirements.txt || true 
-            echo grpcio-reflection==1.78.0  >> requirements.txt || true 
+            # echo "Extended by grpcio altough it came from constraints..."
+            # echo " ">> requirements.txt || true
+            # echo grpcio==1.78.0 >> requirements.txt || true 
+            # echo grpcio-status==1.78.0  >> requirements.txt || true 
+            # echo grpcio-reflection==1.78.0  >> requirements.txt || true 
             
           else
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
