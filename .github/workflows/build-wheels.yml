@@ -280,6 +280,7 @@ jobs:
               echo 'CFLAGS=-march=armv6 -mfloat-abi=hard -mfpu=vfp'
               echo 'CXXFLAGS=-march=armv6 -mfloat-abi=hard -mfpu=vfp'
               echo '_PYTHON_HOST_PLATFORM=linux-armv6l'
+              echo 'BUILD_ARCH=armhf'
               echo 'AUDITWHEEL_PLAT=musllinux_1_2_armv6l'
             ) >> .env_file
             
