@@ -229,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [armv7, armhf]
+        # arch: [armv7, armhf]
         include:
           # ---------- Core ----------
         - kind: core
