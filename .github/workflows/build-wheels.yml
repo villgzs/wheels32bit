@@ -22,6 +22,7 @@ env:
   # ARCH: armv7
   # A te 32 bites builder image-ed
   ## BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
+  LISTMAX: 30
 
 permissions:
   contents: read
@@ -132,9 +133,9 @@ jobs:
           ls -la requirements*.txt  2>/dev/null || true
 
           if [ "$TEST_BUILD" = "true" ]; then
-            echo "Rövidített requirements fájlok használata teszteléshez... 11. sortól vágás"
+            echo "Rövidített requirements fájlok használata teszteléshez... ${{env.LISTMAX}}. sortól vágás"
             for f in requirements*.txt; do
-              [ -f "$f" ] && sed -i '9,$d' "$f"
+              [ -f "$f" ] && sed -i '${{env.LISTMAX}},$d' "$f"
             done
 
             echo "Extended by grpcio altough it came from constraints..."
