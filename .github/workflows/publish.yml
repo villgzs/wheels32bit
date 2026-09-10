@@ -1,4 +1,4 @@
-name: "Build: Docker builder image"
+name: "Slap together the builder Docker image"
 
 on:
   # release:
