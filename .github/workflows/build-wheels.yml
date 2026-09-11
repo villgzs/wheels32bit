@@ -597,7 +597,7 @@ jobs:
               package="${filename%%-*}"
               if [[ "$package" != "$last_package" ]]; then                  
                   mkdir -p "musllinux-index/$package"
-                  echo "" > "musllinux-index/$package/README.md"
+                  echo -n "" > "musllinux-index/$package/README.md"
                   echo "* [$package](./$package)    " >> musllinux-index/README.md
               else
                   echo "dupla package"
