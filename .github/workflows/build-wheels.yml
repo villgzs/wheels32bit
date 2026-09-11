@@ -560,12 +560,19 @@ jobs:
         run: |
           set -euo pipefail
   
-          git clone --depth 1 --branch main \
+          # git clone --depth 1 --branch main \
+          #   https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
+          # cd index-repo
+
+          git clone --depth 1 --branch main --filter=blob:none --sparse \
             https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           cd index-repo
+          git sparse-checkout init --no-cone
+          # git sparse-checkout set README 'musllinux-index/**/*.whl'
+          git sparse-checkout set README 'musllinux-index/*.whl'
   
           mkdir -p musllinux-index
-          echo "Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
+          echo "### Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
   
           # ----- Összes wheel másolása (armv7 + armhf) -----
           cp -v ../dist/armv7/core/musllinux/*.whl          musllinux-index/ 2>/dev/null || true
@@ -575,9 +582,12 @@ jobs:
   
           # README frissítése
           cat README > README.md
-          echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}" >> README.md
-          echo "#### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
-          echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index/) -  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)" >> README.md
+          echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " >> README.md
+          echo "#### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " >> README.md
+          echo "-  [Web page](https://villgzs.github.io/wheels32bit)  "  >> README.md
+          echo "-  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)  " >> README.md
+          echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bitmusllinux-index)  " >> README.md
+          
           echo "  " >> README.md
   
           for f in musllinux-index/*.whl; do
