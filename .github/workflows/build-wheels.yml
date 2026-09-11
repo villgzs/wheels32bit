@@ -589,17 +589,23 @@ jobs:
           echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bitmusllinux-index)  " >> README.md
           
           echo "  " >> README.md
-  
+
+          last_package=""
           for f in musllinux-index/*.whl; do
             if [ -f "$f" ]; then
               filename=$(basename "$f")
               package="${filename%%-*}"
-              mkdir -p "musllinux-index/$package"
-              
+              if [[ "$package" != "$last_package" ]]; then                  
+                  mkdir -p "musllinux-index/$package"
+                  echo "" > "musllinux-index/$package/README.md"
+                  echo "* [$package](./$package)    " >> musllinux-index/README.md
+              else
+                  echo "dupla package"
+              fi
               echo "* $package [$filename](./$f)"
-              echo "* [$package](./$f)    " >> README.md
-              echo "* [$package](./$package)    " >> musllinux-index/README.md
+              echo "* [$package](./$f)    " >> README.md              
               echo "* [$filename](../$filename)    " >> "musllinux-index/$package/README.md"
+              last_package="$package"
             fi
           done
   
