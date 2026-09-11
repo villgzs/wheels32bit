@@ -12,6 +12,10 @@ on:
         required: false
         type: boolean
         default: true  # Alapértelmezetten bepipálva
+      maxlines:
+        description: 'Sorok száma:'
+        required: false
+        default: "30"  
   # schedule:
   #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
 
@@ -22,7 +26,8 @@ env:
   # ARCH: armv7
   # A te 32 bites builder image-ed
   ## BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
-  LISTMAX: 30
+  # LISTMAX: 30
+  LISTMAX: ${{inputs.maxlines}}
 
 permissions:
   contents: read
