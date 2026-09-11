@@ -590,8 +590,12 @@ jobs:
   
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Csak a 100 MiB-nél kisebb fájlokat adjuk hozzá
+          find musllinux-index -type f -size -100M -print0 | xargs -0 git add
+          git add README.md
   
-          git add musllinux-index/ README.md
+          # git add musllinux-index/ README.md
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
