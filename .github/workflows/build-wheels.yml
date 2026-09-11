@@ -423,34 +423,46 @@ jobs:
           docker rm "wheels-${{ matrix.kind }}-aux"
           echo "=== Aux konténer leállítás megtörtént ==="
 
+          # === Trap: timeout / megszakítás / hiba esetén is mentsünk ki ===
+          cleanup_and_save() {
+            local exit_code=$?
+            echo "=== Cleanup & partial save (exit code: $exit_code) ==="
+
+            # Próbáljuk ki a kimenetet, amíg a konténer még létezik
+            docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || true
+            docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
+
+            # Ha van wheel, listázzuk
+            find "$OUT_DIR" -type f -name "*.whl" | head -n 30 || true
+            WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
+            echo "Mentett .whl fájlok száma: $WHL_COUNT"
+
+            # Konténer törlése
+            docker rm -f "wheels-${{ matrix.kind }}" 2>/dev/null || true
+            docker rm -f "wheels-${{ matrix.kind }}-aux" 2>/dev/null || true
+
+            if [ "$WHL_COUNT" -eq 0 ]; then
+              echo "Nem készült .whl fájl – üres marker létrehozása"
+              echo "üres lista" > "$OUT_DIR/empty.txt"
+              # opcionálisan még egy keresés a workspace-ben, ha esetleg máshova került
+              find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -n 20 || true
+            else
+              echo "Wheel-ek sikeresen előállítva."
+            fi
+
+            exit $exit_code
+          }
+
+          trap cleanup_and_save EXIT TERM INT
+
           # Build indítása
           set +e
           docker start -a "wheels-${{ matrix.kind }}"
           RC=$?
           set -e
 
-          echo "A létrejött állományok kimentése a konténerből..."
-          # Kimenet kimentése
-          docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || \
-          docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
-
-          docker rm -f "wheels-${{ matrix.kind }}" || true
-
           echo "Exit code: $RC"
-          echo "=== Kimenet ==="
-          # Csak listázás, ne bukjon el a pipe miatt
-          find "$OUT_DIR" -type f -name "*.whl" | head -n 50 || true          
-          WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
-          echo "Talált .whl fájlok: $WHL_COUNT"
-
-          if [ "$WHL_COUNT" -eq 0 ]; then
-            echo "Nem készült .whl fájl – üres marker létrehozása"
-            echo "üres lista" > "$OUT_DIR/empty.txt"
-            # opcionálisan még egy keresés a workspace-ben, ha esetleg máshova került
-            find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -n 20 || true
-          else
-            echo "Wheel-ek sikeresen előállítva."
-          fi
+          # A trap automatikusan lefut a script végén is
 
       - name: Upload wheels artifact
         if: '!cancelled()'
