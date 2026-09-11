@@ -1,4 +1,4 @@
-name: "Slap together the builder Docker image"
+name: "Carefully put together a Docker image"
 
 on:
   # release:
