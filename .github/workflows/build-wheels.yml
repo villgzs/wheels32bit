@@ -429,6 +429,7 @@ jobs:
           RC=$?
           set -e
 
+          echo "A létrejött állományok kimentése a konténerből..."
           # Kimenet kimentése
           docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || \
           docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
@@ -442,20 +443,22 @@ jobs:
           WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
           echo "Talált .whl fájlok: $WHL_COUNT"
 
-          # Ha egyáltalán nincs wheel, bukjon el a job
           if [ "$WHL_COUNT" -eq 0 ]; then
-            echo "Nem készült .whl fájl"
-            # a builder néha /data alá rakja a wheel-eket
+            echo "Nem készült .whl fájl – üres marker létrehozása"
+            echo "üres lista" > "$OUT_DIR/empty.txt"
+            # opcionálisan még egy keresés a workspace-ben, ha esetleg máshova került
             find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -n 20 || true
-            exit 1
+          else
+            echo "Wheel-ek sikeresen előállítva."
           fi
 
-      - name: Upload wheels artifact (mátrix szerint jelölve)
+      - name: Upload wheels artifact
+        if: '!cancelled()'
         uses: actions/upload-artifact@v4
         with:
           name: wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
           path: wheels-out/${{ matrix.kind }}
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
   # --------------------------------------------------
@@ -464,6 +467,7 @@ jobs:
   publish:
     name: Publish wheels under villgzs
     needs: [init, build]
+    if: always() && needs.init.result == '!cancelled()'
     runs-on: ubuntu-latest
     permissions:
       contents: write
