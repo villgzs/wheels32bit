@@ -564,6 +564,12 @@ jobs:
           #   https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           # cd index-repo
 
+          # git clone --depth 1 --branch main --filter=blob:none --sparse \
+          # https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
+          # cd index-repo
+          # git sparse-checkout set musllinux-index
+          # A README automatikusan benne lesz (root fájlok cone módban)
+
           git clone --depth 1 --branch main --filter=blob:none --sparse \
             https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
           cd index-repo
