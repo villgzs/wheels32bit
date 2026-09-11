@@ -343,8 +343,8 @@ jobs:
           REQ="${{ matrix.requirements }}"
           # integrations: ha van arch-specifikus, azt preferáljuk
           if [ "${{ matrix.kind }}" = "integrations" ]; then
-            if [ -f requirements_all_wheels_armv7.txt ]; then
-              REQ=requirements_all_wheels_armv7.txt
+            if [ -f "requirements_all_wheels_${{ matrix.arch }}.txt" ]; then
+              REQ="requirements_all_wheels_${{ matrix.arch }}.txt"
             elif [ -f requirements_all_wheels_amd64.txt ]; then
               # fallback – legalább a lista megvan (evdev stb. eltérhet)
               REQ=requirements_all.txt
