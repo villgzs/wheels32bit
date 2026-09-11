@@ -81,6 +81,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version-file: ha-core/.python-version
+          cache: 'pip'          # vagy 'uv' ha támogatott
+          cache-dependency-path: |
+            ha-core/requirements.txt
+            ha-core/pyproject.toml
           
       - name: Pin Cython version in pyproject.toml
         run: |
