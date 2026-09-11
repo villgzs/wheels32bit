@@ -583,9 +583,13 @@ jobs:
           for f in musllinux-index/*.whl; do
             if [ -f "$f" ]; then
               filename=$(basename "$f")
+              package="${filename%%-*}"
+              mkdir -p "musllinux-index/$package"
+              
               echo "* [$filename](./$f)"
-              echo "* [$filename](./$f)" >> README.md
-              echo "* [$filename](./$filename)" >> musllinux-index/README.md
+              echo "[$filename](./$f)" >> README.md
+              echo "[$filename](./$package)" >> musllinux-index/README.md
+              echo "[$filename](../$filename)" >> "musllinux-index/$package/README.md"
             fi
           done
   
