@@ -467,7 +467,7 @@ jobs:
   publish:
     name: Publish wheels under villgzs
     needs: [init, build]
-    if: always() && needs.init.result == '!cancelled()'
+    if: always() && needs.init.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
