@@ -565,7 +565,7 @@ jobs:
           cd index-repo
   
           mkdir -p musllinux-index
-          echo "Last build (${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
+          echo "Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
   
           # ----- Összes wheel másolása (armv7 + armhf) -----
           cp -v ../dist/armv7/core/musllinux/*.whl          musllinux-index/ 2>/dev/null || true
@@ -575,14 +575,15 @@ jobs:
   
           # README frissítése
           cat README > README.md
-          echo -e "\n## Legutóbbi build: HA ${{ needs.init.outputs.version }}" >> README.md
-          echo "### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
+          echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}" >> README.md
+          echo "#### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))" >> README.md
           echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index/) -  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)" >> README.md
           echo "  " >> README.md
   
           for f in musllinux-index/*.whl; do
             if [ -f "$f" ]; then
               filename=$(basename "$f")
+              echo "* [$filename](./$f)"
               echo "* [$filename](./$f)" >> README.md
               echo "* [$filename](./$f)" >> musllinux-index/README.md
             fi
