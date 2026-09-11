@@ -1,0 +1,1 @@
+[msal-1.38.0-py3-none-any.whl](../msal-1.38.0-py3-none-any.whl)
