@@ -1,1 +1,2 @@
 [huum-0.8.2-py3-none-any.whl](../huum-0.8.2-py3-none-any.whl)
+* [huum-0.8.2-py3-none-any.whl](../huum-0.8.2-py3-none-any.whl)    

@@ -1,1 +1,2 @@
 [loguru-0.7.3-py3-none-any.whl](../loguru-0.7.3-py3-none-any.whl)
+* [loguru-0.7.3-py3-none-any.whl](../loguru-0.7.3-py3-none-any.whl)    

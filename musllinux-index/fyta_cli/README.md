@@ -1,1 +1,2 @@
 [fyta_cli-0.7.3-py3-none-any.whl](../fyta_cli-0.7.3-py3-none-any.whl)
+* [fyta_cli-0.7.3-py3-none-any.whl](../fyta_cli-0.7.3-py3-none-any.whl)    

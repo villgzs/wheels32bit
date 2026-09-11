@@ -1,1 +1,2 @@
 [pybraendstofpriser-2.2.0-py3-none-any.whl](../pybraendstofpriser-2.2.0-py3-none-any.whl)
+* [pybraendstofpriser-2.2.0-py3-none-any.whl](../pybraendstofpriser-2.2.0-py3-none-any.whl)    

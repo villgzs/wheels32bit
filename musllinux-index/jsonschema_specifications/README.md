@@ -1,1 +1,2 @@
 [jsonschema_specifications-2025.9.1-py3-none-any.whl](../jsonschema_specifications-2025.9.1-py3-none-any.whl)
+* [jsonschema_specifications-2025.9.1-py3-none-any.whl](../jsonschema_specifications-2025.9.1-py3-none-any.whl)    

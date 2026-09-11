@@ -1,1 +1,2 @@
 [py_cpuinfo-9.0.0-py3-none-any.whl](../py_cpuinfo-9.0.0-py3-none-any.whl)
+* [py_cpuinfo-9.0.0-py3-none-any.whl](../py_cpuinfo-9.0.0-py3-none-any.whl)    

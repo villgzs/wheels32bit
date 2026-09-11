@@ -1,1 +1,2 @@
 [pyfronius-0.8.2-py3-none-any.whl](../pyfronius-0.8.2-py3-none-any.whl)
+* [pyfronius-0.8.2-py3-none-any.whl](../pyfronius-0.8.2-py3-none-any.whl)    
