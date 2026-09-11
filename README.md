@@ -1,7 +1,7 @@
 2026.07.0
 
-## Legutóbbi build: HA 2026.9.1
-### Musllinux wheels (armv7l + armv6l) (UTC 2026-Sep-11 11:34:52)
+### Last build from https://github.com/home-assistant/core: 2026.9.1
+#### Musllinux wheels (armv7l + armv6l) (UTC 2026-Sep-11 12:13:43)
 -  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index/) -  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)
   
 * [AEMET_OpenData-0.6.4-py3-none-any.whl](./musllinux-index/AEMET_OpenData-0.6.4-py3-none-any.whl)
