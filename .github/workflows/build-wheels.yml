@@ -576,7 +576,7 @@ jobs:
           git sparse-checkout init --no-cone
           # git sparse-checkout set README 'musllinux-index/**/*.whl'
           git sparse-checkout set --no-cone \
-            README \
+            /README \
             'musllinux-index/*.whl' \
             'musllinux-index/*.md' \
             'musllinux-index/**/*.md'
