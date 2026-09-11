@@ -1,2 +1,1 @@
-[aioairzone-1.0.5-py3-none-any.whl](../aioairzone-1.0.5-py3-none-any.whl)
 * [aioairzone-1.0.5-py3-none-any.whl](../aioairzone-1.0.5-py3-none-any.whl)    

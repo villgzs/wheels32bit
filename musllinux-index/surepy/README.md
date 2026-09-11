@@ -1,2 +1,1 @@
-[surepy-0.9.0-py3-none-any.whl](../surepy-0.9.0-py3-none-any.whl)
 * [surepy-0.9.0-py3-none-any.whl](../surepy-0.9.0-py3-none-any.whl)    

@@ -1,2 +1,1 @@
-[pyps4_2ndscreen-1.3.1-py3-none-any.whl](../pyps4_2ndscreen-1.3.1-py3-none-any.whl)
 * [pyps4_2ndscreen-1.3.1-py3-none-any.whl](../pyps4_2ndscreen-1.3.1-py3-none-any.whl)    

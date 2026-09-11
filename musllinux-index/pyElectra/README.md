@@ -1,2 +1,1 @@
-[pyElectra-1.2.4-py3-none-any.whl](../pyElectra-1.2.4-py3-none-any.whl)
 * [pyElectra-1.2.4-py3-none-any.whl](../pyElectra-1.2.4-py3-none-any.whl)    

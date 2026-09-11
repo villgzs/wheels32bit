@@ -1,2 +1,1 @@
-[charset_normalizer-3.4.3-py3-none-any.whl](../charset_normalizer-3.4.3-py3-none-any.whl)
 * [charset_normalizer-3.4.3-py3-none-any.whl](../charset_normalizer-3.4.3-py3-none-any.whl)    

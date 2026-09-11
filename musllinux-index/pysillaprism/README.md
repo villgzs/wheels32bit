@@ -1,2 +1,1 @@
-[pysillaprism-0.2.0-py3-none-any.whl](../pysillaprism-0.2.0-py3-none-any.whl)
 * [pysillaprism-0.2.0-py3-none-any.whl](../pysillaprism-0.2.0-py3-none-any.whl)    

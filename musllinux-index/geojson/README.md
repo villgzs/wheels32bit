@@ -1,2 +1,1 @@
-[geojson-3.3.0-py3-none-any.whl](../geojson-3.3.0-py3-none-any.whl)
 * [geojson-3.3.0-py3-none-any.whl](../geojson-3.3.0-py3-none-any.whl)    

@@ -1,2 +1,1 @@
-[jeepney-0.9.0-py3-none-any.whl](../jeepney-0.9.0-py3-none-any.whl)
 * [jeepney-0.9.0-py3-none-any.whl](../jeepney-0.9.0-py3-none-any.whl)    

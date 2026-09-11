@@ -1,2 +1,1 @@
-[oauth2client-4.1.3-py2.py3-none-any.whl](../oauth2client-4.1.3-py2.py3-none-any.whl)
 * [oauth2client-4.1.3-py2.py3-none-any.whl](../oauth2client-4.1.3-py2.py3-none-any.whl)    

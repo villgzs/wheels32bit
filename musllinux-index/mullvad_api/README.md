@@ -1,2 +1,1 @@
-[mullvad_api-1.0.0-py3-none-any.whl](../mullvad_api-1.0.0-py3-none-any.whl)
 * [mullvad_api-1.0.0-py3-none-any.whl](../mullvad_api-1.0.0-py3-none-any.whl)    

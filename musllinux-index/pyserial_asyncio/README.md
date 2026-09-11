@@ -1,2 +1,1 @@
-[pyserial_asyncio-0.6-py3-none-any.whl](../pyserial_asyncio-0.6-py3-none-any.whl)
 * [pyserial_asyncio-0.6-py3-none-any.whl](../pyserial_asyncio-0.6-py3-none-any.whl)    
