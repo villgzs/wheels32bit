@@ -569,7 +569,7 @@ jobs:
           cd index-repo
           git sparse-checkout init --no-cone
           # git sparse-checkout set README 'musllinux-index/**/*.whl'
-          git sparse-checkout set README 'musllinux-index/*.whl' 'musllinux-index/*.md' 'musllinux-index/**/*.md'
+          git sparse-checkogmp-dev --no-cone README 'musllinux-index/*.whl' 'musllinux-index/*.md' 'musllinux-index/**/*.md'
   
           mkdir -p musllinux-index
           echo "### Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
