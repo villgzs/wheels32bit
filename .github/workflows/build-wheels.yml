@@ -585,7 +585,7 @@ jobs:
               filename=$(basename "$f")
               echo "* [$filename](./$f)"
               echo "* [$filename](./$f)" >> README.md
-              echo "* [$filename](./$f)" >> musllinux-index/README.md
+              echo "* [$filename](./$filename)" >> musllinux-index/README.md
             fi
           done
   
