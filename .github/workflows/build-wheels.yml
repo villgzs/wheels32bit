@@ -436,6 +436,23 @@ jobs:
             docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || true
             docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
 
+            # === Nagy fájlok (>100 MiB) keresése ===
+            echo "=== 100 MiB-nál nagyobb fájlok keresése ==="
+            find "$OUT_DIR" -type f -size +100M -printf '%s\t%p\n' 2>/dev/null | \
+              awk '{
+                size = $1
+                $1 = ""
+                printf "%.1f MiB  %s\n", size/1024/1024, substr($0,2)
+              }' || true
+
+            # Törlés
+            LARGE_COUNT=$(find "$OUT_DIR" -type f -size +100M -print -delete 2>/dev/null | wc -l)
+            if [ "$LARGE_COUNT" -gt 0 ]; then
+              echo "::warning::${LARGE_COUNT} db 100 MiB-nál nagyobb fájl törölve"
+            else
+              echo "Nincs 100 MiB-nál nagyobb fájl."
+            fi
+
             # Ha van wheel, listázzuk
             find "$OUT_DIR" -type f -name "*.whl" | head -n 30 || true
             WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
