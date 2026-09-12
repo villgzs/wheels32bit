@@ -571,51 +571,49 @@ jobs:
           # A README automatikusan benne lesz (root fájlok cone módban)
 
           git clone --depth 1 --branch main --filter=blob:none --sparse \
-            https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
-          cd index-repo
+            https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git wheels32bit-repo
+          cd wheels32bit-repo
           git sparse-checkout init --no-cone
-          # git sparse-checkout set README 'musllinux-index/**/*.whl'
+          # git sparse-checkout set README 'musllinux/**/*.whl'
           git sparse-checkout set --no-cone \
             /README \
             /README.md \
-            'musllinux-index/*.whl' \
-            'musllinux-index/*.md' \
-            'musllinux-index/**/*.md'
-  
-          mkdir -p musllinux-index
-          echo "### Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux-index/README.md
+            'musllinux/*.whl' \
+            'musllinux/*.md'
+            
+          mkdir -p musllinux
+          echo "### Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux/README.md
   
           # ----- Összes wheel másolása (armv7 + armhf) -----
-          cp -v ../dist/armv7/core/musllinux/*.whl          musllinux-index/ 2>/dev/null || true
-          cp -v ../dist/armv7/integrations/musllinux/*.whl  musllinux-index/ 2>/dev/null || true
-          cp -v ../dist/armhf/core/musllinux/*.whl          musllinux-index/ 2>/dev/null || true
-          cp -v ../dist/armhf/integrations/musllinux/*.whl  musllinux-index/ 2>/dev/null || true
+          cp -v ../dist/armv7/core/musllinux/*.whl          musllinux/ 2>/dev/null || true
+          cp -v ../dist/armv7/integrations/musllinux/*.whl  musllinux/ 2>/dev/null || true
+          cp -v ../dist/armhf/core/musllinux/*.whl          musllinux/ 2>/dev/null || true
+          cp -v ../dist/armhf/integrations/musllinux/*.whl  musllinux/ 2>/dev/null || true
   
           # README frissítése
           cat README > README.md
           echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " >> README.md
           echo "#### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " >> README.md
           echo "-  [Web page](https://villgzs.github.io/wheels32bit)  "  >> README.md
-          echo "-  [musllinux-index git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux-index)  " >> README.md
-          echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bitmusllinux-index)  " >> README.md
+          echo "-  [musllinux git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux)  " >> README.md
+          echo "-  [musllinux on web page](https://villgzs.github.io/wheels32bit/musllinux)  " >> README.md
+          echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index)  " >> README.md
           
           echo "  " >> README.md
 
           last_package=""
-          for f in musllinux-index/*.whl; do
+          for f in musllinux/*.whl; do
             if [ -f "$f" ]; then
               filename=$(basename "$f")
               package="${filename%%-*}"
-              if [[ "$package" != "$last_package" ]]; then                  
-                  mkdir -p "musllinux-index/$package"
-                  echo -n "" > "musllinux-index/$package/README.md"
-                  echo "* [$package](./$package)    " >> musllinux-index/README.md
+              if [[ "$package" != "$last_package" ]]; then
+                  echo "* [$package](./$package)    " >> musllinux/README.md
               else
                   echo "dupla package"
               fi
               echo "* $package [$filename](./$f)"
               echo "* [$package](./$f)    " >> README.md              
-              echo "* [$filename](../$filename)    " >> "musllinux-index/$package/README.md"
+              
               last_package="$package"
             fi
           done
@@ -624,10 +622,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Csak a 100 MiB-nél kisebb fájlokat adjuk hozzá
-          find musllinux-index -type f -size -100M -print0 | xargs -0 git add
+          find musllinux -type f -size -100M -print0 | xargs -0 git add
           git add README.md
   
-          # git add musllinux-index/ README.md
+          # git add musllinux/ README.md
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
