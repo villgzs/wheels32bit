@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: ritassist
+Version: 0.9.2
+Summary: RitAssist API Access
+Home-page: http://github.com/depl0y/ritassist-py
+Author: Wim Haanstra
+Author-email: wim@wim.me
+License: MIT
+Requires-Python: >=3
+Requires-Dist: requests
+Requires-Dist: ciso8601
+Requires-Dist: geopy
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

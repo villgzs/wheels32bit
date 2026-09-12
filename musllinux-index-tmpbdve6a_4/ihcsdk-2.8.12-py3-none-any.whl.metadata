@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: ihcsdk
+Version: 2.8.12
+Summary: IHC Python SDK
+Home-page: https://github.com/dingusdk/PythonIhcSdk
+Author: Jens Nielsen
+License: GPL-3.0
+License-File: license.txt
+Requires-Dist: requests
+Requires-Dist: cryptography
+Dynamic: author
+Dynamic: description
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary
+
+SDK for connection to the LK IHC Controller. Made for interfacing to home assistant

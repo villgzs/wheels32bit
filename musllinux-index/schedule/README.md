@@ -1,1 +1,0 @@
-* [schedule-1.2.2-py3-none-any.whl](../schedule-1.2.2-py3-none-any.whl)    

@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: python-join-api
+Version: 0.1.1
+Summary: Python API for interacting with Join by joaoapps.
+Home-page: https://github.com/nkgilley/python-join-api
+Author: Nolan Gilley
+Author-email: nkgilley@gmail.com
+License: MIT
+License-File: LICENSE.txt
+Requires-Dist: requests>=2.0
+Requires-Dist: flask>=1.1.2
+Requires-Dist: yarl
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary

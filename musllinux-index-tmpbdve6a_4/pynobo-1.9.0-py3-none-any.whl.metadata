@@ -1,0 +1,242 @@
+Metadata-Version: 2.4
+Name: pynobo
+Version: 1.9.0
+Summary: Nobø Hub / Nobø Energy Control TCP/IP Interface
+Home-page: https://github.com/echoromeo/pynobo
+Author: echoromeo, capelevy, oyvindwe
+License: GPL-3.0-or-later
+Project-URL: Homepage, https://github.com/echoromeo/pynobo
+Project-URL: Source, https://github.com/echoromeo/pynobo
+Project-URL: Bug Reports, https://github.com/echoromeo/pynobo/issues
+Keywords: hvac,nobø,heating,automation
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Home Automation
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Typing :: Typed
+Requires-Python: >=3.10, <4
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python
+
+# Nobø Hub / Nobø Energy Control TCP/IP Interface
+
+This system/service/software is not officially supported or endorsed by Glen Dimplex Nordic AS, and the authors/maintainer(s) are not official partner of Glen Dimplex Nordic AS
+
+[The API (v1.1) for Nobø Hub can be found here][api]
+
+[api]: https://www.glendimplex.no/media/15650/nobo-hub-api-v-1-1-integration-for-advanced-users.pdf
+
+## Quick Start
+
+    import asyncio
+    from pynobo import nobo
+
+    async def main():
+        # Either call using the three last digits in the hub serial
+        hub = nobo('123', synchronous=False)
+        # or full serial and IP if you do not want to discover on UDP:
+        hub = nobo('123123123123', ip='10.0.0.128', discover=False, synchronous=False)
+
+        # Connect to the hub and get initial data
+        await hub.connect()
+
+        # Inspect what you get
+        def update(hub):
+            print(hub.hub_info)
+            print(hub.zones)
+            print(hub.components)
+            print(hub.week_profiles)
+            print(hub.overrides)
+            print(hub.temperatures)
+    
+        # Read the initial data
+        update(hub)
+    
+        # Listen for data updates - register before calling hub.start() to avoid race condition
+        hub.register_callback(callback=update)
+
+        # Start the background tasks for reading responses and keep connction alive
+        # This will connect to the hub if necessary
+        await hub.start()
+
+        # Hang around and wait for data updates
+        await asyncio.sleep(60)
+    
+        # Stop the connection
+        await hub.stop()
+
+    asyncio.run(main())
+
+## Available functionality
+
+* `nobo` class - When called it will initialize logger and dictionaries, connect to hub and start daemon thread.
+* `nobo.API` class - All the commands and responses from API v1.1, Some with sensible names, others not yet given better names.
+* `nobo.DiscoveryProtocol` - An `asyncio.DatagramProtocol` used to discover Nobø Ecohubs on the local network.
+
+### Discover and test connection
+
+It is possible to discover hubs on the local network, and also test connectivity, before starting the background tasks.
+
+    # Discover all hubs on local network
+    hubs = await nobo.async_discover_hubs()
+
+    # Test connection to the first
+    (ip, serial) = hubs.pop()
+    hub = nobo(serial + '123', ip=ip, discover=False, synchronous=False)
+    await hub.connect()
+
+    # Then start the background tasks
+    await hub.start()
+
+    # Or just close the connection right away
+    await hub.close()
+
+### Background Tasks
+
+Calling `start()` will first try to discover the Nobø Ecohub on the local network, unless `discover` is set to `False`,
+which required IP address and full serial (12 digits).  If an IP address is provided, or the hub is discovered, it
+will attempt to connect to it, and if successful, start  the following tasks:
+
+* keep_alive - Send a periodic keep alive message to the hub
+* socket_receive - Handle incoming messages from the hub
+
+If the connection is lost, it will attempt to reconnect.
+
+### Command Functions
+
+These functions send commands to the hub.
+
+* async_send_command - Send a list of command string(s) to the hub
+* async_create_override - Override hub/zones/components
+* async_update_zone - Update the name, week profile, temperature or override allowing for a zone.  
+* async_add_week_profile - Create a week profile
+* async_update_week_profile - Update a week profile
+* async_remove_week_profile - Remove a week profile
+
+### Dictionary helper functions
+
+These functions simplify getting the data you want from the dictionaries. They do
+not perform any I/O, and can safely be called from the event loop.
+
+* get_week_profile_status - Get the status of a week profile at a certain time in the week 
+* get_current_zone_mode - Get the mode of a zone at a certain time
+* get_current_component_temperature - Get the current temperature from a component
+* get_current_zone_temperature - Get the current temperature from (the first component in) a zone
+* get_zone_override_mode - Get the override mode for the zone
+
+### Connection state
+
+Consumers can observe when the hub connects, disconnects, or reconnects. The
+`connected` property reflects the current state; register a callback to be
+notified on every transition. Callbacks MUST be safe to call from the event
+loop; exceptions they raise are logged and swallowed.
+
+    # Called with (hub, True) on connect/reconnect, (hub, False) on disconnect
+    def on_connection_state(hub, connected):
+        print("connected" if connected else "disconnected")
+
+    hub.register_connection_callback(on_connection_state)
+    await hub.connect()
+    assert hub.connected
+    # ...later, to stop listening:
+    hub.deregister_connection_callback(on_connection_state)
+
+### Reconnect behavior
+
+If the connection is lost, pynobo reconnects automatically. Consumers observe
+transitions through the connection callback above (`True → False → True`); there
+is no need to call `connect()` or `start()` again.
+
+**What triggers a reconnect:**
+
+* TCP errors on the receive socket (e.g. `ECONNRESET` after ~24 h, network
+  interface going away).
+* Silent network drops — if no frame has arrived from the hub within 2× the
+  keep-alive interval (~28 s by default), the connection is forced closed and
+  the reconnect path runs. This covers cases where outgoing packets are
+  dropped without any error surfacing (WiFi disabled, switch unplugged, hub
+  unreachable).
+
+**Retry schedule:** exponential backoff from 10 s up to 60 s, retrying
+indefinitely while the failure is transport-level. The hub will reconnect as
+soon as the network returns, regardless of outage length.
+
+**Terminal failures:** if the hub rejects the handshake (wrong serial,
+unsupported API version) during reconnect, pynobo logs the error and stops
+the background tasks. The connection state stays `False` (set when the drop
+was first detected) and is not recovered automatically — the consumer must
+fix the configuration and call `connect()` / `start()` again.
+
+**Log signals worth watching:**
+
+* `lost connection to hub (...)` — a TCP error occurred; reconnect is starting.
+* `no response from hub in 28s, forcing reconnect` — the liveness check
+  tripped (silent drop detected).
+* `reconnect attempt failed: ...; retrying in Ns` — an individual attempt
+  failed; backoff continues.
+* `reconnected to Nobø Hub` — back online.
+* `hub rejected handshake, giving up: ...` — terminal; intervention required.
+
+## Exceptions
+
+Errors raised by pynobo inherit from `PynoboError`:
+
+* `PynoboConnectionError` — TCP connection to the hub failed or was lost
+* `PynoboHandshakeError` — the hub rejected the handshake (bad serial, wrong API version, etc.)
+* `PynoboValidationError` — invalid parameters. Also inherits `ValueError` for backwards compatibility with callers
+  written against earlier versions.
+
+## Backwards compatibility
+
+**Deprecated as of 1.9.0, to be removed in 2.0.** The synchronous wrapper API is still available for
+compatibility with v1.1.2, but every sync entry point now emits a `DeprecationWarning`. Migrate to
+the async API — initialize with `synchronous=False` and call the `async_*` methods from an event
+loop (or `asyncio.run(...)`).
+
+> The following APIs emit a `DeprecationWarning`:
+>
+> - `synchronous=True` in `nobo(...)` — the daemon-thread wrapper. Use the async API and
+>   `asyncio.run(hub.connect())` (or await from an existing event loop) instead.
+> - `nobo.connect_hub(ip, serial)` — use `await hub.async_connect_hub(ip, serial)`.
+> - `nobo.discover_hubs(...)` — use `await nobo.async_discover_hubs(...)`.
+> - `hub.send_command(commands)` — use `await hub.async_send_command(commands)`.
+> - `hub.create_override(...)` — use `await hub.async_create_override(...)`.
+> - `hub.update_zone(...)` — use `await hub.async_update_zone(...)`.
+> - `loop=` parameter in `nobo(...)` and `nobo.async_discover_hubs(...)`.
+
+While `synchronous=True` remains supported in 1.x, initializing this way starts the async event loop
+in a daemon thread, discovers and connects to the hub before returning as before.
+
+    import time
+    from pynobo import nobo
+    
+    def main():
+        # Either call using the three last digits in the hub serial
+        hub = nobo('123')
+        # or full serial and IP if you do not want to discover on UDP:
+        hub = nobo('123123123123', '10.0.0.128', False)
+        
+        # Inspect what you get
+        def update(hub):
+            print(hub.hub_info)
+            print(hub.zones)
+            print(hub.components)
+            print(hub.week_profiles)
+            print(hub.overrides)
+            print(hub.temperatures)
+    
+        # Listen for data updates - register before getting initial data to avoid race condition
+        hub.register_callback(callback=update)
+    
+        # Get initial data
+        update(hub)
+    
+        # Hang around and wait for data updates
+        time.sleep(60)
+    
+    main()

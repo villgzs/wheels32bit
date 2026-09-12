@@ -1,0 +1,79 @@
+Metadata-Version: 2.4
+Name: pysenz
+Version: 1.0.2
+Summary: Async Typed Python package for the Chemelex (nVent) RAYCHEM SENZ RestAPI
+Home-page: https://github.com/nordicopen/pysenz
+Author: Åke Strandberg
+Author-email: ake@strandberg.eu
+Maintainer: Åke Strandberg
+Maintainer-email: ake@strandberg.eu
+License: LGPLv3+
+Project-URL: Say Thanks!, https://saythanks.io/to/milan.meulemans@live.be
+Project-URL: Bug Tracker, https://github.com/nordicopen/pysenz/issues
+Project-URL: Source Code, https://github.com/nordicopen/pysenz
+Project-URL: Documentation, https://github.com/nordicopen/pysenz/blob/main/README.md
+Keywords: nvent,raychem,senz,wifi,api,restapi,oauth2,chemelex
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: COPYING
+Requires-Dist: httpx
+Requires-Dist: authlib
+Dynamic: license-file
+
+# pysenz package
+
+[![PyPI](https://img.shields.io/pypi/v/pysenz)](https://pypi.org/project/pysenz) ![PyPI - Downloads](https://img.shields.io/pypi/dm/pysenz) [![PyPI - License](https://img.shields.io/pypi/l/pysenz?color=blue)](https://github.com/nordicopen/pysenz/blob/main/COPYING)
+
+This repo is based on a fork from https://github.com/milanmeu/aiosenz
+
+An async Python wrapper for the nVent (aka Chemelex) Raychem SENZ RestAPI.
+
+## Installation
+
+```bash
+pip install pysenz
+```
+
+## OAuth2
+
+This package offers an `AbstractSENZAuth`, where you should handle the OAuth2 tokens and provide a valid access token in `get_access_token()`. You can use `SENZAuth` if you don't want to handle the OAuth2 tokens yourself.
+
+## Grant type
+
+`SENZAuth` uses the Authorization Code grant type. This requires a Client ID and Client Secret, more information is available in [the RestAPI documentation](https://api.senzthermostat.nvent.com).
+
+## Scopes
+
+pysenz uses the `restapi`, `openid`, and `offline_access` scope, this is set as default in SENZAuth and should be set in the OAuth2 client if you are using the AbstractSENZAuth class.
+
+## Example
+
+```python
+from asyncio import run
+from pysenz import SENZAuth, SENZAPI
+import httpx
+
+async def main():
+    async with httpx.AsyncClient() as httpx_client:
+        senz_auth = SENZAuth(
+            httpx_client,
+            "YOUR_CLIENT_ID",
+            "YOUR_CLIENT_SECRET",
+            redirect_uri="http://localhost:8080/auth/callback",
+        )
+        uri, state = await senz_auth.get_authorization_url()
+        print("Authorization URI: ", uri)
+        authorization_response = input("The authorization response URL: ")
+        await senz_auth.set_token_from_authorization_response(authorization_response)
+
+        senz_api = SENZAPI(senz_auth)
+        thermostats = await senz_api.get_thermostats()
+        for thermostat in thermostats:
+            print(f"{thermostat.name} temperature: {thermostat.current_temperatue}")
+        await senz_auth.close()
+
+run(main())
+```

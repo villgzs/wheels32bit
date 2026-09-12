@@ -1,1 +1,0 @@
-* [atpublic-7.0.0-py3-none-any.whl](../atpublic-7.0.0-py3-none-any.whl)    

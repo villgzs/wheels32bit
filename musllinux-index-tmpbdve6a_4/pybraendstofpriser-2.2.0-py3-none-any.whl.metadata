@@ -1,0 +1,25 @@
+Metadata-Version: 2.4
+Name: pybraendstofpriser
+Version: 2.2.0
+Summary: Library for fetching fuel prices from Fuelprices.dk API
+License: MIT
+License-File: LICENSE
+Author: Malene Trab
+Author-email: malene@trab.dk
+Requires-Python: >=3.11,<4.0
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Requires-Dist: aiohttp (>=3.13.2,<4.0.0)
+Description-Content-Type: text/markdown
+
+![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)
+
+## pybraendstofpriser
+
+This is a PyPI module for fetching fuel prices from Fuelprices.dk API, primarily developed for use with [Home Assistant](https://home-assistant.io), but I try to keep it as widely usable as possible.
+
+The API requires an API key to be used - see [https://fuelprices.dk](https://fuelprices.dk) for more information.

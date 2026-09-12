@@ -1,1 +1,0 @@
-* [specialized_turbo-0.8.2-py3-none-any.whl](../specialized_turbo-0.8.2-py3-none-any.whl)    

@@ -1,0 +1,36 @@
+Metadata-Version: 2.4
+Name: ProgettiHWSW
+Version: 0.1.3
+Summary: Controls ProgettiHWSW relay boards.
+Home-page: http://github.com/ardaseremet/progettihwsw
+Download-URL: http://github.com/ardaseremet/progettihwsw/tarball/0.1.3
+Author: Arda Seremet
+Author-email: ardaseremet@outlook.com
+License: MIT
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Intended Audience :: Telecommunications Industry
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Intended Audience :: Legal Industry
+Description-Content-Type: text/markdown
+Requires-Dist: aiohttp
+Requires-Dist: lxml
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary
+
+# ProgettiHWSW Python Controller 
+
+This Python3 package makes it easier to control ProgettiHWSW relay boards. More detailed explanation will be added later.
+
+This project uses MIT license.

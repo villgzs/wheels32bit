@@ -1,0 +1,28 @@
+Metadata-Version: 2.4
+Name: pyads
+Version: 3.4.0
+Summary: Python wrapper for TwinCAT ADS library
+Home-page: https://github.com/MrLeeh/pyads
+Author: Stefan Lehmann
+Author-email: Stefan.St.Lehmann@gmail.com
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: Microsoft :: Windows :: Windows 7
+Classifier: Operating System :: POSIX :: Linux
+Provides: pyads
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: provides
+Dynamic: summary

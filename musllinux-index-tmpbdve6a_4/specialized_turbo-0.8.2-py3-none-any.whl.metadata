@@ -1,0 +1,276 @@
+Metadata-Version: 2.5
+Name: specialized-turbo
+Version: 0.8.2
+Summary: Python library for communicating with Specialized Turbo e-bikes over Bluetooth Low Energy
+Project-URL: Homepage, https://github.com/JamieMagee/specialized-turbo
+Project-URL: Repository, https://github.com/JamieMagee/specialized-turbo
+Project-URL: Issues, https://github.com/JamieMagee/specialized-turbo/issues
+Project-URL: Documentation, https://github.com/JamieMagee/specialized-turbo/blob/main/docs/protocol.md
+Author: Jamie Magee
+License-Expression: MIT
+License-File: LICENSE
+Keywords: ble,bluetooth,ebike,specialized,turbo
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Classifier: Topic :: Software Development :: Libraries
+Requires-Python: >=3.11
+Requires-Dist: bleak>=0.21.0
+Requires-Dist: cryptography>=41.0.0
+Provides-Extra: cloud
+Requires-Dist: httpx>=0.27.0; extra == 'cloud'
+Provides-Extra: dev
+Requires-Dist: httpx>=0.27.0; extra == 'dev'
+Requires-Dist: pytest-asyncio>=1.3.0; extra == 'dev'
+Requires-Dist: pytest>=9.0.2; extra == 'dev'
+Description-Content-Type: text/markdown
+
+# specialized-turbo
+
+Python library for talking to Specialized Turbo e-bikes (Vado, Levo, Creo) over Bluetooth Low Energy. Reads speed, power, cadence, battery, motor temp, odometer, assist level, range. Can also write settings like assist level and acceleration.
+
+Async, built on [bleak](https://github.com/hbldh/bleak). Includes a CLI. Protocol docs in [docs/protocol.md](docs/protocol.md).
+
+## Installation
+
+```bash
+pip install specialized-turbo
+```
+
+For automatic key retrieval on newer encrypted bikes:
+
+```bash
+pip install "specialized-turbo[cloud]"
+```
+
+## Quick start
+
+### Stream telemetry
+
+```python
+import asyncio
+from specialized_turbo import SpecializedConnection, TelemetryMonitor
+
+
+async def main():
+    async with SpecializedConnection("DC:DD:BB:4A:D6:55") as conn:
+        monitor = TelemetryMonitor(conn)
+        await monitor.start()
+
+        async for msg in monitor.stream():
+            print(f"{msg.field_name} = {msg.converted_value} {msg.unit}")
+
+
+asyncio.run(main())
+```
+
+Newer bikes advertise an HMI serial/hardware pair and require a wrapped key
+from Specialized's keystore API. Supply either a provider or a wrapped key:
+
+```python
+from specialized_turbo import SpecializedConnection
+from specialized_turbo.cloud import SpecializedCloudClient
+
+async with SpecializedCloudClient() as cloud:
+    await cloud.login("rider@example.com", password)
+    async with SpecializedConnection(
+        "DC:DD:BB:4A:D6:55",
+        key_provider=cloud,
+    ) as conn:
+        ...
+
+# Or avoid account authentication by supplying the 64-character wrapped key.
+async with SpecializedConnection(address, wrapped_key=wrapped_key) as conn:
+    ...
+```
+
+The password is not persisted by the library. Provider users control token
+storage; manual-key users can operate without cloud access after obtaining the
+per-bike wrapped key.
+
+### Read the snapshot
+
+```python
+async with SpecializedConnection("DC:DD:BB:4A:D6:55") as conn:
+    monitor = TelemetryMonitor(conn)
+    await monitor.start()
+    await asyncio.sleep(5)
+
+    snap = monitor.snapshot
+    print(f"Speed: {snap.motor.speed_kmh} km/h")
+    print(f"Battery: {snap.battery.charge_pct}%")
+    print(
+        f"Power: {snap.motor.rider_power_w} W (rider) + {snap.motor.motor_power_w} W (motor)"
+    )
+    print(f"Cadence: {snap.motor.cadence_rpm} RPM")
+    print(f"Assist: {snap.motor.assist_level}")
+```
+
+### Query a single value
+
+```python
+from specialized_turbo import SpecializedConnection, Sender, BatteryChannel
+
+async with SpecializedConnection("DC:DD:BB:4A:D6:55") as conn:
+    msg = await conn.request_value(Sender.BATTERY, BatteryChannel.CHARGE_PERCENT)
+    print(f"Battery: {msg.converted_value}%")
+```
+
+### Write commands
+
+```python
+async with SpecializedConnection("DC:DD:BB:4A:D6:55") as conn:
+    await conn.set_assist_level(2)  # TRAIL
+    await conn.set_acceleration(50.0)  # 50%
+    await conn.set_shuttle(25)
+    await conn.set_assist_percentage(0, 35)  # ECO = 35%
+```
+
+## CLI
+
+Scan for bikes:
+
+```bash
+specialized-turbo scan
+specialized-turbo scan --timeout 15
+```
+
+Retrieve the wrapped key required by a newer encrypted bike:
+
+```bash
+specialized-turbo fetch-key DC:DD:BB:4A:D6:55 \
+  --email rider@example.com
+```
+
+The password is prompted without echo. By default, stdout contains only the
+64-character wrapped key, ready for `--wrapped-key` or the Home Assistant
+manual-key flow. Use explicit HMI identifiers when the bike is not nearby:
+
+```bash
+specialized-turbo fetch-key \
+  --hmi-hardware 3.2.1 \
+  --hmi-serial 123456789 \
+  --email rider@example.com \
+  --json
+```
+
+`fetch-key` requires `specialized-turbo[cloud]`. It does not print the final
+unwrapped AES key.
+
+Stream telemetry:
+
+```bash
+specialized-turbo telemetry DC:DD:BB:4A:D6:55 --email rider@example.com
+specialized-turbo telemetry DC:DD:BB:4A:D6:55 --wrapped-key "$WRAPPED_KEY"
+specialized-turbo telemetry DC:DD:BB:4A:D6:55 --format json
+specialized-turbo telemetry DC:DD:BB:4A:D6:55 --duration 30
+```
+
+Read a single value:
+
+```bash
+specialized-turbo read list                                             # show available fields
+specialized-turbo read battery_charge_percent DC:DD:BB:4A:D6:55
+specialized-turbo read speed DC:DD:BB:4A:D6:55 --format json
+```
+
+Write a value:
+
+```bash
+specialized-turbo write list                                            # show writable fields
+specialized-turbo write assist_level 2 DC:DD:BB:4A:D6:55  # set to TRAIL
+specialized-turbo write acceleration 50 DC:DD:BB:4A:D6:55 # 50% sensitivity
+```
+
+Dump GATT services (debugging):
+
+```bash
+specialized-turbo services DC:DD:BB:4A:D6:55
+```
+
+Capture complete TCX writes and notifications for protocol debugging:
+
+```bash
+specialized-turbo capture DC:DD:BB:4A:D6:55 --duration 60 > tcx-capture.tsv
+```
+
+## Available fields
+
+| Field | Unit | Writable | Description |
+| --- | --- | --- | --- |
+| `battery_capacity_wh` | Wh | | Total battery capacity |
+| `battery_remaining_wh` | Wh | | Remaining energy |
+| `battery_health` | % | | Battery health |
+| `battery_temp` | °C | | Battery temperature |
+| `battery_charge_cycles` | cycles | | Number of charge cycles |
+| `battery_voltage` | V | | Battery voltage |
+| `battery_current` | A | | Battery current draw |
+| `battery_charge_percent` | % | | State of charge |
+| `rider_power` | W | | Rider pedal power |
+| `cadence` | RPM | | Pedaling cadence |
+| `speed` | km/h | | Current speed |
+| `odometer` | km | | Total distance |
+| `assist_level` | -- | yes | OFF / ECO / TRAIL / TURBO |
+| `motor_temp` | °C | | Motor temperature |
+| `motor_power` | W | | Electric motor power |
+| `peak_assist` | % | | ECO / TRAIL / TURBO percentages |
+| `shuttle` | -- | yes | Shuttle mode value (0-100) |
+| `wheel_circumference` | mm | yes | Wheel circumference setting |
+| `assist_lev1_pct` | % | yes | ECO assist percentage |
+| `assist_lev2_pct` | % | yes | TRAIL assist percentage |
+| `assist_lev3_pct` | % | yes | TURBO assist percentage |
+| `fake_channel` | -- | | Bit-coded internal channel |
+| `acceleration` | % | yes | Acceleration sensitivity |
+
+TCX2+ bikes have additional fields (range, altitude, gradient, calories, system temperature, and more). See [docs/protocol.md](docs/protocol.md) for the full list.
+
+## Protocol support
+
+Five protocol variants exist:
+
+| Protocol | Message format | Encryption |
+| --- | --- | --- |
+| TCU1 | `[sender][channel][data]` | None |
+| TCX1 | Same as TCU1, using TURBOHMI GATT UUIDs | None |
+| TCX2 | 2-byte parameter ID + payload + clear CRC-16 | Optional AES-128-CTR |
+| TCX3 | Same as TCX2 | Optional AES-128-CTR |
+| TCX4 | Same as TCX2 | Optional AES-128-CTR |
+
+TCX1 shares the TURBOHMI UUID family with TCX2/3/4 but uses legacy
+write-then-read queries. The connected service structure distinguishes it from
+TCX2+. The `BLEProfile` enum (`TCU1` / `TCX`) controls which GATT UUID family
+to use.
+
+For encrypted bikes, only packet bytes 2–17 are encrypted. The parameter ID
+and CRC remain clear. The wrapped per-bike key comes from Specialized's cloud,
+while `SYSTEM_GET_NEW_VI` supplies a fresh session IV at connection time.
+
+See [docs/protocol.md](docs/protocol.md) for the full spec.
+
+## Pairing
+
+The connection requests authenticated pairing for bikes using the TURBOHMI
+UUID family. Passkey entry and numeric comparison are handled by the active
+Bluetooth backend or its pairing agent; Bleak cannot accept a passkey value
+directly.
+
+If the backend cannot present or confirm the pairing prompt, pair through the
+operating system first and reconnect. The deprecated `--pin` and `pin=`
+arguments are accepted for compatibility but their values are ignored.
+
+## Development
+
+```bash
+uv sync --extra dev
+uv run pytest
+```
+
+## License
+
+MIT

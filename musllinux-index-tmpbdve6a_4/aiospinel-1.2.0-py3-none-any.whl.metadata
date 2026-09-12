@@ -1,0 +1,74 @@
+Metadata-Version: 2.4
+Name: aiospinel
+Version: 1.2.0
+Summary: Asyncio implementation of the Spinel protocol for OpenThread RCPs
+Author-email: puddly <puddly3@gmail.com>
+License-Expression: Apache-2.0
+Project-URL: repository, https://github.com/home-assistant-libs/aiospinel
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: typing-extensions
+Provides-Extra: dev
+Requires-Dist: uv>=0.11.14; extra == "dev"
+Requires-Dist: ruff>=0.14.6; extra == "dev"
+Requires-Dist: mypy>=2.1.0; extra == "dev"
+Requires-Dist: codespell>=2.4.2; extra == "dev"
+Requires-Dist: pytest>=9.0.1; extra == "dev"
+Requires-Dist: prek>=0.3.11; extra == "dev"
+Requires-Dist: pytest-asyncio>=1.3.0; extra == "dev"
+Requires-Dist: pytest-timeout>=2.4.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: types-setuptools>=82.0.0.20260508; extra == "dev"
+Dynamic: license-file
+
+# aiospinel
+
+An asyncio implementation of the [Spinel](https://datatracker.ietf.org/doc/html/draft-rquattle-spinel-unified)
+protocol used to communicate with OpenThread RCPs over a serial connection.
+
+## Installation
+
+```console
+pip install aiospinel
+```
+
+## Usage
+
+This library exports an `SpinelProtocol` asyncio protocol object.
+
+```python
+import asyncio
+
+import serialx
+
+from aiospinel import CommandID, PropertyID, ResetReason, SpinelProtocol
+
+
+async def main() -> None:
+    loop = asyncio.get_running_loop()
+    _, protocol = await serialx.create_serial_connection(
+        loop=loop,
+        protocol_factory=SpinelProtocol,
+        url="/dev/ttyUSB0",
+        baudrate=460800,
+    )
+    await protocol.wait_until_connected()
+
+    try:
+        await protocol.reset(ResetReason.STACK)
+
+        rsp = await protocol.send_command(
+            CommandID.PROP_VALUE_GET,
+            PropertyID.HWADDR.serialize(),
+        )
+        prop_id, hwaddr = PropertyID.deserialize(rsp.data)
+        assert prop_id == PropertyID.HWADDR
+
+        print("Hardware address:", hwaddr.hex())
+    finally:
+        await protocol.disconnect()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```

@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: hikvision
+Version: 0.4
+Summary: Provides a python interface to interact with a hikvision camera
+Home-page: https://github.com/fbradyirl/hikvision
+Download-URL: https://github.com/fbradyirl/hikvision/tarball/0.4
+Author: Finbarr Brady
+Author-email: fbradyirl@users.noreply.github.com
+Keywords: hikvision camera python cgi interface
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Topic :: Internet
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: summary

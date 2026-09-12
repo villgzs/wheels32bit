@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: pdunehd
+Version: 1.3.3
+Summary: A Python wrapper for Dune HD media player API
+Home-page: https://github.com/valentinalexeev/pdunehd
+Author: Valentin Alexeev
+Author-email: valentin.alekseev@gmail.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# pdunehd
+A Python wrapper for Dune HD media player API

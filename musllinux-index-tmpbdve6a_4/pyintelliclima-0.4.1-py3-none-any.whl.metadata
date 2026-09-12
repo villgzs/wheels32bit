@@ -1,0 +1,62 @@
+Metadata-Version: 2.4
+Name: pyintelliclima
+Version: 0.4.1
+Summary: Python module for a HTTP API to communicate with the IntelliClima device server.
+Project-URL: Repository, https://github.com/dvdinth/pyintelliclima
+Author-email: dvdinth <dorus_van_dinther@hotmail.com>
+License-Expression: MIT
+License-File: LICENSE
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Classifier: Typing :: Typed
+Requires-Python: <4.0,>=3.11
+Requires-Dist: aiohttp>=3.14.3
+Requires-Dist: dacite>=1.9.2
+Description-Content-Type: text/markdown
+
+# pyintelliclima
+
+<div align="center">
+
+[![Python versions](https://img.shields.io/pypi/pyversions/pyintelliclima)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/pyintelliclima.svg)](https://pypi.org/project/pyintelliclima/)
+[![Status](https://img.shields.io/pypi/status/pyintelliclima.svg)](https://pypi.org/project/pyintelliclima/)
+[![License](https://img.shields.io/pypi/l/pyintelliclima)](https://github.com/dvdinth/pyintelliclima/blob/main/LICENSE)
+
+</div>
+
+* * *
+
+This is a python module for communicating with the IntelliClima ECOCOMFORT 2.0 devices. 
+Its main use is for my corresponding [HomeAssistant IntelliClima integration](https://www.home-assistant.io/integrations/intelliclima/).
+
+It can be extended to include other devices from IntelliClima in the future, but I only own the 
+ECOCOMFORT 2.0, so I cannot add any others. I've made a [guide for adding new devices](ADD_DEVICE_GUIDE.md). If you own other device types, it's highly appreciated if you could take a look at the guide and see if you can add a PR for your device(s), or share the logs as described so I can add them.
+
+This API was made by reverse engineering the cloud API, through the use of an android emulator and proxy to catch the Intelliclima+ app traffic. As such, no public API exists and the functionality of this module breaks if the API changes. This module is provided as-is, with no guarantees of correctness, stability, or continued functionality. Use it at your own risk.
+
+## Credits
+
+This was highly inspired by: https://github.com/ruizmarc/homebridge-intelliclima
+
+Partial credit for the reverse engineering process of the API goes to them.
+
+* * *
+
+## Project Docs
+
+For how to install uv and Python, see [installation.md](installation.md).
+
+For development workflows, see [development.md](development.md).
+
+* * *
+
+*This project was built from
+[simple-modern-uv](https://github.com/jlevy/simple-modern-uv).*

@@ -1,0 +1,76 @@
+Metadata-Version: 2.4
+Name: aioharmanluxury
+Version: 0.2.3
+Summary: Async client for Harman Luxury Audio / StreamUnlimited network streamers (Arcam Radia, JBL, Mark Levinson).
+Project-URL: Homepage, https://github.com/sbesh91/aioharmanluxury
+Project-URL: Issues, https://github.com/sbesh91/aioharmanluxury/issues
+Author: Steven Beshensky
+License-Expression: MIT
+License-File: LICENSE
+Keywords: arcam,asyncio,harman,homeassistant,jbl,media,streamsdk,streamunlimited
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: AsyncIO
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Home Automation
+Requires-Python: >=3.12
+Requires-Dist: aiohttp>=3.9
+Provides-Extra: test
+Requires-Dist: pytest-asyncio>=0.24; extra == 'test'
+Requires-Dist: pytest-cov; extra == 'test'
+Requires-Dist: pytest>=8; extra == 'test'
+Description-Content-Type: text/markdown
+
+# aioharmanluxury
+
+Async Python client for **Harman Luxury Audio** network streamers built on the
+**StreamUnlimited StreamSDK** platform, including the Arcam Radia **ST5**/ST60,
+JBL, and Mark Levinson streamers.
+
+It talks to the device's local JSON API (`https://<host>/api`) to read live
+player state and drive volume, mute, and transport.
+
+## Install
+
+```bash
+pip install aioharmanluxury
+```
+
+## Usage
+
+```python
+import aiohttp
+from aioharmanluxury import HarmanLuxuryClient
+
+
+async def main() -> None:
+    async with aiohttp.ClientSession() as session:
+        client = HarmanLuxuryClient("192.168.1.86", session)
+
+        info = await client.async_get_info()
+        print(info.model, info.name)  # ARCAM ST5 Dining Room
+
+        state = await client.async_get_state()
+        print(state.play_state, state.title, state.artist)
+
+        await client.async_set_volume(40)
+        await client.async_set_mute(False)
+        await client.async_control("pause")
+```
+
+## Notes
+
+- The device uses a self-signed certificate; the client disables TLS
+  verification for every request.
+- The API is unauthenticated on the local network.
+- Power is read-only (`powermanager:target` rejects writes), so on/standby can
+  be observed via `state.online` but not driven remotely.
+- Transport availability is source-dependent: Spotify Connect and AirPlay are
+  sender-controlled, so `state.can_pause` / `can_next` / `can_previous` reflect
+  what the active source currently allows.
+
+## License
+
+MIT

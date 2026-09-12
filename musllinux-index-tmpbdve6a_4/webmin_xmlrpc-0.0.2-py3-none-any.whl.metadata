@@ -1,0 +1,42 @@
+Metadata-Version: 2.1
+Name: webmin-xmlrpc
+Version: 0.0.2
+Summary: Provides a python interface to interact with the Webmin XML-RPC API.
+Author-email: Sidney Kuyateh <autinerd@kuyateh.eu>
+Project-URL: Homepage, https://github.com/autinerd/webmin-xmlrpc
+Keywords: webmin,xmlrpc
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3 :: Only
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp
+
+# Webmin XML-RPC python package
+
+This package provides a python interface to interact with the Webmin XML-RPC API.
+
+## Usage
+
+```python
+from aiohttp.client import ClientSession
+from webmin_xmlrpc.client import WebminInstance
+from yarl import URL
+
+base_url = URL.build(host="example.com", scheme="https")
+session = Clientsession(base_url)
+instance = WebminInstance(session)
+
+async def get_data():
+    data = await instance.update()
+```
+
+## Exposed data
+
+- Load (1m, 5m, 15m)
+- Network interfaces
+- Memory information
+- Uptime
+- Local disk space information

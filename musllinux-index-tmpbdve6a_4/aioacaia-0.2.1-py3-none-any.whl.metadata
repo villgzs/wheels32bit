@@ -1,0 +1,105 @@
+Metadata-Version: 2.4
+Name: aioacaia
+Version: 0.2.1
+Summary: Python library to interact with acaia Bluetooth scales.
+Author-email: Josef Zweck <24647999+zweckj@users.noreply.github.com>
+Maintainer-email: Josef Zweck <24647999+zweckj@users.noreply.github.com>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/zweckj/aioacaia
+Project-URL: Repository, https://github.com/zweckj/aioacaia
+Project-URL: Documentation, https://github.com/zweckj/aioacaia
+Keywords: Acaia,Bluetooth,api,async,client
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Framework :: AsyncIO
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: bleak>=0.20.2
+Requires-Dist: bleak-retry-connector>=4.0.0
+Provides-Extra: dev
+Requires-Dist: covdefaults==2.3.0; extra == "dev"
+Requires-Dist: coverage==7.6.7; extra == "dev"
+Requires-Dist: mypy==2.3.0; extra == "dev"
+Requires-Dist: syrupy==4.7.2; extra == "dev"
+Requires-Dist: pytest==8.3.3; extra == "dev"
+Requires-Dist: pytest-asyncio==0.24.0; extra == "dev"
+Requires-Dist: pytest-cov==6.0.0; extra == "dev"
+Requires-Dist: ruff==0.15.15; extra == "dev"
+Dynamic: license-file
+
+# aioacaia
+
+Async Python library for interacting with Acaia Bluetooth scales.
+
+## Usage
+
+```python
+import asyncio
+
+from aioacaia import AcaiaScale
+from aioacaia.discovery import find_acaia_devices, is_new_scale
+
+
+async def main() -> None:
+    addresses = await find_acaia_devices()
+    if not addresses:
+        raise RuntimeError("No Acaia scale found")
+
+    address = addresses[0]
+    scale = AcaiaScale(
+        address,
+        is_new_style_scale=await is_new_scale(address),
+    )
+    await scale.connect()
+
+    try:
+        await scale.tare()
+        await scale.start_stop_timer()
+        await scale.reset_timer()
+    finally:
+        await scale.disconnect()
+
+
+asyncio.run(main())
+```
+
+## State Updates
+
+Pass a no-argument callback to receive notification when the scale state changes.
+The latest values are available through `weight`, `timer`, `flow_rate`, and
+`device_state`.
+
+```python
+import asyncio
+
+from aioacaia import AcaiaScale
+
+
+async def monitor(address: str) -> None:
+    scale: AcaiaScale
+
+    def state_changed() -> None:
+        print(f"Weight: {scale.weight}")
+        print(f"Timer: {scale.timer}")
+        if scale.device_state is not None:
+            print(f"Battery: {scale.device_state.battery_level}%")
+
+    scale = AcaiaScale(address, notify_callback=state_changed)
+    await scale.connect()
+    try:
+        await asyncio.Event().wait()
+    finally:
+        await scale.disconnect()
+
+
+asyncio.run(monitor("AA:BB:CC:DD:EE:FF"))
+```
+
+`connect()` also accepts a raw Bleak notification callback. Supplying one bypasses
+the built-in parsing and state updates.

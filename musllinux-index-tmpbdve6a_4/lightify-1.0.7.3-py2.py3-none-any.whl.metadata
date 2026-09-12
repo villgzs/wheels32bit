@@ -1,0 +1,22 @@
+Metadata-Version: 2.0
+Name: lightify
+Version: 1.0.7.3
+Summary: A library to work with OSRAM lightify.
+Home-page: https://github.com/tfriedel/python-lightify
+Author: Thomas Friedel
+Author-email: thomas.friedel@gmail.com
+License: Apache License (2.0)
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Internet
+
+A library to work with OSRAM lightify. Threadsafe.
+
+

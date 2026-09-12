@@ -1,0 +1,38 @@
+Metadata-Version: 2.4
+Name: starline
+Version: 0.1.5
+Summary: Unofficial python library for StarLine API
+Home-page: https://github.com/Anonym-tsk/starline/
+Author: Nikolay Vasilchuk
+Author-email: anonym.tsk@gmail.com
+License: Apache License 2.0
+Keywords: starline car security
+Platform: any
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Software Development :: Libraries :: Application Frameworks
+Requires-Python: >=3.5
+Requires-Dist: aiohttp>=3.6.1
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: platform
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+starline
+========
+
+Unofficial python library for StarLine API.

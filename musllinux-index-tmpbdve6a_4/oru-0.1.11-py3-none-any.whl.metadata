@@ -1,0 +1,43 @@
+Metadata-Version: 2.1
+Name: oru
+Version: 0.1.11
+Summary: Python client for Orange and Rockland Utility smart energy meters
+Home-page: https://github.com/bvlaicu/oru/
+Author: Bogdan Vlaicu
+Author-email: bogdanvlaicu@yahoo.com
+License: Apache Software License
+Platform: any
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 4 - Beta
+Classifier: Natural Language :: English
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Software Development :: Libraries :: Application Frameworks
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Requires-Dist: requests
+Provides-Extra: testing
+Requires-Dist: pytest ; extra == 'testing'
+
+This is a utility package to interact with an
+Orange and Rockland Utility smart energy meter
+
+Oru calls the API of the Orange and Rockland Utility
+smart energy meter to return the current energy usage.
+
+It requires a meter number.
+You can find your meter number fon your Orange and Rockland Utility bill.
+
+Example usage::
+
+    from oru import Meter
+
+    meter = Meter("701138804")
+    energy_usage_kWh = meter.last_read()
+
+
+

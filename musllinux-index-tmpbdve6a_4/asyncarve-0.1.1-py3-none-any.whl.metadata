@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: asyncarve
+Version: 0.1.1
+Summary: Simple Arve library
+Home-page: https://github.com/arvetech/asyncarve
+License: MIT
+Classifier: License :: OSI Approved :: MIT License
+Description-Content-Type: text/markdown
+Requires-Dist: orjson (>=2.0.1)
+Requires-Dist: mashumaro (>=3.12)
+Requires-Dist: aiohttp (>=3.9.3)
+Requires-Dist: yarl (>=1.9.4)
+Provides-Extra: dev
+Requires-Dist: pytest ; extra == 'dev'
+Requires-Dist: aresponses ; extra == 'dev'
+Requires-Dist: twine ; extra == 'dev'
+
+Asynchronous Python client to communicate with Arve devices

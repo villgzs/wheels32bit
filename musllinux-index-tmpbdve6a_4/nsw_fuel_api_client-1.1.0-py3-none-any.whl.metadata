@@ -1,0 +1,29 @@
+Metadata-Version: 2.4
+Name: nsw-fuel-api-client
+Version: 1.1.0
+Summary: API Client for NSW Government Fuel
+Home-page: https://github.com/nickw444/nsw-fuel-api-client
+Author: Nick Whyte
+Author-email: nick@nickwhyte.com
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary
+
+nsw-fuel-api-client
+============================================
+[![](https://travis-ci.org/nickw444/nsw-fuel-api-client.svg?branch=master)](https://travis-ci.org/nickw444/nsw-fuel-api-client)
+[![](https://coveralls.io/repos/nickw444/nsw-fuel-api-client/badge.svg)](https://coveralls.io/r/nickw444/nsw-fuel-api-client)
+[![](https://img.shields.io/pypi/v/nsw-fuel-api-client.svg)](https://pypi.python.org/pypi/nsw-fuel-api-client/)
+    
+API Client for NSW fuel prices.

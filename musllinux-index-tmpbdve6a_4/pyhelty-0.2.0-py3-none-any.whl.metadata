@@ -1,0 +1,118 @@
+Metadata-Version: 2.4
+Name: pyhelty
+Version: 0.2.0
+Summary: Async client library for Helty Flow VMC (mechanical ventilation) units with the smart Wi-Fi interface
+Project-URL: Homepage, https://github.com/ebaschiera/pyhelty
+Project-URL: Source, https://github.com/ebaschiera/pyhelty
+Project-URL: Issues, https://github.com/ebaschiera/pyhelty/issues
+Author-email: Ermanno Baschiera <ebaschiera@gmail.com>
+License: MIT
+License-File: LICENSE
+Keywords: asyncio,helty,home-assistant,mvhr,ventilation,vmc
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: AsyncIO
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Home Automation
+Classifier: Typing :: Typed
+Requires-Python: >=3.11
+Provides-Extra: dev
+Requires-Dist: mypy>=1.11; extra == 'dev'
+Requires-Dist: ruff>=0.6; extra == 'dev'
+Provides-Extra: test
+Requires-Dist: pytest-asyncio>=0.23; extra == 'test'
+Requires-Dist: pytest-cov>=5.0; extra == 'test'
+Requires-Dist: pytest>=8.0; extra == 'test'
+Description-Content-Type: text/markdown
+
+# pyhelty
+
+Async Python client for **Helty Flow** VMC (mechanical ventilation / MVHR) units
+equipped with the smart Wi-Fi interface, such as the *Flow Plus*.
+
+It speaks the unit's reverse-engineered TCP protocol (default port **5001**) and
+exposes a small, fully typed `asyncio` API. It is the device-communication layer
+behind the Home Assistant `helty` integration; it has **no** Home Assistant
+dependency and can be used standalone.
+
+> The protocol has no official specification. Behaviour is reverse-engineered
+> from a real Helty FlowPlus; your mileage may vary on other models.
+
+## Install
+
+```bash
+pip install pyhelty
+```
+
+## Usage
+
+```python
+import asyncio
+from pyhelty import HeltyClient, FanMode
+
+async def main() -> None:
+    client = HeltyClient("192.168.1.50")  # port defaults to 5001
+
+    data = await client.async_get_data()
+    print(data.name, data.fan_mode, data.indoor_temperature, data.indoor_humidity)
+
+    await client.async_set_fan_mode(FanMode.NIGHT)
+    await client.async_set_led(False)
+
+asyncio.run(main())
+```
+
+## API
+
+- `HeltyClient(host, port=5001, *, timeout=10.0)`
+- `async_get_name() -> str` — the user-assigned name (also used as a stable id)
+- `async_get_data() -> HeltyData` — name, fan mode, LED state, indoor/outdoor
+  temperature, indoor humidity, plus `co2`, `filter_hours` and `light_level`
+  (model-dependent — see below), and the raw `VMGI`/`VMGO` integer fields
+- `async_set_fan_mode(mode: FanMode)` — `OFF, LOW, MEDIUM, HIGH, MAX, BOOST,
+  NIGHT, FREE_COOLING`
+- `async_set_led(on: bool)`
+- `async_reset_filter()`
+- `async_set_light(level: int)` — front-light brightness 0-100 (0 = off)
+
+### Model-dependent fields
+
+`co2`, `filter_hours` and `light_level` are only meaningful on models that have
+the corresponding hardware. A Helty FlowPlus, for example, reports `co2 == 0`
+(no sensor) and accepts the light command without a physical light. The
+consuming application should decide whether to surface them (e.g. only when
+`co2 > 0`).
+
+Errors derive from `HeltyError`: `HeltyConnectionError`, `HeltyResponseError`,
+`HeltyCommandError`.
+
+## Protocol notes
+
+| Command | Purpose | Reply |
+|---|---|---|
+| `VMNM?` | device name | `VMNM <name>` |
+| `VMGI?` | sensors (15 fields, tenths) | `VMGI,<indoor_t>,<outdoor_t>,<indoor_rh>,...` |
+| `VMGH?` | status (15 fields) | `VMGO,<fan_mode>,<led>,...` |
+| `VMWH000000<n>` | set fan mode `n` (0-7) | `OK` |
+| `VMWH0100010` / `VMWH0100000` | LED on / off | `OK` |
+| `VMWH0417744` | reset filter counter | `OK` |
+
+The unit serves one command per TCP connection and then closes it; the client
+serialises commands with a lock.
+
+## Development
+
+```bash
+pip install -e ".[test,dev]"
+pytest
+ruff check .
+mypy src
+```
+
+## License
+
+MIT

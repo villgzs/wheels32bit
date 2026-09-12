@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: greencell_client
+Version: 1.0.3
+Summary: Support for communication with Greencell devices using by Home Assistant integration
+Author-email: Jakub Brzezowski <jakub.brzezowski@greencell.pl>
+License-Expression: MIT
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file

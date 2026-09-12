@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: pymitv
+Version: 1.4.3
+Summary: A Python 3 based Xiaomi TV remote
+Home-page: https://github.com/simse/pymitv
+Author: Simon Sorensen
+Author-email: teamangryghast@gmail.com
+License: UNKNOWN
+Requires-Dist: requests
+
+pymitv
+
+

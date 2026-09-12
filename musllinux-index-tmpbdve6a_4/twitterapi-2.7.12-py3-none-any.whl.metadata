@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: TwitterAPI
+Version: 2.7.12
+Summary: Minimal wrapper for Twitter's REST and Streaming APIs
+Home-page: https://github.com/geduldig/TwitterAPI
+Download-URL: https://github.com/geduldig/TwitterAPI/tarball/master
+Author: geduldig
+Author-email: boxnumber03@gmail.com
+License: MIT
+Keywords: twitter
+Requires-Dist: requests
+Requires-Dist: requests_oauthlib
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary

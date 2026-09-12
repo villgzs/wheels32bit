@@ -1,0 +1,24 @@
+Metadata-Version: 2.4
+Name: pyversasense
+Version: 0.0.6
+Summary: Versasense API consumer
+Home-page: https://github.com/flamm3blemuff1n/pyversasense
+Author: Steven Impens
+Author-email: s.impens.dev@gmail.com
+License: Apache License 2.0
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Classifier: License :: OSI Approved :: Apache Software License
+Description-Content-Type: text/markdown
+Requires-Dist: aiohttp>=3.5.4
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary
+
+VersaSense API consumer

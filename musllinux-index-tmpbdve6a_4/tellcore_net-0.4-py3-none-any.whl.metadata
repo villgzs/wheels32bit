@@ -1,0 +1,46 @@
+Metadata-Version: 2.4
+Name: tellcore-net
+Version: 0.4
+Summary: a Python module that allow to run tellcore over TCP/IP
+Home-page: https://github.com/pvizeli/tellcore-net
+Download-URL: https://github.com/pvizeli/tellcore-net/tarball/0.4
+Author: Pascal Vizeli
+Author-email: pvizeli@syshack.ch
+License: BSD License
+Keywords: telldus,tellcore,interface,wrapper,socat
+Platform: any
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: platform
+Dynamic: summary
+
+tellcore-net
+==============
+Allow to run Telldus Core over TCP/IP
+
+System requirements
+------------------
+
+local installed socat.
+
+Install
+--------
+
+`pip install tellcore-net`

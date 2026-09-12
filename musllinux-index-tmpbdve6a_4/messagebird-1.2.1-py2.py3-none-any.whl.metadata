@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: messagebird
+Version: 1.2.1
+Summary: MessageBird's REST API
+Home-page: https://github.com/messagebird/python-rest-api
+Download-URL: https://github.com/messagebird/python-rest-api/tarball/1.2.1
+Author: MessageBird
+Author-email: support@messagebird.com
+License: BSD-2-Clause
+Keywords: messagebird,sms
+Requires-Dist: requests>=2.4.1
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary

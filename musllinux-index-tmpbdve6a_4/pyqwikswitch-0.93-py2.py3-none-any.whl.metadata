@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: pyqwikswitch
+Version: 0.93
+Summary: Library to interface Qwikswitch USB Hub
+Home-page: https://github.com/kellerza/pyqwikswitch
+Download-URL: https://github.com/kellerza/pyqwikswitch/tarball/0.93
+Author: Johann Kellerman
+Author-email: kellerza@gmail.com
+License: MIT
+License-File: LICENSE
+Requires-Dist: attrs
+Requires-Dist: requests
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary

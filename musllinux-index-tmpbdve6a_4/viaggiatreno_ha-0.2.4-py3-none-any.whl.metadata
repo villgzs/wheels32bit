@@ -1,0 +1,41 @@
+Metadata-Version: 2.4
+Name: viaggiatreno_ha
+Version: 0.2.4
+Summary: Viaggiatreno API wrapper to use with Home Assistant.
+Author-email: Mattia Monga <mattia.monga@unimi.it>
+License-Expression: GPL-3.0-or-later
+Project-URL: GitHub, https://github.com/monga/viaggiatreno_ha
+Project-URL: Issues, https://github.com/monga/viaggiatreno_ha/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp
+Dynamic: license-file
+
+This package is designed to query the [Trenitalia
+ViaggiaTreno](http://www.viaggiatreno.it/infomobilita/index.jsp) API (that are
+mostly undocumented, but see [here, in
+Italian](https://github.com/roughconsensusandrunningcode/TrainMonitor/wiki/API-del-sistema-Viaggiatreno))
+in a [Home Assistant
+integration](https://www.home-assistant.io/integrations/viaggiatreno/).
+
+```python
+from viaggiatreno_ha.trainline import (Viaggiatreno,
+                                       TrainLine,
+                                       TrainLineStatus)
+from aiohttp import ClientSession
+
+async def main():
+    """Example of use."""
+    async with ClientSession() as session:
+        vt = Viaggiatreno(session)
+        tl = TrainLine('S01765', '136')
+        await vt.query_if_useful(tl)
+        print(vt.get_line_status(tl))
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+```

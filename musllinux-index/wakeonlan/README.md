@@ -1,1 +1,0 @@
-* [wakeonlan-3.3.0-py3-none-any.whl](../wakeonlan-3.3.0-py3-none-any.whl)    

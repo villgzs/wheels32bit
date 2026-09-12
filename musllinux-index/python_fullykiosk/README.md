@@ -1,1 +1,0 @@
-* [python_fullykiosk-0.0.15-py3-none-any.whl](../python_fullykiosk-0.0.15-py3-none-any.whl)    

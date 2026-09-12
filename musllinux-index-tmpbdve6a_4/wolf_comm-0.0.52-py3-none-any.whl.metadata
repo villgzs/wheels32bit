@@ -1,0 +1,42 @@
+Metadata-Version: 2.4
+Name: wolf_comm
+Version: 0.0.52
+Summary: A package to communicate with Wolf SmartSet Cloud
+Home-page: https://github.com/janrothkegel/wolf-comm
+Author: Jan Rothkegel
+Author-email: jan.rothkegel@web.de
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.14
+Classifier: Operating System :: OS Independent
+Classifier: License :: OSI Approved :: Apache Software License
+Requires-Python: >=3.14
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: httpx>=0.26.0
+Requires-Dist: lxml>=6.0.0
+Requires-Dist: pkce>=1.0.3
+Requires-Dist: shortuuid>=1.0.11
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+## Library to handle Wolf SmartSet communication.
+
+### Features:
+- Built-in authentication
+- Session creation
+- Fetch all devices you have
+- Fetch all parameters description
+- Fetch value for specific parameter
+
+### Parameter descriptions
+Parameters verified only for FGB-28 system.
+Other should work.
+Keep in mind that core implementation of fetching parameters is removing duplications by value_id and name.

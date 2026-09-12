@@ -1,0 +1,48 @@
+Metadata-Version: 2.1
+Name: simplefin4py
+Version: 0.0.18
+Summary: 
+License: MIT
+Author: Jeef
+Author-email: jeeftor@users.noreply.github.com
+Requires-Python: >=3.11,<4.0
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Dist: aiohttp (>=3.9.1)
+Requires-Dist: dataclasses-json (>=0.6.3,<0.7.0)
+Description-Content-Type: text/markdown
+
+# SimpleFIN4PY
+
+This library helps you access simpelFIN with python
+
+```python
+
+"""Example file."""
+import asyncio
+from dotenv import load_dotenv
+import os
+
+from simplefin4py import SimpleFin
+
+# Read info from .env file
+load_dotenv()
+
+access_url: str = os.getenv("ACCESS_URL", "")
+
+
+async def main() -> None:
+    """Main function."""
+    sf: SimpleFin = SimpleFin(access_url)
+    data = await sf.fetch_data()
+    print(data)
+
+
+# Run the async main function
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
+```

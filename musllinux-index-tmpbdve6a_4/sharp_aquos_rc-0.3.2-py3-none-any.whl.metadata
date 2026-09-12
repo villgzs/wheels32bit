@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: sharp_aquos_rc
+Version: 0.3.2
+Summary: Control Sharp Aquos SmartTVs through the IP interface.
+Home-page: https://github.com/jmoore987/sharp_aquos_rc
+Download-URL: https://github.com/jmoore987/sharp_aquos_rc/tarball/0.3.2
+Author: Jeffrey Moore
+Author-email: jmoore987@yahoo.com
+Keywords: sharp,aquos,remote,control,tv,smarttv,iot
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: summary

@@ -1,0 +1,27 @@
+Metadata-Version: 2.1
+Name: pyqvrpro
+Version: 0.52
+Summary: QVR Pro API wrapper.
+Home-page: https://github.com/oblogic7/pyqvrpro
+Author: Matt Snyder
+Author-email: matt@obscurelogic.com
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Python: >=3.5.0
+Description-Content-Type: text/markdown
+Requires-Dist: pyyaml
+Requires-Dist: requests
+Requires-Dist: untangle
+
+
+#QVR Pro API Client
+
+Basic client for interfacing with QVR Pro API.
+
+

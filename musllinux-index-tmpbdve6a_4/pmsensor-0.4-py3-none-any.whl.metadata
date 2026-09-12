@@ -1,0 +1,25 @@
+Metadata-Version: 2.4
+Name: pmsensor
+Version: 0.4
+Summary: Library to read data from environment sensors
+Home-page: https://github.com/open-homeautomation/pmsensor
+Author: Daniel Matuschek
+Author-email: daniel@matuschek.net
+License: MIT
+Keywords: serial pm2.5 pm1.0 pm10 co2
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: System :: Hardware :: Hardware Drivers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Requires-Dist: pyserial>=3
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary

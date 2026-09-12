@@ -1,0 +1,71 @@
+Metadata-Version: 2.4
+Name: pysmhi
+Version: 2.0.0
+Summary: Retrieve open data from SMHI api.
+License: MIT
+License-File: LICENSE
+Keywords: smhi,api,async,client
+Author: G Johansson
+Author-email: goran.johansson@shiftit.se
+Maintainer: G Johansson
+Maintainer-email: goran.johansson@shiftit.se
+Requires-Python: >=3.11,<4.0
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: aiohttp (>=3.9.2)
+Project-URL: Bug Tracker, https://github.com/gjohansson-ST/pysmhi/issues
+Project-URL: Changelog, https://github.com/gjohansson-ST/pysmhi/releases
+Project-URL: Documentation, https://github.com/gjohansson-ST/pysmhi
+Project-URL: Homepage, https://github.com/gjohansson-ST/pysmhi
+Project-URL: Repository, https://github.com/gjohansson-ST/pysmhi
+Description-Content-Type: text/markdown
+
+[![size_badge](https://img.shields.io/github/repo-size/gjohansson-ST/pysmhi?style=for-the-badge&cacheSeconds=3600)](https://github.com/gjohansson-ST/pysmhi)
+[![version_badge](https://img.shields.io/github/v/release/gjohansson-ST/pysmhi?label=Latest%20release&style=for-the-badge&cacheSeconds=3600)](https://github.com/gjohansson-ST/pysmhi/releases/latest)
+[![download_badge](https://img.shields.io/pypi/dm/pysmhi?style=for-the-badge&cacheSeconds=3600)](https://github.com/gjohansson-ST/pysmhi/releases/latest)
+![GitHub Repo stars](https://img.shields.io/github/stars/gjohansson-ST/pysmhi?style=for-the-badge&cacheSeconds=3600)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/gjohansson-ST/pysmhi?style=for-the-badge&cacheSeconds=3600)
+![GitHub License](https://img.shields.io/github/license/gjohansson-ST/pysmhi?style=for-the-badge&cacheSeconds=3600)
+
+[![Made for Home Assistant](https://img.shields.io/badge/Made_for-Home%20Assistant-blue?style=for-the-badge&logo=homeassistant)](https://github.com/home-assistant)
+
+[![Sponsor me](https://img.shields.io/badge/Sponsor-Me-blue?style=for-the-badge&logo=github)](https://github.com/sponsors/gjohansson-ST)
+[![Discord](https://img.shields.io/discord/872446427664625664?style=for-the-badge&label=Discord&cacheSeconds=3600)](https://discord.gg/EG7cWFQMGW)
+
+# pysmhi
+
+python module for communicating with [SMHI](https://opendata.smhi.se/)
+
+## Supported applications
+
+- Daily weather forecast
+- Hourly weather forecast
+- Bi-daily weather forecast
+- Daily fire risk
+- Hourly fire risk
+
+## Code examples
+
+### Get daily forecast
+
+Retrieves the daily forecast for the specified location
+
+```python
+from pysmhi import SMHIForecast, SMHIPointForecast
+
+async with aiohttp.ClientSession(loop=loop) as session:
+    client = SMHIPointForecast("16.15035", "58.570784", session)
+    daily_forecast = await client.async_get_daily_forecast()
+    print(daily_forecast)
+```
+
+Credits to [@helto4real](https://github.com/helto4real) for making the original smhi api package used for Home Assistant to connect to SMHI weather services which this is based upon.
+

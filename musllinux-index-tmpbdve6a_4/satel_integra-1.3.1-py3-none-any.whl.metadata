@@ -1,0 +1,86 @@
+Metadata-Version: 2.4
+Name: satel_integra
+Version: 1.3.1
+Summary: Communication library and basic testing tool for Satel Integra alarm system. Communication via TCP/IP protocol published by SATEL.
+Author-email: Krzysztof Machelski <krzysztof.machelski+pypi@gmail.com>, Tom Matheussen <13683094+Tommatheussen@users.noreply.github.com>
+License-Expression: MIT
+Project-URL: Repository, https://github.com/c-soft/satel_integra
+Project-URL: Changelog, https://github.com/c-soft/satel_integra/blob/master/CHANGELOG.md
+Keywords: satel,integra,satel_integra,alarm,security
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Security
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: cryptography
+Provides-Extra: dev
+Requires-Dist: mypy==1.18.2; extra == "dev"
+Requires-Dist: pre-commit==3.4.0; extra == "dev"
+Requires-Dist: pydocstyle==6.3.0; extra == "dev"
+Requires-Dist: pylint==3.3.8; extra == "dev"
+Requires-Dist: pytest==8.4.2; extra == "dev"
+Requires-Dist: pytest-asyncio==1.2.0; extra == "dev"
+Requires-Dist: pytest-cov==7.0.0; extra == "dev"
+Requires-Dist: pytest-timeout==2.4.0; extra == "dev"
+Dynamic: license-file
+
+# Satel Integra: Asynchronous python client for Satel Integra
+
+![PyPI - Version](https://img.shields.io/pypi/v/satel-integra)
+![Pypi - Python Versions](https://img.shields.io/pypi/pyversions/satel-integra)
+[![Licence](https://img.shields.io/github/license/c-soft/satel_integra)](LICENSE)
+
+[![Build Status](https://github.com/c-soft/satel_integra/actions/workflows/ci.yml/badge.svg)](https://github.com/c-soft/satel_integra/actions/workflows/ci.yml)
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/c-soft/satel_integra)
+
+## About
+
+Communication library and basic testing tool for Satel Integra alarm system. Communication via TCP/IP protocol published by SATEL.
+
+## Installation
+
+```bash
+pip install satel_integra
+```
+
+## Usage
+
+To use Satel Integra in a project, follow the example, replace values where needed:
+
+```python
+from satel_integra import AsyncSatel
+```
+
+For complete examples, look into the [examples](examples/) folder.
+
+## Contributing
+
+Contributions are welcome! If you want to contribute, have a look at [the contribution file](CONTRIBUTING.md).
+
+## License
+
+Refer to the [licence file](LICENCE).
+
+## Features
+
+- [x] Zone violation state
+- [x] Output states + toggling
+- [x] Alarm panel status + arming/disarming
+- [x] Encrypted connections
+- [x] Auto reconnecting
+- [x] Zone temperature reading
+- [ ] Zone tamper/bypass states
+- [ ] System faults (bad battery, AC trouble, other errors)
+- [ ] System info (panel information, firmware version etc)
+- [ ] Event monitoring
+
+## Credits
+
+Original creator of the library is [Krzysztof Machelski](https://github.com/c-soft)
+
+All contributors are listed on [the contributor's page](https://github.com/c-soft/satel_integra/graphs/contributors)

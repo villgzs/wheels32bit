@@ -1,0 +1,46 @@
+Metadata-Version: 2.4
+Name: auroranoaa
+Version: 0.0.5
+Summary: NOAA Aurora Wrapper for Home Assistant Integration.
+Home-page: https://github.com/djtimca/aurora-api
+Download-URL: https://github.com/djtimca/aurora-api/archive/v_0.0.3.tar.gz
+Author: Tim Empringham
+Author-email: tim.empringham@live.ca
+License: apache-2.0
+Keywords: NOAA,Aurora
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+License-File: LICENSE.txt
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-python
+Dynamic: summary
+
+# Aurora API (auroranoaa)
+
+PyPi integration to support the Home Assistant Aurora integration.
+
+## Available Methods
+
+### get_forecast_data(longitude:float, latitude:float)
+
+Request the NOAA Aurora forecast for the given longitude and latitude.
+
+Return value will be an integer of the forecast % chance of there being an Aurora event at the given coordinates.

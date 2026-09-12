@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: pybbox
+Version: 0.0.5a0
+Summary: a simple python3 library for the Bouygues BBox Routeur API
+Home-page: https://github.com/HydrelioxGitHub/pybbox
+Download-URL: https://github.com/HydrelioxGitHub/pybbox/tarball/0.0.5-alpha
+Author: Hydreliox
+Author-email: hydreliox@gmail.com
+Keywords: bbox,Bouygues,routeur,API
+Requires-Dist: netaddr
+Requires-Dist: requests
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: requires-dist
+Dynamic: summary

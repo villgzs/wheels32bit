@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: python-blockchain-api
+Version: 0.0.2
+Summary: Python API for interacting with blockchain.info.
+Home-page: https://github.com/nkgilley/python-blockchain-api
+Download-URL: https://github.com/nkgilley/python-blockchain-api/archive/0.0.1.tar.gz
+Author: Nolan Gilley
+Author-email: nkgilley@gmail.com
+License: MIT
+Requires-Dist: requests>=2.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary
