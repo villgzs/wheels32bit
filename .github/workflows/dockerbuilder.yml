@@ -81,6 +81,16 @@ jobs:
           '
           head -n 30 wheels//builder/wheel.py
 
+          python3 -c '
+          from pathlib import Path
+          file_path = Path("wheels/builder/__main__.py")
+          content = file_path.read_text(encoding="utf-8")
+          updated_content = content.replace("wheels.home-assistant.io", "villgzs.github.io")
+          file_path.write_text(updated_content, encoding="utf-8")
+          print("Csere kész.")
+          '
+          grep -n "villgzs.github.io\|wheels.home-assistant.io" wheels/builder/__main__.py          
+
       # 3. A te 32 bites Dockerfile-od felülírja a hivatalosat
       - name: Replace Dockerfile with your 32-bit version
         run: |
