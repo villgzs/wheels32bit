@@ -6,7 +6,7 @@ ARG \
     CPYTHON_ABI \
     # Ha saját wheels indexet használsz, cseréld ki:
     # PIP_EXTRA_INDEX_URL=https://wheels.home-assistant.io/musllinux-index/
-    PIP_EXTRA_INDEX_URL=https://villgzs.github.io/wheels32bit/musllinux-index/
+    PIP_EXTRA_INDEX_URL="https://villgzs.github.io/wheels32bit/musllinux-index/ https://wheels.home-assistant.io/musllinux-index/"
 
 SHELL ["/bin/bash", "-exo", "pipefail", "-c"]
 
@@ -31,7 +31,6 @@ RUN \
     && apk add --no-cache --virtual .build-dependencies \
         libffi-dev \
     && pip3 install \
-        --extra-index-url https://wheels.home-assistant.io/musllinux-index/ \
         -r /usr/src/builder/requirements.txt \
         -r /usr/src/builder/requirements_${CPYTHON_ABI}.txt \
         /usr/src/builder/
