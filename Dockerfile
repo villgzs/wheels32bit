@@ -31,6 +31,7 @@ RUN \
     && apk add --no-cache --virtual .build-dependencies \
         libffi-dev \
     && pip3 install \
+        --extra-index-url https://wheels.home-assistant.io/musllinux-index/ \
         -r /usr/src/builder/requirements.txt \
         -r /usr/src/builder/requirements_${CPYTHON_ABI}.txt \
         /usr/src/builder/
