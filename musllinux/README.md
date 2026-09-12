@@ -1,4 +1,4 @@
-### Last build from https://github.com/home-assistant/core:(2026.9.1): (UTC 2026-Sep-12 12:55:35)
+### Last build from https://github.com/home-assistant/core:(2026.9.1): (UTC 2026-Sep-12 18:48:54)
 * [AEMET_OpenData](./AEMET_OpenData)    
 * [InquirerPy](./InquirerPy)    
 * [PlexAPI](./PlexAPI)    
