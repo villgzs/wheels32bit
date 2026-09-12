@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: tapsaff
+Version: 0.2.1
+Summary: Provides an API for requesting information from taps-aff.co.uk
+Home-page: https://github.com/bazwilliams/python-taps-aff
+Download-URL: https://github.com/bazwilliams/python-taps-aff/tarball/0.2.0
+Author: Barry John Williams
+Author-email: barry@bjw.me.uk
+Keywords: weather,glasgow,uk,clothes,top,taps,aff,oan
+Requires-Dist: requests
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: requires-dist
+Dynamic: summary

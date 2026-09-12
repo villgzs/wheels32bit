@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: kiwiki-client
+Version: 0.1.2
+Summary: KIWI Lock Client Library
+Home-page: https://github.com/c7h/kiwiki_client
+Author: Christoph Gerneth
+Author-email: christoph.gerneth@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+License-File: LICENSE
+Requires-Dist: requests
+Requires-Dist: python-dateutil
+
+UNKNOWN
+

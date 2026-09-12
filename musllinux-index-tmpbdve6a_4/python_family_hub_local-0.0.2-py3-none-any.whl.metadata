@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: python-family-hub-local
+Version: 0.0.2
+Summary: Python API for accessing information from Samsung FamilyHub fridges locally.
+Home-page: https://github.com/Klathmon/python-family-hub-local
+Download-URL: https://github.com/Klathmon/python-family-hub-local/archive/0.0.2.tar.gz
+Author: Gregory Benner
+Author-email: gregbenner1@gmail.com
+License: MIT
+Requires-Dist: aiohttp
+Requires-Dist: async_timeout
+Requires-Dist: pillow
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary

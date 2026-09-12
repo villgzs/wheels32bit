@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: python-ripple-api
+Version: 0.0.3
+Summary: Python API for interacting with ripple.com.
+Home-page: https://github.com/nkgilley/python-ripple-api
+Author: Nolan Gilley
+Author-email: nkgilley@gmail.com
+License: MIT
+Requires-Dist: requests>=2.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary

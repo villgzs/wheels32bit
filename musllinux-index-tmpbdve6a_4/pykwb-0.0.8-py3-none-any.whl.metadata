@@ -1,0 +1,14 @@
+Metadata-Version: 2.0
+Name: pykwb
+Version: 0.0.8
+Summary: KWB Easyfire serial library, for inclusion into homeassistant
+Home-page: https://github.com/bimbar/pykwb.git
+Author: Markus Peter
+Author-email: mpeter@emdev.de
+License: MIT
+Platform: UNKNOWN
+Requires-Dist: pyserial (>=3.0.1)
+
+UNKNOWN
+
+

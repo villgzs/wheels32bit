@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: pypca
+Version: 0.0.7
+Summary: A python cli for PCA 301 smart plugs.
+Home-page: http://www.github.com/majuss/pypca
+Author: Majuss
+License: MIT
+Keywords: smart home automation
+Platform: any
+Requires-Python: >=3.5
+Requires-Dist: colorlog
+Requires-Dist: pyserial
+
+pypca is a python3 interface for the ELV PCA 301 smart plug. Its intented to get used in various smart home services to get a full integration of all you devices.
+
+

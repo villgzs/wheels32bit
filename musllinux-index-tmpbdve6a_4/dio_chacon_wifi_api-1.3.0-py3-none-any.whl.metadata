@@ -1,0 +1,80 @@
+Metadata-Version: 2.4
+Name: dio-chacon-wifi-api
+Version: 1.3.0
+Summary: Python library for DIO Chacon wifi's protocol for shutters and switches
+License: GPL-3.0-or-later
+License-File: LICENSE
+Keywords: dio,chacon,shutter,switch,api,doorbell
+Author: cnico
+Requires-Python: >=3.12,<4.0
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Requires-Dist: aiohttp (>=3.9.3,<4.0.0)
+Project-URL: Documentation, https://dio-chacon-wifi-api.readthedocs.io
+Project-URL: Homepage, https://github.com/cnico/dio-chacon-wifi-api
+Project-URL: Repository, https://github.com/cnico/dio-chacon-wifi-api
+Description-Content-Type: text/markdown
+
+# Dio Chacon Wifi API
+
+[![PyPi](https://img.shields.io/pypi/v/dio-chacon-wifi-api)](https://pypi.org/project/dio-chacon-wifi-api)
+[![GitHub Release](https://img.shields.io/github/release/cnico/dio-chacon-wifi-api.svg)](https://github.com/cnico/dio-chacon-wifi-api/releases)
+[![Python Version](https://img.shields.io/pypi/pyversions/dio-chacon-wifi-api)](https://pypi.org/project/dio-chacon-wifi-api/)
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Read the docs](https://img.shields.io/readthedocs/dio-chacon-wifi-api/latest.svg?label=Read%20the%20Docs)](https://dio-chacon-wifi-api.readthedocs.io/)
+[![Codecov](https://codecov.io/gh/cnico/dio-chacon-wifi-api/branch/main/graph/badge.svg)](https://codecov.io/gh/cnico/dio-chacon-wifi-api)
+[![Github Activity](https://img.shields.io/github/commit-activity/y/cnico/dio-chacon-wifi-api.svg)](https://github.com/cnico/dio-chacon-wifi-api/commits/main)
+
+DIO Chacon are devices mainly distributed in the European market.
+Chacon provide various device to control switches, shutters, camera, lights, etc.
+The website contains it all : [https://chacon.com/](https://chacon.com/)
+
+The cool thing about their device is that they have RF (433Mhz, used by remote control in house) and Wifi protocols (used by the mobile App).
+
+The wifi protocol is cloud based with their server and quite reactive through permanent connections (via websockets).
+
+This project is a simple implementation, based on the Wifi protocol, of a python client to give the possibility to connect and acts on the devices. It currently supports switches (plugs or wall box for lights), shutters and the doorbell. It can lists all registered devices (via the mobile app), get their status (on/off ; open level ; doorbell ring event) and act on them (switch on/off ; move up/down/stop cover or move a given percentage of openess).
+
+It is used in a [HomeAssistant](<https://home-assistant.io/>) integration but is also usable in other automation platforms (jeedom, etc).
+
+## Using this library
+
+To implement a client that interact with Chacon devices, simply have look at [test_integrations_switch.py](https://github.com/cnico/dio-chacon-wifi-api/blob/main//tests/test_integrations_switch.py) or [test_integrations_shutter.py](https://github.com/cnico/dio-chacon-wifi-api/blob/main//tests/test_integrations_shutter.py) that provide effective implementations.
+
+The library is published in [pypi.org](https://pypi.org/) and so can be very easily used in any python project (with python > 3.12).
+
+`pip install dio-chacon-wifi-api`
+
+Note that after the first API call, the connection to the chacon's cloud server is a open in a form of a websocket. To close it, you have to call disconnect method.
+
+Note also that this client has auto reconnection implemented in case of a network temporary failure for example.
+
+## Contributing to this project
+
+If you find bugs or want to improve the library, simply open an issue and propose PR to merge.
+Chacon have lots of devices that could be managed via this library.
+
+## Design principles
+
+The wifi protocol is described in [Protocol.md](https://github.com/cnico/dio-chacon-wifi-api/blob/main/Protocol.md).
+You can test this protocol manually through postman with establishing a connection via correct authentification (email + password of your chacon mobile app account) ; then upgrade the connection to Websocket and then interact with json messages in the Websocket stream.
+
+The same protocol is also described in two machine-readable specifications under the [docs/](https://github.com/cnico/dio-chacon-wifi-api/blob/main/docs) folder :
+
+- [docs/asyncapi.yaml](https://github.com/cnico/dio-chacon-wifi-api/blob/main/docs/asyncapi.yaml) is an [AsyncAPI 3.0](https://www.asyncapi.com/) description of the WebSocket protocol (requests, replies and server-pushed device state events). Open it in the [AsyncAPI Studio](https://studio.asyncapi.com/) to browse the operations and message schemas, or generate static HTML documentation locally with the [`@asyncapi/cli`](https://www.asyncapi.com/tools/cli) : `asyncapi generate fromTemplate docs/asyncapi.yaml @asyncapi/html-template -o ./asyncapi-html`. AsyncAPI Studio is a hosted service, so prefer the local CLI command if you modify the spec to include real device identifiers or session tokens.
+- [docs/opencollection.yml](https://github.com/cnico/dio-chacon-wifi-api/blob/main/docs/opencollection.yml) is an [OpenCollection 1.0](https://www.opencollection.io/) executable collection bundling the REST login call and the WebSocket operations. Import it in an OpenCollection-aware client — [Bruno](https://www.usebruno.com/) is the primary tested target — and fill in the `email` / `password` collection variables with your Chacon mobile app account to replay the requests against the cloud server. The credentials travel in the URL query string, so treat any exported version of the collection as sensitive.
+
+For the implementation of the library, it is based on the great [aiohttp](https://docs.aiohttp.org/) library that we use as a http client for REST requests and websocket exchange.
+All the library is asynchronous and based on [asyncio](https://docs.python.org/3/library/asyncio-dev.html).
+
+The websocket permanent connection is established lazily when it is necessary (for example for devices discovery) by an asyncio task. This tasks keeps the connection permanent via automatic ping/pong messages.
+The protocol is based two types of interaction :
+
+- Requests / Responses : this is handled via json message sent in the websocket with an id (the library automatically manages this id) and a response received from the server that has the same id has the request.
+- Server side sent messages : these push messages (for example a switch manually switched on/off with the button or other event) are sent back to the registerer callback method when you initialize the client.
+

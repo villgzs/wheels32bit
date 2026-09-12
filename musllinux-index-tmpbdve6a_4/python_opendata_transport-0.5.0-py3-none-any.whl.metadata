@@ -1,0 +1,76 @@
+Metadata-Version: 2.4
+Name: python_opendata_transport
+Version: 0.5.0
+Summary: Python API for interacting with transport.opendata.ch.
+Home-page: https://github.com/home-assistant-ecosystem/python-opendata-transport
+Download-URL: https://github.com/home-assistant-ecosystem/python-opendata-transport/releases
+Author: Fabian Affolter
+Author-email: fabian@affolter-engineering.ch
+License: MIT
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Utilities
+Requires-Python: >=3.11
+License-File: LICENSE
+Requires-Dist: aiohttp<4,>=3.8.5
+Requires-Dist: urllib3
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+python-opendata-transport
+=========================
+
+A Python client for interacting with `transport.opendata.ch <http://transport.opendata.ch/>`_.
+
+This module is the base for the integration into `Home Assistant <https://home-assistant.io>`_
+and is simply retrieving the details about a given connection between two stations.
+
+This module is not official, developed, supported or endorsed by opendata.ch.
+
+Installation
+------------
+
+The module is available from the `Python Package Index <https://pypi.python.org/pypi>`_.
+
+.. code:: bash
+
+    $ pip3 install python_opendata_transport
+
+On a Fedora-based system or on a CentOS/RHEL 8 machine with has EPEL enabled.
+
+.. code:: bash
+
+    $ sudo dnf -y install python3-opendata-transport
+
+For Nix or NixOS users is a package available. Keep in mind that the lastest releases might only
+be present in the ``unstable`` channel.
+
+.. code:: bash
+
+    $ nix-env -iA nixos.python3Packages.python-opendata-transport
+
+Usage
+-----
+
+The file ``example.py`` contains an example about how to use this module.
+
+License
+-------
+
+``python-opendata-transport`` is licensed under MIT, for more details check LICENSE.

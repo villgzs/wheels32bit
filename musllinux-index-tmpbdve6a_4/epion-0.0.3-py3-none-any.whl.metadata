@@ -1,0 +1,35 @@
+Metadata-Version: 2.4
+Name: epion
+Version: 0.0.3
+Summary: A python API wrapper for Epion Air senor data
+Home-page: https://github.com/devenzo-com/epion_python
+Author: Leendert Gravendeel
+Author-email: leendert@epion.nl
+License: MIT
+Keywords: epion air co2 sensor data api
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Scientific/Engineering
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+License-File: LICENSE
+Requires-Dist: requests
+Requires-Dist: docopt
+Requires-Dist: pytz
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary
+
+# epion_python
+Python library to access Epion sensor data

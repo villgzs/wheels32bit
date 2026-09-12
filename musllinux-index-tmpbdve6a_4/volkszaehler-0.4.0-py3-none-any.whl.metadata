@@ -1,0 +1,115 @@
+Metadata-Version: 2.4
+Name: volkszaehler
+Version: 0.4.0
+Summary: Python Wrapper for interacting with the Volkszahler API.
+Home-page: https://github.com/home-assistant-ecosystem/python-volkszaehler
+Download-URL: https://github.com/home-assistant-ecosystem/python-volkszaehler/releases
+Author: Fabian Affolter
+Author-email: fabian@affolter-engineering.ch
+License: MIT
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Utilities
+Requires-Python: >=3.9
+License-File: LICENSE
+Requires-Dist: aiohttp<4,>=3.7.4
+Requires-Dist: async_timeout<5,>4
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+python-volkszaehler
+===================
+
+Python API for interacting with `Volkszaehler <https://volkszaehler.org>`_. At
+the moment only the consumption of data is supported. Sorry, uploading is not
+possible.
+
+This module is not official, developed, supported or endorsed by Volkzaehler.
+
+Installation
+------------
+
+The module is available from the `Python Package Index <https://pypi.python.org/pypi>`_.
+
+.. code:: bash
+
+    $ pip3 install volkszaehler
+
+On a Fedora-based system or a CentOS/RHEL host with EPEL.
+
+.. code:: bash
+
+    $ sudo dnf -y install python3-volkszaehler
+
+For Nix or NixOS users is a package available. Keep in mind that the lastest releases might only
+be present in the ``unstable`` channel.
+
+.. code:: bash
+
+    $ nix-env -iA nixos.python39Packages.volkszaehler
+
+Usage
+-----
+
+The file ``example.py`` contains an example about how to use this module.
+
+Basically it's just a wrapper to get the JSON data from a given UUID which
+represents the device.
+
+.. code:: bash
+
+   $ http https://demo.volkszaehler.org/middleware.php/data/57acbef0-88a9-11e4-934f-6b0f9ecd95a8.json
+   [...]
+   {
+       "data": {
+           "average": 0.01,
+           "consumption": 38.099,
+           "from": 1584390593336,
+           "max": [
+               1597701600000,
+               0.01
+           ],
+           "min": [
+               1597701600000,
+               0.01
+           ],
+           "rows": 3,
+           "to": 1598106085887,
+           "tuples": [
+               [
+                   1597701600000,
+                   0.01,
+                   1
+               ],
+               [
+                   1598106085887,
+                   0.01,
+                   1
+               ]
+           ],
+           "uuid": "57acbef0-88a9-11e4-934f-6b0f9ecd95a8"
+       },
+       "version": "0.3"
+   }
+
+License
+-------
+
+``python-volkszaehler`` is licensed under MIT, for more details check LICENSE.

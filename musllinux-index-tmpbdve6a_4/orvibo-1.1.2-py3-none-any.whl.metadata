@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: orvibo
+Version: 1.1.2
+Summary: Control Orvibo products.
+Home-page: https://github.com/happyleavesaoc/python-orvibo/
+Author: happyleaves
+Author-email: happyleaves.tfr@gmail.com
+License: MIT
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: summary

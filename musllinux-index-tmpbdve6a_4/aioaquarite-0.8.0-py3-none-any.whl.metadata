@@ -1,0 +1,91 @@
+Metadata-Version: 2.4
+Name: aioaquarite
+Version: 0.8.0
+Summary: Async Python client for the Hayward Aquarite pool API
+Author: fdebrus
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/fdebrus/aioaquarite
+Project-URL: Repository, https://github.com/fdebrus/aioaquarite
+Project-URL: Issues, https://github.com/fdebrus/aioaquarite/issues
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Home Automation
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp>=3.9.0
+Requires-Dist: google-auth>=2.29.0
+Requires-Dist: google-cloud-firestore>=2.16.0
+Dynamic: license-file
+
+# aioaquarite
+
+Async Python client for the Hayward Aquarite pool API.
+
+This library provides a standalone API client for interacting with Hayward Aquarite pool equipment via the Hayward cloud service. It is designed to be used as the backend for the [Home Assistant Aquarite integration](https://github.com/fdebrus/hayward-ha).
+
+## Installation
+
+```bash
+pip install aioaquarite
+```
+
+## Usage
+
+```python
+import aiohttp
+from aioaquarite import AquariteAuth, AquariteClient
+
+async with aiohttp.ClientSession() as session:
+    auth = AquariteAuth(session, "user@example.com", "password")
+    await auth.authenticate()
+
+    # Stable Firebase UID (`sub` claim of the id token); useful as a
+    # config-entry unique_id. Returns None before authenticate() succeeds.
+    print("Firebase UID:", auth.user_id)
+
+    client = AquariteClient(auth)
+
+    pools = await client.get_pools()
+    for pool_id, pool_name in pools.items():
+        data = await client.fetch_pool_data(pool_id)
+        temperature = AquariteClient.get_value(data, "main.temperature")
+        print(f"{pool_name}: {temperature}°C")
+
+    # Subscribe with built-in token refresh + reconnect (recommended).
+    # The callback is invoked from the Firestore background thread;
+    # asyncio consumers should wrap it with loop.call_soon_threadsafe.
+    def on_update(data):
+        print("Pool updated:", data.get("main", {}).get("temperature"))
+
+    subscription = await client.subscribe_pool_resilient(pool_id, on_update)
+
+    await client.set_value(pool_id, "filtration.mode", 1)
+
+    # Pull the stored sample series for a metric (~30 days, ~10-minute
+    # granularity). Each point is {"field": <value>, "seconds": <utc_unix>}.
+    # Recognised types: ph, rx, temp, cl, cd, filtration, aux1..aux4.
+    series = await client.get_pool_stats(pool_id, "ph", period=30)
+    print("pH samples:", len(series[0]))
+
+    # Cleanup
+    await subscription.aclose()
+```
+
+### Low-level subscription (0.3-style)
+
+If you want to own the connection lifecycle yourself, the raw watch handle is
+still available:
+
+```python
+watch = await client.subscribe_pool(pool_id, on_update)
+# ... maintain token freshness, resubscribe on errors, etc. ...
+watch.unsubscribe()
+```
+
+## License
+
+MIT

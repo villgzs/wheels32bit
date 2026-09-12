@@ -1,0 +1,24 @@
+Metadata-Version: 2.2
+Name: livisi
+Version: 0.0.25
+Summary: Connection library for the abandoned Livisi Smart Home system
+Author-email: Stefan Iacob <stefan.iacob.extern@livisi.de>, Felix Rotthowe <felix@planbnet.org>
+License: Apache-2.0
+Project-URL: Source, https://github.com/planbnet/livisi
+Project-URL: Tracker, https://github.com/planbnet/livisi/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: colorlog>=6.8.2
+Requires-Dist: aiohttp>=3.8.5
+Requires-Dist: websockets>=11.0.3
+
+# livisi
+
+# Asynchronous library to communicate with LIVISI Smart Home Controller
+Requires Python 3.8+ and uses asyncio and aiohttp.
+
+This library is a fork of the unmaintained aiolivisi lib.

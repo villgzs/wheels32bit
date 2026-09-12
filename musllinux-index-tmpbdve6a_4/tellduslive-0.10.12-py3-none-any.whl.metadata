@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: tellduslive
+Version: 0.10.12
+Summary: Communicate with Telldus Live
+Home-page: https://github.com/molobrakos/tellduslive
+Author: Erik
+Author-email: error.errorsson@gmail.com
+Classifier: License :: OSI Approved :: The Unlicense (Unlicense)
+Provides: tellduslive
+License-File: LICENSE
+Requires-Dist: requests
+Requires-Dist: requests_oauthlib
+Provides-Extra: console
+Requires-Dist: docopt; extra == "console"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: provides
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: summary

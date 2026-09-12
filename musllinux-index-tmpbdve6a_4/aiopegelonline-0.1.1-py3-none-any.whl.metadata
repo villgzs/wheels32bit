@@ -1,0 +1,103 @@
+Metadata-Version: 2.1
+Name: aiopegelonline
+Version: 0.1.1
+Summary: Asynchronous library to retrieve data from PEGELONLINE.
+Author: mib1185
+License: Apache-2.0
+Project-URL: homepage, https://github.com/mib1185/aiopegelonline
+Project-URL: repository, https://github.com/mib1185/aiopegelonline
+Platform: any
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp
+
+[![Test](https://github.com/mib1185/aiopegelonline/actions/workflows/test.yml/badge.svg)](https://github.com/mib1185/aiopegelonline/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/mib1185/aiopegelonline/branch/main/graph/badge.svg?token=QRC1NSIONL)](https://codecov.io/gh/mib1185/aiopegelonline)
+[![Maintainability](https://api.codeclimate.com/v1/badges/e87241f5f51003ac7353/maintainability)](https://codeclimate.com/github/mib1185/aiopegelonline/maintainability)
+[![Library version](https://img.shields.io/pypi/v/aiopegelonline.svg)](https://pypi.org/project/aiopegelonline)
+[![Supported versions](https://img.shields.io/pypi/pyversions/aiopegelonline.svg)](https://pypi.org/project/aiopegelonline)
+[![Downloads](https://pepy.tech/badge/aiopegelonline)](https://pypi.org/project/aiopegelonline)
+[![Formated with Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+# aiopegelonline
+
+Asynchronous library to retrieve data from [PEGELONLINE](https://www.pegelonline.wsv.de/).
+
+:warning: **this is in early development state** :warning:
+
+breaking changes may occure at every time
+
+## Requirements
+
+- Python >= 3.9
+- aiohttp
+
+## Installation
+
+```bash
+pip install aiopegelonline
+```
+
+## Examples
+### Get all available measurement stations
+
+```python
+import asyncio
+import aiohttp
+from aiopegelonline import PegelOnline
+
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        pegelonline = PegelOnline(session)
+        stations = await pegelonline.async_get_all_stations()
+        for uuid, station in stations.items():
+            print(f"uuid: {uuid} name: {station.name}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Get current measurement
+
+```python
+import asyncio
+import aiohttp
+from aiopegelonline import PegelOnline
+
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        pegelonline = PegelOnline(session)
+        measurements = await pegelonline.async_get_station_measurements("70272185-b2b3-4178-96b8-43bea330dcae")
+
+    for name, data in measurements.as_dict().items():
+        if data is None:
+            print(f"{name} not provided by measurement station")
+        else:
+            print(f"{name}: {data.value} {data.uom}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## References
+
+- [PEGELONLINE api reference (German)](https://www.pegelonline.wsv.de/webservice/dokuRestapi)
+
+---
+You like my work?
+
+<a href="https://www.buymeacoffee.com/mib1185" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="41" width="174"></a>

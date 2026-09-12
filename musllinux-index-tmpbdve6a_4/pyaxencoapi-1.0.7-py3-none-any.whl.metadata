@@ -1,0 +1,42 @@
+Metadata-Version: 2.4
+Name: pyaxencoapi
+Version: 1.0.7
+Summary: Librairie d'utilisation de l'API REST/Websocket d'Axenco
+Author-email: Léo Periou <leo.periou@axenco.com>
+License: MIT
+Project-URL: Homepage, https://github.com/AXENCO-FR/ha-py-axenco-api
+Project-URL: Repository, https://github.com/AXENCO-FR/ha-py-axenco-api
+Project-URL: Issues, https://github.com/AXENCO-FR/ha-py-axenco-api/issues
+Keywords: axenco,api,iot,myneomitis,async
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Home Automation
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp>=3.8.0
+Requires-Dist: python-socketio[asyncio_client]>=5.0.0
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: aiohttp; extra == "dev"
+Requires-Dist: aioresponses; extra == "dev"
+Requires-Dist: python-socketio[asyncio_client]; extra == "dev"
+Requires-Dist: coverage; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Dynamic: license-file
+
+# PyAxencoAPI
+
+Client Python asynchrone pour interagir avec les dispositifs connectés MyNeomitis via API REST/Websocket.
+
+## Installation
+
+```bash
+pip install pyaxencoapi

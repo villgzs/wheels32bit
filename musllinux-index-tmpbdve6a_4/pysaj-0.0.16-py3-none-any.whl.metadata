@@ -1,0 +1,20 @@
+Metadata-Version: 2.0
+Name: pysaj
+Version: 0.0.16
+Summary: Library to communicate with SAJ inverters
+Home-page: https://github.com/fredericvl/pysaj
+Author: fredericvl
+Author-email: frederic.van.linthoudt@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+
+# pysaj
+
+This library was created to communicate with SAJ solar inverters within Home Assistant.
+It is based on the pysma component written by @kellerza
+

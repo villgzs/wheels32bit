@@ -1,0 +1,30 @@
+Metadata-Version: 2.4
+Name: pymailgunner
+Version: 1.4
+Summary: A simple mailgun client - pymailgun fork with Python 3 support
+Home-page: https://github.com/pschmitt/pymailgunner
+Download-URL: https://github.com/pschmitt/pymailgunner/archive/master.zip
+Author: Philipp Schmitt
+Author-email: philipp@schmitt.co
+License: Apache license version 2.0
+Platform: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Environment :: Web Environment
+License-File: LICENSE
+Requires-Dist: requests>=2.2.1
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: platform
+Dynamic: requires-dist
+Dynamic: summary

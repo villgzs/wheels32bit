@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: notifications-android-tv
+Version: 0.1.5
+Summary: Notifications for Android/Fire TVs
+Home-page: https://github.com/engrbm87/notifications_android_tv
+Author: Rami Mousleh
+Author-email: engrbm87@gmail.com
+License: MIT
+Download-URL: https://github.com/engrbm87/notifications_android_tv/archive/refs/tags/0.1.5.tar.gz
+Keywords: android tv,fire tv,notifications
+Platform: UNKNOWN
+Requires-Python: >=3.8
+License-File: LICENSE
+Requires-Dist: requests
+
+UNKNOWN
+

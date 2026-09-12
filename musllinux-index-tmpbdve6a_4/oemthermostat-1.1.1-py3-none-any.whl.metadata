@@ -1,0 +1,48 @@
+Metadata-Version: 2.1
+Name: oemthermostat
+Version: 1.1.1
+Summary: A package to interface with the HTTP API of the OpenEnergyMonitor Thermostat.
+Home-page: https://github.com/Cadair/openenergymonitor_thermostat
+Author: "Stuart Mumford"
+Author-email: "stuart@cadair.com"
+License: BSD
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Requires-Dist: requests
+Provides-Extra: docs
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: sphinxcontrib-httpdomain ; extra == 'docs'
+Requires-Dist: sphinx-automodapi ; extra == 'docs'
+Requires-Dist: sphinx-rtd-theme ; extra == 'docs'
+Provides-Extra: test
+Requires-Dist: pytest ; extra == 'test'
+Requires-Dist: pytest-cov ; extra == 'test'
+
+Open Energy Monitor Thermostat Python API
+==========================================
+
+Overview
+--------
+
+This module provides a Python API to the Open Energy
+Monitor
+`Thermostat <https://shop.openenergymonitor.com/wifi-mqtt-relay-thermostat/>`__
+Currently it only provides enough functionality for external control of the
+thermostat rather than providing access to all the configuration options.
+
+
+Installation / Usage
+--------------------
+
+To install use pip::
+
+    $ pip install oemthermostat
+
+
+Or clone the repo::
+
+    $ git clone https://github.com/Cadair/openenergymonitor_thermostat.git
+    $ pip install openenergymonitor_thermostat
+
+
+

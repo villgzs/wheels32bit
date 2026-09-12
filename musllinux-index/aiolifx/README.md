@@ -1,1 +1,0 @@
-* [aiolifx-1.2.2-py3-none-any.whl](../aiolifx-1.2.2-py3-none-any.whl)    

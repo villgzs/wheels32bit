@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: pyhomematic
+Version: 0.1.78
+Summary: Homematic interface
+Home-page: https://github.com/danielperna84/pyhomematic
+Download-URL: https://github.com/danielperna84/pyhomematic/tarball/0.1.78
+Author: Daniel Perna
+Author-email: danielperna84@gmail.com
+License: MIT License
+Keywords: home,automation,homematic,smarthome
+Platform: any
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Topic :: Home Automation
+License-File: LICENSE.txt
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: platform
+Dynamic: summary

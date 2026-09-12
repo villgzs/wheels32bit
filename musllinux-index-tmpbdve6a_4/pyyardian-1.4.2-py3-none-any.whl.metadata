@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: pyyardian
+Version: 1.4.2
+Summary: A module for interacting with the Yardian irrigation controller
+Home-page: https://github.com/aeon-matrix/pyyardian
+Author: Yardian Support
+Author-email: contact@aeonmatrix.com
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Home Automation
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: aiohttp>=3.8.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+ Python module for interacting with the Yardian smart irrigation controller. This module communicates directly towards the IP address of the Yardian controller.

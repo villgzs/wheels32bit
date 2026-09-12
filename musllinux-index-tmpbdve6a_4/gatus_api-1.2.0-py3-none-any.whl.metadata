@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: gatus-api
+Version: 1.2.0
+Summary: An asynchronous Python client for the Gatus API
+Project-URL: Homepage, https://github.com/TN-1/gatus-api
+Project-URL: Repository, https://github.com/TN-1/gatus-api
+Project-URL: Issues, https://github.com/TN-1/gatus-api/issues
+Project-URL: Changelog, https://github.com/TN-1/gatus-api/releases
+Author-email: "@TN-1" <hamish@hamishwest.xyz>
+License: MIT
+License-File: LICENSE
+Keywords: aiohttp,api,async,client,gatus,monitoring
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.11
+Requires-Dist: aiohttp>=3.9.0

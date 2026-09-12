@@ -1,0 +1,70 @@
+Metadata-Version: 2.4
+Name: aioaquacell
+Version: 1.0.0
+Summary: Asynchronous library to retrieve details of your Aquacell water softener device
+License-Expression: Apache-2.0
+License-File: LICENSE
+Author: Jordi Epema
+Author-email: jordi.epema@gmail.com
+Maintainer: Jordi Epema
+Maintainer-email: jordi.epema@gmail.com
+Requires-Python: >=3.10,<4
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Requires-Dist: aiohttp (>=3.9)
+Requires-Dist: aws-request-signer (>=1.0)
+Requires-Dist: boto3 (>=1.10.49)
+Requires-Dist: botocore (>=1.13.49)
+Requires-Dist: pycognito (>=2024.5.1)
+Project-URL: Documentation, https://github.com/Jordi1990/aioaquacell
+Project-URL: Homepage, https://github.com/Jordi1990/aioaquacell
+Project-URL: Repository, https://github.com/Jordi1990/aioaquacell
+Description-Content-Type: text/markdown
+
+# Aioaquacell
+
+Asynchronous library to retrieve details of your Aquacell water softener device.
+This API is reverse engineered from the official Android application.
+Credentials used can be verified in the APK (res\raw\amplifyconfiguration.json).
+
+## Requirements
+
+- aiohttp
+- pycognito
+- aws-request-signer
+- boto3
+- botocore
+
+## Usage
+
+```python
+userName = "<email address>"
+password = "<password>"
+
+
+async def main():
+    api = AquacellApi()
+    await api.authenticate(userName, password)
+    # Get the refresh token
+    print(api.refresh_token)
+    
+    softeners = await api.get_all_softeners()
+    for softener in softeners:
+        print(softener.name)
+
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+```
+### Authenticate using refresh token
+```python
+refresh_token = "<refresh token>"
+api = AquacellApi()
+await api.authenticate(refresh_token)
+```
+

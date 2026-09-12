@@ -1,0 +1,73 @@
+Metadata-Version: 2.2
+Name: sensorpush-ha
+Version: 1.3.2
+Summary: SensorPush Cloud Home Assistant Library
+Home-page: https://github.com/sstallion/sensorpush-ha
+Author: Steven Stallion
+Author-email: sstallion@gmail.com
+License: BSD-2-Clause
+Keywords: homeassistant sensorpush
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pydantic>=2.10.0
+Requires-Dist: sensorpush-api>=2.1.0
+Provides-Extra: release
+Requires-Dist: build>=0.3.0; extra == "release"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: summary
+
+# SensorPush Cloud Home Assistant Library
+
+[![](https://github.com/sstallion/sensorpush-ha/actions/workflows/ci.yml/badge.svg?branch=master)][1]
+[![](https://img.shields.io/pypi/v/sensorpush-ha)][2]
+[![](https://img.shields.io/pypi/pyversions/sensorpush-ha)][2]
+[![](https://img.shields.io/github/license/sstallion/sensorpush-ha)][3]
+
+This repository contains a Python library that interfaces the [SensorPush
+Gateway Cloud API][4] with [Home Assistant][5]. It is primarily used by the
+[SensorPush Cloud][6] integration.
+
+## Installation
+
+`sensorpush-ha` is available on [PyPI][2] and can be installed locally using the
+Python Package Installer:
+
+    $ python -m pip install --user sensorpush-ha
+
+## Contributing
+
+Pull requests are welcome! See [CONTRIBUTING.md][7] for more details.
+
+## License
+
+Source code in this repository is licensed under a Simplified BSD License. See
+[LICENSE][3] for more details.
+
+[1]: https://github.com/sstallion/sensorpush-ha/actions/workflows/ci.yml
+[2]: https://pypi.org/project/sensorpush-ha/
+[3]: https://github.com/sstallion/sensorpush-ha/blob/master/LICENSE
+[4]: https://www.sensorpush.com/gateway-cloud-api
+[5]: https://www.home-assistant.io/
+[6]: https://www.home-assistant.io/integrations/sensorpush_cloud/
+[7]: https://github.com/sstallion/sensorpush-ha/blob/master/CONTRIBUTING.md

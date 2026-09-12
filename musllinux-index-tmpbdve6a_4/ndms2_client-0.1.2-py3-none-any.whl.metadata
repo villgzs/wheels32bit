@@ -1,0 +1,28 @@
+Metadata-Version: 2.4
+Name: ndms2_client
+Version: 0.1.2
+Summary: Keenetic NDMS 2.x and 3.x client
+Home-page: https://github.com/foxel/python_ndms2_client
+Author: Andrey F. Kupreychik
+Author-email: foxel@quickfox.ru
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: summary
+
+[![Build Status](https://travis-ci.com/foxel/python_ndms2_client.svg?branch=master)](https://travis-ci.com/foxel/python_ndms2_client)
+
+### Keenetic NDMS v2 client library ###
+

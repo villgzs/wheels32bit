@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: pyenvisalink
+Version: 4.9
+Summary: A python3 library for running asynchronus communications with envisalink alarm control panel modules.
+Home-page: https://github.com/ufodone/pyenvisalink
+Author: David O'Neill
+Author-email: ufodone@gmail.com
+License: MIT
+Classifier: Development Status :: 4 - Beta
+Classifier: Programming Language :: Python :: 3.10
+License-File: LICENSE.txt
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: summary
+
+A python3 library for running asynchronus communications with envisalink alarm control panel modules.

@@ -1,0 +1,83 @@
+Metadata-Version: 2.2
+Name: python-MotionMount
+Version: 2.3.0
+Summary: Control your SIGNATURE MotionMount TVM7675 Pro using Python
+Home-page: https://github.com/vogelsproducts/python-MotionMount
+Author: Remco Poelstra
+Author-email: r.poelstra@vogels.com
+Project-URL: Bug Tracker, https://github.com/vogelsproducts/python-MotionMount/issues
+Project-URL: repository, https://github.com/vogelsproducts/python-MotionMount
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+
+# Introduction 
+This Python module allows control of the TVM 7675 Pro (SIGNATURE) series of MotionMount's from Vogel's Products.
+
+# Getting Started
+This module can be installed using the following command:
+`pip install python-MotionMount`
+
+In your Python code you can then use the module as follows:
+```
+import asyncio
+import motionmount
+
+ip = "MMF8A55F.local." # Can also be "169.254.13.16" or similar
+port = 23 # The best way to get the port number is using zeroconf, but it's likely '23'
+
+async def main():
+    mm = MotionMount(ip, port)
+
+    try:
+        await mm.connect()
+        await mm.go_to_preset(1)
+
+        print(f"Extension: {mm.extension}")
+
+        name = await mm.get_name()
+        print(f"The name is: \"{name}\"")
+
+        await mm.go_to_position(50, -50)
+    except Exception as e:
+        print(f"Something bad happened: {e}")
+    finally:
+        await asyncio.sleep(1)
+        await mm.disconnect()
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+```
+
+To get the IP address of the MotionMount you can use [pyzeroconf](https://github.com/paulsm/pyzeroconf) or you can use a manual tool like `dns-sd` in the macOS Terminal or a GUI tool like [Discovery](https://apps.apple.com/nl/app/discovery-dns-sd-browser/id1381004916?mt=12) (macOS) or [Bonjour Browser](https://hobbyistsoftware.com/bonjourbrowser) (Windows)
+  
+A simple example using `pyzeroconf` is included in the `examples` folder.
+  
+If you want to run the examples from a clone of the repository you can use a command similar to:
+`PYTHONPATH=./src/motionmount python examples/simple.py`
+
+# Changelog
+1.0.1: - Fix bug in allowed preset indices
+
+2.0.0: - Include position data in presets
+
+2.1.0: - Add timeout (15 s) to `connect()`
+
+2.2.0: - Add support for authentication to the MotionMount
+
+2.3.0: - Add new `system_status` property for pre-parsed aggregated system status
+
+MIT License
+
+Copyright (c) 2023 Vogel's Products
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: neurio
+Version: 0.3.1
+Summary: Neurio energy sensor and appliance automation API library
+Home-page: https://github.com/jordanh/neurio-python
+Download-URL: https://github.com/jordanh/neurio-python/tarball/0.3.0
+Author: Jordan Husney
+Author-email: jordan.husney@gmail.com
+Keywords: neurio,iot,energy,sensor,smarthome,automation
+Requires-Dist: requests
+Dynamic: author
+Dynamic: author-email
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: requires-dist
+Dynamic: summary

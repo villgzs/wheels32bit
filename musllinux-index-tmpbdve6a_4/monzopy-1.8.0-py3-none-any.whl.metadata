@@ -1,0 +1,53 @@
+Metadata-Version: 2.4
+Name: monzopy
+Version: 1.8.0
+Summary: A simple async python wrapper for the Monzo API, used primarily by the Monzo Home Assistant integration.
+Author-email: Jake Martin <jake_martin_@outlook.com>
+Project-URL: Homepage, https://github.com/JakeMartin-ICL/monzopy
+Project-URL: Bug Tracker, https://github.com/JakeMartin-ICL/monzopy/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.14
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.14
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp>=3.0.0
+Provides-Extra: dev
+Requires-Dist: mypy>=1.10; extra == "dev"
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23; extra == "dev"
+Requires-Dist: ruff>=0.5; extra == "dev"
+Dynamic: license-file
+
+# monzopy
+A simple async python wrapper for the Monzo API, used primarily by the Monzo Home Assistant integration.
+
+## Transactions
+
+`await user_account.annotate_transaction(transaction_id, metadata)` adds or updates
+transaction metadata and returns the updated transaction. Set a value to an empty
+string to delete that key. Updating the `notes` key also updates the transaction's
+top-level notes property.
+
+## Feed items
+
+`await user_account.create_feed_item(account_id, title, image_url, ...)` creates a
+basic item in an account's Monzo feed. It accepts optional body text, a URL to open
+when tapped, and background, title, and body colours.
+
+## Webhooks
+
+`UserAccount` provides ownership-safe primitives for managing webhooks on a specific
+Monzo account:
+
+- `await user_account.register_webhook(account_id, url)` registers a webhook and
+  returns a frozen `Webhook` containing its `id`, `account_id`, and `url`.
+- `await user_account.list_account_webhooks(account_id)` returns every `Webhook`
+  registered for that account.
+- `await user_account.delete_webhook(webhook_id)` deletes a webhook by ID.
+
+The existing `register_webhooks`, `list_webhooks`, and `unregister_webhooks`
+methods remain available for compatibility. They operate across all known accounts;
+`list_webhooks` continues to return webhook ID strings and supports optional hostname
+filtering.

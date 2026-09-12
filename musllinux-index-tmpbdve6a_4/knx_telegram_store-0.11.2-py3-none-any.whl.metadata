@@ -1,0 +1,264 @@
+Metadata-Version: 2.4
+Name: knx-telegram-store
+Version: 0.11.2
+Summary: A standalone, host-agnostic Python library for KNX telegram persistence.
+Author: Martin Hoefling
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/XKNX/knx-telegram-store
+Project-URL: Bug-Tracker, https://github.com/XKNX/knx-telegram-store/issues
+Keywords: knx,home-assistant,persistence,storage,telegram
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Home Automation
+Classifier: Framework :: AsyncIO
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Provides-Extra: sqlite
+Requires-Dist: aiosqlite>=0.20; extra == "sqlite"
+Requires-Dist: sqlalchemy[asyncio]>=2.0; extra == "sqlite"
+Provides-Extra: postgres
+Requires-Dist: asyncpg>=0.29; extra == "postgres"
+Requires-Dist: sqlalchemy[asyncio]>=2.0; extra == "postgres"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23; extra == "dev"
+Requires-Dist: pytest-cov>=4.1; extra == "dev"
+Requires-Dist: ruff>=0.3; extra == "dev"
+Requires-Dist: mypy>=1.9; extra == "dev"
+Requires-Dist: aiosqlite>=0.20; extra == "dev"
+Dynamic: license-file
+
+# knx-telegram-store
+
+A standalone, host-agnostic Python library for KNX telegram persistence.
+
+## Features
+
+- **Canonical Data Model**: A unified model for KNX telegrams shared between Home Assistant and SpectrumKNX.
+- **Pluggable Backends**:
+  - **In-Memory**: Fast, deque-based storage with full filtering support.
+  - **SQLite**: Lightweight persistent storage with SQL-based filtering.
+  - **PostgreSQL**: Full-scale storage. TimescaleDB is used automatically when the extension is available (hypertable partitioning + native compression); otherwise the store runs on plain PostgreSQL with identical semantics.
+- **Unified Query Model**: Powerful declarative filtering including time-delta context windows and pagination.
+- **Stats & Maintenance**: `get_stats()` reports count, covered time range and on-disk size; `evict_older_than()` supports dry runs; `optimize()` reclaims disk space (VACUUM).
+- **Read-Only Mode**: Open a SQLite store owned and written by another process (e.g. Home Assistant's KNX telegram store) without running migrations or allowing writes.
+- **Concurrent Access**: Writing SQLite stores use WAL journaling and a busy timeout, so a single writer and multiple (cross-process) readers coexist safely.
+- **Capability Flags**: `store.capabilities` declares what a backend supports (`supports_optimize`, `supports_size_stats`, `read_only`, …) so hosts can gate UI instead of hardcoding backends.
+- **Log Container Format**: `formats.ets_xml` streams the KNX `CommunicationLog` XML container (ETS6 group-monitor exports, Gira IP-Router data-logger dumps) to/from raw cEMI frames — constant memory, no protocol decoding, stdlib-only.
+- **Zero Runtime Dependencies**: Core library (model, interface, in-memory) has no dependencies.
+- **Automated Schema Management**: SQL backends handle their own creation and upgrades.
+
+## Installation
+
+```bash
+pip install knx-telegram-store
+```
+
+For SQL support:
+
+```bash
+pip install knx-telegram-store[sqlite]
+pip install knx-telegram-store[postgres]
+```
+
+## Usage
+
+```python
+from datetime import datetime
+from knx_telegram_store import StoredTelegram, TelegramQuery
+from knx_telegram_store.backends.memory import MemoryStore
+
+
+async def main():
+    store = MemoryStore(max_size=1000)
+    await store.initialize()
+
+    telegram = StoredTelegram(
+        timestamp=datetime.now(),
+        source="1.1.1",
+        destination="1/1/1",
+        telegramtype="GroupValueWrite",
+        direction="Incoming",
+        value=22.5,
+        unit="°C",
+    )
+
+    await store.store(telegram)
+
+    query = TelegramQuery(destinations=["1/1/1"])
+    result = await store.query(query)
+
+    for t in result.telegrams:
+        print(f"{t.timestamp}: {t.source} -> {t.destination} | {t.value} {t.unit}")
+
+    await store.close()
+```
+
+## Stats, purging and space reclamation
+
+```python
+from datetime import UTC, datetime, timedelta
+from knx_telegram_store.backends.sqlite import SqliteStore
+
+store = SqliteStore("/data/telegrams.db", retention_days=90)
+await store.initialize()
+
+stats = await store.get_stats()
+print(
+    f"{stats.telegram_count} telegrams, {stats.size_bytes} bytes, {stats.oldest_timestamp} .. {stats.newest_timestamp}"
+)
+
+cutoff = datetime.now(UTC) - timedelta(days=30)
+would_delete = await store.evict_older_than(cutoff, dry_run=True)  # preview only
+deleted = await store.evict_older_than(cutoff)
+
+# Deleting rows does not shrink the database on disk by itself:
+if store.capabilities.supports_optimize:
+    await store.optimize()  # VACUUM — blocks writers, can take a while on large DBs
+```
+
+## Read-only access to a shared store
+
+Another process (e.g. Home Assistant's KNX integration) owns and writes the
+database; you only want to read it:
+
+```python
+store = SqliteStore("/homeassistant/.storage/knx/telegrams.db", read_only=True)
+await store.initialize()  # never runs DDL/migrations against a foreign schema
+
+if await store.needs_migration():
+    ...  # schema is older/newer than this library version — surface a warning
+
+result = await store.query(TelegramQuery(limit=100))
+await store.store(telegram)  # raises KnxTelegramStoreException — writes rejected
+```
+
+The file is opened with SQLite's `mode=ro`, so writes are impossible at the
+driver level. `capabilities.read_only` is `True` and `supports_optimize` is
+`False` in this mode. Writing stores enable WAL journaling, which makes this
+single-writer/multi-reader setup safe across processes.
+
+## Validating a config / connection
+
+Before triggering an expensive operation such as a migration, you can validate that a
+store is reachable. Both checks return a structured `ConnectionCheckResult`
+(`ok`, `kind`, `message`, `detail`) instead of raising.
+
+```python
+from knx_telegram_store import ConnectionErrorKind
+from knx_telegram_store.backends.sqlite import SqliteStore
+from knx_telegram_store.backends.postgres import PostgresStore
+
+# Static, side-effect-free config validation (before constructing a store):
+#  - SQLite: sync — checks the file is writeable or can be created
+result = SqliteStore.check_config("/data/telegrams.db")
+#    (with read_only=True: checks the file exists and is readable instead)
+result = SqliteStore.check_config("/data/telegrams.db", read_only=True)
+#  - Postgres: async — actually connects to verify user/password/host/port/database
+result = await PostgresStore.check_config("postgresql://user:pw@host:5432/knx")
+
+if not result.ok:
+    print(f"[{result.kind}] {result.message}")  # e.g. [auth] Authentication failed ...
+
+# Live probe of an already-constructed store (no migrations, no schema changes):
+store = SqliteStore("/data/telegrams.db")
+result = await store.check_connection()
+if result.kind is ConnectionErrorKind.OK:
+    await store.initialize()
+```
+
+## PostgreSQL and TimescaleDB
+
+`PostgresStore` works against any PostgreSQL server. At `initialize()` it probes
+`pg_available_extensions`: when TimescaleDB is available, the `telegrams` table
+becomes a hypertable (existing rows are migrated in place via
+`migrate_data => TRUE`) and native compression is configured — chunks are
+compressed by a background policy once they age past `compress_after_days`
+(default 7, `None` disables compression). Without the extension everything runs
+on plain PostgreSQL tables; queries, retention and stats behave identically.
+
+```python
+store = PostgresStore("postgresql://user:pw@host:5432/knx", retention_days=90, compress_after_days=7)
+await store.initialize()
+print(store.timescale_enabled)  # True / False (None before initialize())
+```
+
+`check_config()` / `check_connection()` succeed on both server types; the
+result message states which mode will be used.
+
+## Integration tests
+
+The Postgres backend has an integration test suite that runs against real
+servers — a TimescaleDB container and a stock PostgreSQL container — so both
+the hypertable/compression path and the plain fallback are exercised. With
+Docker installed:
+
+```bash
+./scripts/run_integration_tests.sh            # full suite
+./scripts/run_integration_tests.sh -k compression  # subset
+```
+
+The script starts both containers (`docker-compose.test.yml`), waits for them
+to become healthy, runs `pytest -m integration tests/integration`, and tears
+the containers down afterwards. To run tests manually, e.g. against your own
+servers:
+
+```bash
+docker compose -f docker-compose.test.yml up -d --wait
+export KNX_TEST_TIMESCALE_DSN=postgresql://knx:knxtest@localhost:5433/knx
+export KNX_TEST_PG_DSN=postgresql://knx:knxtest@localhost:5434/knx
+pytest -m integration tests/integration -v
+docker compose -f docker-compose.test.yml down -v
+```
+
+Tests for an unset DSN variable are skipped, so you can also point a single
+variable at an existing server. The same suite runs in CI against both
+containers on every push.
+
+## Reading / writing telegram log files
+
+`formats.ets_xml` handles the KNX `CommunicationLog` XML container (namespace
+`http://knx.org/xml/telegrams/01`) produced by ETS6 exports and Gira data loggers.
+It operates on **raw cEMI frames** — no protocol decoding, no `xknx` dependency —
+so any consumer can stream large logs with constant memory.
+
+```python
+from knx_telegram_store.formats import iter_communication_log, write_communication_log
+
+# Incremental read (file path or binary stream, e.g. a zip entry):
+for record in iter_communication_log("2026_03_05_TP1.xml"):
+    print(record.timestamp, record.service, record.raw_data.hex())
+    #      aware UTC        "L_Data.ind"   cEMI frame as logged
+
+# Streaming write (records may be a generator; ETS6-compatible output):
+with open("export.xml", "w", encoding="utf-8") as fh:
+    count = write_communication_log(records, fh, connection_name="My Export")
+```
+
+A Gira-style `<!-- timezone offset +01:00 hour -->` comment is honored, and ETS's
+7-digit fractional seconds are normalized to microseconds.
+
+## MCP tools
+
+`knx_telegram_store.mcp` provides host-agnostic tool functions for exposing the
+store to AI agents over the Model Context Protocol. They are plain async
+functions over a `TelegramStore`, with frozen, JSON-serialisable dataclass
+inputs/outputs (timestamps are ISO-8601 UTC strings) and **no dependency on any
+MCP SDK or web framework** — each consumer wraps them into its own transport.
+
+```python
+from dataclasses import asdict
+from knx_telegram_store.mcp import query_telegrams, QueryTelegramsInput
+
+result = await query_telegrams(store, QueryTelegramsInput(destinations=["1/1/1"], limit=100))
+payload = asdict(result)  # ready to return as an MCP tool result
+```
+
+Available: `query_telegrams`, `get_last_values`, `get_store_stats`,
+`get_store_capabilities`, `count_telegrams`.
+
+## License
+
+MIT

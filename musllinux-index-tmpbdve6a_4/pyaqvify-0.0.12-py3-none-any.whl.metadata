@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: pyaqvify
+Version: 0.0.12
+Summary: Python async library for PyAqvify integration with Home Assistant
+Author-email: Ake Strandberg <ake@strandberg.eu>
+License: MIT
+Project-URL: Repository, https://github.com/astrandb/pyaqvify
+Project-URL: BugTracker, https://github.com/astrandb/pyaqvify/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 4 - Beta
+Requires-Python: >=3.14.0
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp
+Dynamic: license-file
+
+## pyaqvify
+
+Python async library for Aqvify integration with Home Assistant.
+The library is distributed via pypi.org.
+
+### Installation
+
+```bash
+$ pip install pyaqvify
+```

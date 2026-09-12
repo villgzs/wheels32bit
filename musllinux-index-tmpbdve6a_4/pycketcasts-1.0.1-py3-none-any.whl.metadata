@@ -1,0 +1,35 @@
+Metadata-Version: 2.1
+Name: pycketcasts
+Version: 1.0.1
+Summary: Interact with PocketCast's unofficial API
+Home-page: https://github.com/nwithan8/pycketcasts
+Author: Nate Harris
+Author-email: n8gr8gbln@gmail.com
+License: GNU General Public License v3 (GPLv3)
+Download-URL: https://github.com/nwithan8/pycketcasts/archive/1.0.1.tar.gz
+Keywords: PocketCasts,podcast,podcasts,API,Home Assistant,library
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Topic :: Multimedia :: Video
+Classifier: Topic :: Multimedia
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: requests
+
+# PycketCasts
+
+An updated Python library to interact with PocketCast's unofficial API.
+
+Available on PyPi: https://pypi.org/project/pycketcasts/
+
+

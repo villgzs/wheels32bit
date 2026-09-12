@@ -1,0 +1,145 @@
+Metadata-Version: 2.4
+Name: waterfurnace
+Version: 1.7.1
+Summary: Python interface for waterfurnace geothermal systems
+Author-email: Sean Dague <sean@dague.net>
+License-Expression: Apache-2.0
+Project-URL: Homepage, https://github.com/sdague/waterfurnace
+Project-URL: Documentation, https://waterfurnace.readthedocs.io
+Project-URL: Repository, https://github.com/sdague/waterfurnace
+Project-URL: Bug Tracker, https://github.com/sdague/waterfurnace/issues
+Project-URL: Changelog, https://github.com/sdague/waterfurnace/blob/main/CHANGELOG.md
+Keywords: waterfurnace,geothermal,symphony,geostar
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: Click>=8.0
+Requires-Dist: requests>=2.28
+Requires-Dist: websocket-client>=1.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0; extra == "dev"
+Requires-Dist: black>=23.0; extra == "dev"
+Requires-Dist: tox>=4.0; extra == "dev"
+Requires-Dist: watchdog>=0.8.3; extra == "dev"
+Requires-Dist: Sphinx>=7.0; extra == "dev"
+Requires-Dist: PyYAML>=6.0; extra == "dev"
+Provides-Extra: test
+Requires-Dist: pytest>=7.0; extra == "test"
+Requires-Dist: pytest-cov>=4.0; extra == "test"
+Dynamic: license-file
+
+# waterfurnace
+
+[![python package status](https://img.shields.io/pypi/v/waterfurnace.svg)](https://pypi.python.org/pypi/waterfurnace)
+[![build status](https://github.com/sdague/waterfurnace/actions/workflows/python-app.yml/badge.svg)](https://github.com/sdague/waterfurnace/actions/workflows/python-app.yml)
+[![Python versions](https://img.shields.io/pypi/pyversions/waterfurnace.svg)](https://pypi.python.org/pypi/waterfurnace)
+
+Python interface for WaterFurnace and GeoStar geothermal systems.
+
+This provides basic sensor readings for WaterFurnace geothermal systems by
+using the websocket interface that exists for the Symphony website. This is not
+a documented or stable interface, so don't use this for critical
+systems. However, it is useful to record historical usage of your WaterFurnace
+system.
+
+## Installation
+
+```bash
+pip install waterfurnace
+```
+
+## Quick Start
+
+```python
+
+   from waterfurnace.waterfurnace import WaterFurnace
+   wf = WaterFurnace(user, pass)
+   wf.login()
+   data = wf.read()
+```
+
+The waterfurnace symphony service websocket monitors it's usage, so you need to
+do a data reading at least every 30 seconds otherwise the websocket is closed
+on the server side for resource constraints. The symphony website does a poll
+on the websocket every 5 seconds.
+
+The software now supports a CLI.  For details, use `waterfurnace --help`
+
+## CLI Usage
+
+```bash
+# Basic usage
+waterfurnace -u user@example.com -p password
+
+# Continuous monitoring (reads every 15 seconds)
+waterfurnace -u user@example.com -p password --continuous
+
+# Get energy data
+waterfurnace -u user@example.com -p password --energy \
+  --start 2024-01-01 --end 2024-01-31 --freq 1H
+
+# Use environment variable for password
+export WF_PASSWORD=your_password
+waterfurnace -u user@example.com
+
+# GeoStar systems
+waterfurnace -u user@example.com -p password --vendor geostar
+```
+
+## Development
+
+### Setting Up Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/sdague/waterfurnace.git
+cd waterfurnace
+
+# Install in development mode with all dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run tests with coverage
+pytest --cov=waterfurnace --cov-report=term-missing
+
+# Format code
+black waterfurnace tests
+
+# Run all tests across Python versions
+tox
+```
+
+### Building and Publishing
+
+```bash
+# Build package
+python -m build
+
+# Check package
+twine check dist/*
+```
+
+## Known Issues / Limitations
+
+* The python websocket code goes into a blocked state after long
+  periods of usage (always takes at least days if not weeks or months
+  to get to this state). I've yet to discover why. Help welcome.
+
+
+## License
+
+* Free software: Apache Software License 2.0
+
+

@@ -1,0 +1,147 @@
+Metadata-Version: 2.4
+Name: idasen
+Version: 0.13.1
+Summary: ikea IDÅSEN desk API and CLI.
+Author-email: Alex Martens <alex+idasen@thinglab.org>
+License-Expression: MIT
+Project-URL: Repository, https://github.com/newAM/idasen
+Project-URL: Documentation, https://newam.github.io/idasen
+Project-URL: Changelog, https://github.com/newAM/idasen/blob/main/CHANGELOG.md
+Project-URL: Issues, https://github.com/newAM/idasen/issues
+Keywords: ikea,idasen,bluetooth,linak,ble
+Requires-Python: >=3.10
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+Requires-Dist: bleak>=0.15
+Requires-Dist: pyyaml>=5.3.1
+Requires-Dist: voluptuous>=0.12
+Dynamic: license-file
+
+idasen
+######
+
+|PyPi Version| |Build Status| |Documentation Status| |Ruff|
+
+The IDÅSEN is an electric sitting standing desk with a Linak controller sold by
+ikea.
+
+The position of the desk can controlled by a physical switch on the desk or
+via bluetooth using an phone app.
+
+This is a command line interface written in python to control the Idasen via
+bluetooth from a desktop computer.
+
+Set Up
+******
+
+Prerequisites
+=============
+
+The desk should be connected to the computer.
+
+Install
+=======
+
+.. code-block:: bash
+
+    python3 -m pip install --upgrade idasen
+
+Configuration
+*************
+Configuration that is not expected to change frequently can be provided via a
+YAML configuration file located at ``~/.config/idasen/idasen.yaml``.
+
+You can use this command to initialize a new configuartion file:
+
+.. code-block:: bash
+
+    idasen init
+
+.. code-block:: yaml
+
+    mac_address: AA:AA:AA:AA:AA:AA
+    positions:
+        sit: 0.75
+        stand: 1.1
+
+Configuartion options:
+
+* ``mac_address`` - The MAC address of the desk. This is required.
+* ``positions`` - A dictionary of positions with values of desk height from the
+  floor in meters, ``sit`` and ``stand`` are provided as examples.
+
+The program will try to discover the device address. The device needs to be in
+'discover' mode for this to work.
+
+If discovery fails the device MAC addresses can be found using ``blueoothctl``
+and bluetooth adapter names can be found with ``hcitool dev`` on linux.
+
+If the device has not yet been paired, this can be accomplished with:
+
+.. code-block:: bash
+
+    idasen pair
+
+Again, the device will need to be in 'discover' mode for this to work.
+
+Usage
+*****
+
+Command Line
+============
+
+To print the current desk height:
+
+.. code-block:: bash
+
+    idasen height
+
+To monitor for changes to height:
+
+.. code-block:: bash
+
+    idasen monitor
+
+To save the current height as the sitting position:
+
+.. code-block:: bash
+
+    idasen save sit
+
+To delete the saved sitting position:
+
+.. code-block:: bash
+
+    idasen delete sit
+
+Assuming the config file is populated to move the desk to sitting position:
+
+.. code-block:: bash
+
+    idasen sit
+
+Community
+*********
+
+Related projects and packaging:
+
+* `Arch Linux package`_
+* `NixOS package`_
+* `huserben/idasen-rest-bridge`_
+* Repository this was forked from: `rhyst/idasen-controller`_
+
+
+.. _rhyst/idasen-controller: https://github.com/rhyst/idasen-controller
+.. _NixOS package: https://search.nixos.org/packages?channel=unstable&show=idasen&query=idasen
+.. _Arch Linux package: https://aur.archlinux.org/packages/idasen
+.. _huserben/idasen-rest-bridge: https://github.com/huserben/idasen-rest-bridge
+
+.. |PyPi Version| image:: https://badge.fury.io/py/idasen.svg
+   :target: https://badge.fury.io/py/idasen
+.. |Build Status| image:: https://github.com/newAM/idasen/workflows/Tests/badge.svg
+   :target: https://github.com/newAM/idasen/actions
+.. |Documentation Status| image:: https://img.shields.io/badge/docs-latest-blue
+   :target: https://newam.github.io/idasen
+.. |Ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff

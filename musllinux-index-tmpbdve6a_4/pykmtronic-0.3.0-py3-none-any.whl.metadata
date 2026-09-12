@@ -1,0 +1,38 @@
+Metadata-Version: 2.4
+Name: pykmtronic
+Version: 0.3.0
+Summary: Python library to interface with KM Tronic Web Relays
+Home-page: https://github.com/dgomes/pykmtronic
+Author: Diogo Gomes
+Author-email: diogogomes@gmail.com
+License: MIT License
+Platform: any
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Description-Content-Type: text/markdown
+Requires-Dist: aiohttp
+Requires-Dist: lxml
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: platform
+Dynamic: requires-dist
+Dynamic: summary
+
+# pykmtronic
+
+[![PyPI version](https://badge.fury.io/py/pykmtronic.svg)](https://badge.fury.io/py/pykmtronic)
+
+This library provides a Python3 interface to [KM-Tronic web relays](https://info.kmtronic.com/lan-relays.html).
+
+# Tested equipments:
+
+- https://info.kmtronic.com/manuals/user_manuals/W2CR_WEB_TWO_CHANNEL_RELAY.pdf

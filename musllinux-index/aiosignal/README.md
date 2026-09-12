@@ -1,1 +1,0 @@
-* [aiosignal-1.4.0-py3-none-any.whl](../aiosignal-1.4.0-py3-none-any.whl)    

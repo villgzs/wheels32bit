@@ -1,0 +1,547 @@
+Metadata-Version: 2.4
+Name: lojack_api
+Version: 0.7.2
+Summary: An async Python client library for the LoJack API, designed for Home Assistant integrations.
+Author: Devin Slick
+License: MIT
+Project-URL: Homepage, https://github.com/devinslick/lojack_api
+Project-URL: Bug Tracker, https://github.com/devinslick/lojack_api/issues
+Keywords: lojack,home-assistant,async,api-client,vehicle-tracking
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: AsyncIO
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Home Automation
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Typing :: Typed
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp<4.0,>=3.8
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21; extra == "dev"
+Requires-Dist: pytest-cov>=4.0; extra == "dev"
+Requires-Dist: mypy>=1.0; extra == "dev"
+Requires-Dist: ruff>=0.1; extra == "dev"
+Requires-Dist: flake8>=4.0; extra == "dev"
+Requires-Dist: aioresponses>=0.7; extra == "dev"
+Dynamic: license-file
+
+# lojack_api
+
+An async Python client library for the Spireon LoJack API, designed for Home Assistant integrations.
+
+[![Tests](https://github.com/devinslick/lojack_api/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/devinslick/lojack_api/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/devinslick/lojack_api/branch/main/graph/badge.svg?token=K97PlD4IU4)](https://codecov.io/gh/devinslick/lojack_api)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/lojack_api)](https://pypi.org/project/lojack_api/)
+
+## Features
+
+- **Async-first design** - Built with `asyncio` and `aiohttp` for non-blocking I/O
+- **No httpx dependency** - Uses `aiohttp` to avoid version conflicts with Home Assistant
+- **Spireon LoJack API** - Full support for the Spireon identity and services APIs
+- **Session management** - Automatic token refresh and session resumption support
+- **Type hints** - Full typing support with `py.typed` marker
+- **Clean device abstractions** - Device and Vehicle wrappers with convenient methods
+
+## Installation
+
+```bash
+# From the repository
+pip install .
+
+# With development dependencies
+pip install .[dev]
+```
+
+## Quick Start
+
+### Basic Usage
+
+```python
+import asyncio
+from lojack_api import LoJackClient
+
+async def main():
+    # Create and authenticate (uses default Spireon URLs)
+    async with await LoJackClient.create(
+        "your_username",
+        "your_password"
+    ) as client:
+        # List all devices/vehicles
+        devices = await client.list_devices()
+
+        for device in devices:
+            print(f"Device: {device.name} ({device.id})")
+
+            # Get current location
+            location = await device.get_location()
+            if location:
+                print(f"  Location: {location.latitude}, {location.longitude}")
+
+asyncio.run(main())
+```
+
+### Session Resumption (for Home Assistant)
+
+For Home Assistant integrations, you can persist authentication across restarts:
+
+```python
+from lojack_api import LoJackClient, AuthArtifacts
+
+# First time - login and save auth
+async def initial_login(username, password):
+    client = await LoJackClient.create(username, password)
+    auth_data = client.export_auth().to_dict()
+    # Save auth_data to Home Assistant storage
+    await client.close()
+    return auth_data
+
+# Later - resume without re-entering password
+async def resume_session(auth_data, username=None, password=None):
+    auth = AuthArtifacts.from_dict(auth_data)
+    # Pass credentials for auto-refresh if token expires
+    client = await LoJackClient.from_auth(auth, username=username, password=password)
+    return client
+```
+
+### Using External aiohttp Session
+
+For Home Assistant integrations, pass the shared session:
+
+```python
+from aiohttp import ClientSession
+from lojack_api import LoJackClient
+
+async def setup(hass_session: ClientSession, username, password):
+    client = await LoJackClient.create(
+        username,
+        password,
+        session=hass_session  # Won't be closed when client closes
+    )
+    return client
+```
+
+### Working with Vehicles
+
+Vehicles have additional properties:
+
+```python
+from lojack_api import Vehicle
+
+async def vehicle_example(client):
+    devices = await client.list_devices()
+
+    for device in devices:
+        if isinstance(device, Vehicle):
+            print(f"Vehicle: {device.name}")
+            print(f"  VIN: {device.vin}")
+            print(f"  Make: {device.make} {device.model} ({device.year})")
+```
+
+### Requesting Fresh Location Data
+
+The Spireon REST API may return stale location data (30-76+ minutes old) because
+devices report periodically, not continuously. Two methods are available to
+request on-demand location updates:
+
+#### Method Comparison
+
+| Method | Returns | Use Case |
+|--------|---------|----------|
+| `request_location_update()` | `bool` | Fire-and-forget; scripts, simple polling |
+| `request_fresh_location()` | `datetime \| None` | Non-blocking with baseline; Home Assistant |
+
+#### `request_location_update()` -> bool
+
+Sends a "locate" command to the device. Returns `True` if the command was
+accepted by the API. This is a fire-and-forget method - you must poll
+separately to detect when fresh data arrives.
+
+```python
+# Simple usage - send command and poll manually
+success = await device.request_location_update()
+if success:
+    await asyncio.sleep(30)  # Wait for device to respond
+    location = await device.get_location(force=True)
+```
+
+#### `request_fresh_location()` -> datetime | None
+
+Sends a "locate" command and returns the current location timestamp as a
+baseline for comparison. This is the recommended method for Home Assistant
+integrations because it's non-blocking and provides a reference point to
+detect when fresh data arrives.
+
+```python
+from datetime import datetime, timezone
+
+# In a service call or button handler
+baseline_ts = await device.request_fresh_location()
+
+# Later, in your DataUpdateCoordinator's _async_update_data:
+location = await device.get_location(force=True)
+if location and location.timestamp:
+    # Check if we received fresh data since the locate command
+    if baseline_ts and location.timestamp > baseline_ts:
+        print("Fresh location received!")
+    age = (datetime.now(timezone.utc) - location.timestamp).total_seconds()
+```
+
+**Returns:**
+- `datetime` - The location timestamp before the locate command was sent
+- `None` - If no prior location was available
+
+#### Location History
+
+```python
+# Get location history
+async for location in device.get_history(limit=100):
+    print(f"{location.timestamp}: {location.latitude}, {location.longitude}")
+```
+
+#### Troubleshooting Script
+
+For debugging location freshness issues:
+
+```bash
+# Show current location ages
+python scripts/poll_locations.py
+
+# Request fresh location and monitor for updates
+python scripts/poll_locations.py --locate
+
+# Poll continuously every 30 seconds
+python scripts/poll_locations.py --poll 30
+```
+
+### Geofences
+
+Geofences define circular areas that can trigger alerts when a device enters
+or exits the boundary.
+
+```python
+# List all geofences for a device
+geofences = await device.list_geofences()
+for geofence in geofences:
+    print(f"{geofence.name}: {geofence.latitude}, {geofence.longitude} (r={geofence.radius}m)")
+
+# Create a geofence
+geofence = await device.create_geofence(
+    name="Home",
+    latitude=32.8427,
+    longitude=-97.0715,
+    radius=100.0,  # meters
+    address="123 Main St"
+)
+
+# Update a geofence
+await device.update_geofence(
+    geofence.id,
+    name="Home Base",
+    radius=150.0
+)
+
+# Delete a geofence
+await device.delete_geofence(geofence.id)
+```
+
+### Updating Device Information
+
+Update device/vehicle metadata:
+
+```python
+# Update device name
+await device.update(name="My Tracker")
+
+# For vehicles, update additional fields
+await vehicle.update(
+    name="Family Car",
+    odometer=51000.0,
+    color="Blue"
+)
+```
+
+### Maintenance Schedules (Vehicles)
+
+Get maintenance schedule information for vehicles with a VIN:
+
+```python
+# Get maintenance schedule
+schedule = await vehicle.get_maintenance_schedule()
+if schedule:
+    print(f"Maintenance items for VIN {schedule.vin}:")
+    for item in schedule.items:
+        print(f"  {item.name}: {item.severity}")
+        if item.mileage_due:
+            print(f"    Due at: {item.mileage_due} miles")
+        if item.action:
+            print(f"    Action: {item.action}")
+```
+
+### Repair Orders (Vehicles)
+
+Get repair order history for vehicles:
+
+```python
+# Get repair orders
+orders = await vehicle.get_repair_orders()
+for order in orders:
+    print(f"Order {order.id}: {order.status}")
+    if order.description:
+        print(f"  Description: {order.description}")
+    if order.total_amount:
+        print(f"  Total: ${order.total_amount:.2f}")
+    if order.open_date:
+        print(f"  Opened: {order.open_date.isoformat()}")
+```
+
+### User Information
+
+Get information about the authenticated user and accounts:
+
+```python
+# Get user info
+user_info = await client.get_user_info()
+if user_info:
+    print(f"User: {user_info.get('email')}")
+
+# Get accounts
+accounts = await client.get_accounts()
+print(f"Found {len(accounts)} account(s)")
+```
+
+## API Reference
+
+### LoJackClient
+
+The main entry point for the API.
+
+```python
+# Factory methods (using default Spireon URLs)
+client = await LoJackClient.create(username, password)
+client = await LoJackClient.from_auth(auth_artifacts)
+
+# With custom URLs
+client = await LoJackClient.create(
+    username,
+    password,
+    identity_url="https://identity.spireon.com",
+    services_url="https://services.spireon.com/v0/rest"
+)
+
+# Properties
+client.is_authenticated  # bool
+client.user_id           # Optional[str]
+
+# Methods
+devices = await client.list_devices()           # List[Device | Vehicle]
+device = await client.get_device(device_id)     # Device | Vehicle
+locations = await client.get_locations(device_id, limit=10)
+success = await client.send_command(device_id, "locate")
+auth = client.export_auth()                     # AuthArtifacts
+await client.close()
+```
+
+### Device
+
+Wrapper for tracked devices.
+
+```python
+# Properties
+device.id            # str
+device.name          # Optional[str]
+device.info          # DeviceInfo
+device.last_seen     # Optional[datetime]
+device.cached_location  # Optional[Location]
+
+# Methods
+await device.refresh(force=True)              # Refresh cached location from API
+location = await device.get_location(force=False)  # Get location (from cache or API)
+async for loc in device.get_history(limit=100):    # Iterate location history
+    ...
+
+# Location update methods
+success = await device.request_location_update()   # bool - fire-and-forget locate
+baseline = await device.request_fresh_location()   # datetime|None - locate + baseline
+
+# Device updates
+await device.update(name="New Name")               # Update device info
+
+# Geofence management
+geofences = await device.list_geofences()          # List[Geofence]
+geofence = await device.get_geofence(geofence_id)  # Geofence|None
+geofence = await device.create_geofence(name=..., latitude=..., longitude=..., radius=...)
+await device.update_geofence(geofence_id, name=..., radius=...)
+await device.delete_geofence(geofence_id)
+
+# Properties
+device.location_timestamp  # datetime|None - cached location's timestamp
+```
+
+### Vehicle (extends Device)
+
+Additional properties and methods for vehicles.
+
+```python
+# Properties
+vehicle.vin           # Optional[str]
+vehicle.make          # Optional[str]
+vehicle.model         # Optional[str]
+vehicle.year          # Optional[int]
+vehicle.license_plate # Optional[str]
+vehicle.odometer      # Optional[float]
+
+# Methods (extends Device methods)
+await vehicle.update(name=..., make=..., model=..., year=..., vin=..., odometer=...)
+
+# Maintenance and repair methods
+schedule = await vehicle.get_maintenance_schedule()  # MaintenanceSchedule|None
+orders = await vehicle.get_repair_orders()           # List[RepairOrder]
+```
+
+### Data Models
+
+```python
+from lojack_api import Location, DeviceInfo, VehicleInfo
+
+# Location - Core fields
+location.latitude   # Optional[float]
+location.longitude  # Optional[float]
+location.timestamp  # Optional[datetime]
+location.accuracy   # Optional[float] - GPS accuracy in METERS (for HA gps_accuracy)
+location.speed      # Optional[float]
+location.heading    # Optional[float]
+location.address    # Optional[str]
+
+# Note on accuracy: The API may return HDOP values or quality strings.
+# These are automatically converted to meters for Home Assistant compatibility:
+# - HDOP values (1-15) are multiplied by 5 to get approximate meters
+# - Quality strings ("GOOD", "POOR", etc.) are mapped to reasonable meter values
+# - Values > 15 are assumed to already be in meters
+
+# Location - Extended telemetry (from events)
+location.odometer        # Optional[float] - Vehicle odometer reading
+location.battery_voltage # Optional[float] - Battery voltage
+location.engine_hours    # Optional[float] - Engine hours
+location.distance_driven # Optional[float] - Total distance driven
+location.signal_strength # Optional[float] - Signal strength (0.0 to 1.0)
+location.gps_fix_quality # Optional[str] - GPS quality (e.g., "GOOD", "POOR")
+location.event_type      # Optional[str] - Event type (e.g., "SLEEP_ENTER")
+location.event_id        # Optional[str] - Unique event identifier
+
+# Location - Raw data
+location.raw        # Dict[str, Any] - Original API response
+
+# Geofence
+from lojack_api import Geofence
+
+geofence.id         # str - Unique identifier
+geofence.name       # Optional[str] - Display name
+geofence.latitude   # Optional[float] - Center latitude
+geofence.longitude  # Optional[float] - Center longitude
+geofence.radius     # Optional[float] - Radius in meters
+geofence.address    # Optional[str] - Address description
+geofence.active     # bool - Whether geofence is active
+geofence.asset_id   # Optional[str] - Associated device ID
+geofence.raw        # Dict[str, Any] - Original API response
+
+# Maintenance models
+from lojack_api import MaintenanceItem, MaintenanceSchedule
+
+# MaintenanceItem - Single service item
+item.name           # str - Service name (e.g., "Oil Change")
+item.description    # Optional[str] - Detailed description
+item.severity       # Optional[str] - Severity level ("NORMAL", "WARNING", "CRITICAL")
+item.mileage_due    # Optional[float] - Mileage at which service is due
+item.months_due     # Optional[int] - Months until service is due
+item.action         # Optional[str] - Recommended action
+item.raw            # Dict[str, Any] - Original API response
+
+# MaintenanceSchedule - Collection of maintenance items
+schedule.vin        # str - Vehicle VIN
+schedule.items      # List[MaintenanceItem] - Scheduled services
+schedule.raw        # Dict[str, Any] - Original API response
+
+# RepairOrder - Service/repair record
+from lojack_api import RepairOrder
+
+order.id            # str - Unique repair order identifier
+order.vin           # Optional[str] - Vehicle VIN
+order.asset_id      # Optional[str] - Associated asset ID
+order.status        # Optional[str] - Order status ("OPEN", "CLOSED")
+order.open_date     # Optional[datetime] - When order was opened
+order.close_date    # Optional[datetime] - When order was closed
+order.description   # Optional[str] - Description of repair
+order.total_amount  # Optional[float] - Total cost
+order.raw           # Dict[str, Any] - Original API response
+```
+
+### Exceptions
+
+```python
+from lojack_api import (
+    LoJackError,           # Base exception
+    AuthenticationError,   # 401 errors, invalid credentials
+    AuthorizationError,    # 403 errors, permission denied
+    ApiError,              # Other API errors (has status_code)
+    ConnectionError,       # Network connectivity issues
+    TimeoutError,          # Request timeouts
+    DeviceNotFoundError,   # Device not found (has device_id)
+    CommandError,          # Command failed (has command, device_id)
+)
+```
+
+### Spireon API Details
+
+The library uses the Spireon LoJack API:
+
+- **Identity Service**: `https://identity.spireon.com` - For authentication
+- **Services API**: `https://services.spireon.com/v0/rest` - For device/asset management
+
+Authentication uses HTTP Basic Auth with the following headers:
+- `X-Nspire-Apptoken` - Application token
+- `X-Nspire-Correlationid` - Unique request ID
+- `X-Nspire-Usertoken` - User token (after authentication)
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install .[dev]
+
+# Run tests
+pytest
+
+# Run tests with coverage
+pytest --cov=lojack_api
+
+# Type checking
+mypy lojack_api
+
+# Linting
+# Preferred: ruff for quick fixes
+ruff check .
+
+# Use flake8 for strict style checks (reports shown in CI)
+# Match ruff's line length setting
+flake8 lojack_api/ tests/ --count --show-source --statistics --max-line-length=100
+```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Contributing
+
+Contributions are welcome! This library is designed to be vendored into Home Assistant integrations to avoid dependency conflicts.
+
+## Credits
+
+This library was inspired by the original [lojack-clients](https://github.com/scorgn/lojack-clients) package and uses the Spireon LoJack API endpoints.

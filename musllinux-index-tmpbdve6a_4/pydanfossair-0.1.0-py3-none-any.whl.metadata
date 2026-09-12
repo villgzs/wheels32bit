@@ -1,0 +1,34 @@
+Metadata-Version: 2.4
+Name: pydanfossair
+Version: 0.1.0
+Summary: Python interface for Danfoss Air HRV systems
+Home-page: https://github.com/JonasPed/pydanfoss-air
+Author: Jonas Pedersen
+Author-email: jonas@pedersen.ninja
+License: Apache 2.0
+Description-Content-Type: text/markdown
+Dynamic: author
+Dynamic: author-email
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: summary
+
+# pydanfossair
+Python module and client for Danfoss Air HRV systems. 
+
+## Usage
+### Read all commands
+	python -m pydanfossair --host IP_ADDRESS
+
+### Send update command
+	python -m pydanfossair --host IP_ADDRESS --command COMMAND
+
+## Supported commands
+- boost_on
+- boost_off
+- bypass_on
+- bypass_off
+- automatic_bypass_on
+- automatic_bypass_off

@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: pynetio
+Version: 0.1.9.1
+Summary: Binding library for Koukaam netio devices
+Home-page: https://github.com/eagleamon/pynetio
+Author: Joseph Piron (Joseph Piron)
+Author-email: joseph.piron@gmail.com
+Keywords: netio,plug,power,network
+Classifier: Programming Language :: Python
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Topic :: Other/Nonlisted Topic
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: summary

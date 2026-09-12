@@ -1,0 +1,115 @@
+Metadata-Version: 2.4
+Name: pyipma
+Version: 3.0.10
+Summary: Python library to retrieve information from Instituto Português do Mar e Atmosfera.
+Author-email: Diogo Gomes <diogogomes@gmail.com>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/dgomes/pyipma
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp>=3.14
+Requires-Dist: geopy
+Provides-Extra: test
+Requires-Dist: aioresponses>=0.7.8; extra == "test"
+Requires-Dist: freezegun; extra == "test"
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: pytest-asyncio; extra == "test"
+Requires-Dist: pytest-cov; extra == "test"
+Provides-Extra: dev
+Requires-Dist: aioresponses>=0.7.8; extra == "dev"
+Requires-Dist: build; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: freezegun; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: twine; extra == "dev"
+Dynamic: license-file
+
+[![PyPI version](https://badge.fury.io/py/pyipma.svg)](https://badge.fury.io/py/pyipma)
+
+# pyipma
+Python library to retrieve information from [Instituto Português do Mar e Atmosfera](http://www.ipma.pt)
+
+## Requirements
+- aiohttp
+- geopy
+
+## Example
+
+Coordinates are passed as latitude, longitude.
+
+```python
+import asyncio
+import aiohttp
+
+from pyipma.api import IPMA_API
+from pyipma.location import Location
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        api = IPMA_API(session)
+
+        location = await Location.get(api,  40.6517, -8.6573, sea_stations=True)
+        print("Forecast for {}".format(location.name))
+        print("Nearest station is {}".format(location.station))
+        print("Nearest sea station is {}".format(location.sea_station_name))
+
+        obs = await location.observation(api)
+        print("Current weather is {}".format(obs))
+
+        forecasts = await location.forecast(api)
+        print("Forecast for tomorrow {}".format(forecasts[0]))
+        
+        sea_forecast = await location.sea_forecast(api)
+        print("Sea forecast for today {}".format(sea_forecast))
+
+asyncio.get_event_loop().run_until_complete(main())
+```
+
+## Changelog
+
+* 3.0.10 - Update aiohttp support and response handling
+* 3.0.9 - Adjust forecast window for 24 hours periods
+* 3.0.8 - Adds Weather Warnings
+* 3.0.7 - Adds UV Index (@tokenize74)
+* 3.0.6 - Bug Fixes
+* 3.0.3 - Adds RCM (Fire Risk)
+* 3.0.2 - Changes to fully support Home Assistant integration
+* 3.0.0 - Backend fully rewritten, but keeping backward compatibility at interface level
+* 2.1.5 - Better logging and code formated with black
+* 2.1.0 - Sea Forecast
+* 2.0.5 - Look for previous observations when no temperature/humidity available
+* 2.0.4 - Ignore Observation stations with temperature/humidity -99
+* 2.0.3 - Searches next closest station when offline
+* 2.0.2 - Adds Station Lat/Lon
+* 2.0.1 - fixes
+* 2.0.0 - Major refactor
+* 1.2.1 - Fix pip
+* 1.2.0 - Wind direction corrected 
+* 1.1.6 - Interpret -99 and unavailable
+* 1.1.5 - Cache values
+* 1.1.4 - New API
+* ...
+
+## Credits
+Values are obtained from [IPMA](http://api.ipma.pt)
+
+
+## Contributors
+@abmantis
+@joaocps
+
+## Copyright
+
+(C) 2018,2019,2020 Diogo Gomes <diogogomes@gmail.com> 

@@ -1,0 +1,39 @@
+Metadata-Version: 2.4
+Name: ebusdpy
+Version: 0.0.17
+Summary: eBusd python integration library
+Home-page: https://github.com/CrazYoshi/ebusdpy
+Author: CrazYoshi
+Author-email: crazyoshi1186@gmail.com
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: summary
+
+# eBusdPy
+
+eBusd python integration library for HomeAssistant
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
+## Authors
+
+* **Marco Toni** - *Initial work* - [CrazYoshi](https://github.com/crazyoshi)
+
+* **john30** - *ebusd deamon* - [john30](https://github.com/john30/ebusd)
+
+## License
+
+This project is licensed under the GPLv3 License

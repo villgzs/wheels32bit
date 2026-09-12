@@ -1,0 +1,33 @@
+Metadata-Version: 2.4
+Name: tesla-protocol
+Version: 1.4.0
+Summary: Tesla vehicle-command, fleet-telemetry and energy protobuf bindings for Python
+Author-email: Teslemetry <hello@teslemetry.com>
+License-Expression: Apache-2.0
+Project-URL: Homepage, https://github.com/Teslemetry/tesla-protocol
+Classifier: Development Status :: 4 - Beta
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: protobuf<8,>=6.32.0
+Requires-Dist: googleapis-common-protos>=1.60
+
+# tesla-protocol
+
+Python protobuf bindings (`_pb2` modules with `.pyi` stubs) for Tesla's
+vehicle-command, fleet-telemetry and energy device protocols.
+
+```sh
+pip install tesla-protocol
+```
+
+```python
+from tesla_protocol.command import car_server_pb2
+from tesla_protocol.telemetry import vehicle_data_pb2
+```
+
+Versioned in lockstep with the npm package `@teslemetry/tesla-protocol` from
+the same repository. See the
+[repository README](https://github.com/Teslemetry/tesla-protocol) for the
+release model.

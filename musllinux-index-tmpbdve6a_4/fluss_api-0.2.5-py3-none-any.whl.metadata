@@ -1,0 +1,92 @@
+Metadata-Version: 2.4
+Name: fluss_api
+Version: 0.2.5
+Summary: Fluss+ API Client
+Author-email: Marcello Jardim <marcello@fluss.io>
+License: MIT License
+Project-URL: Homepage, https://github.com/fluss/Fluss_Python_Library
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp<4.0,>=3.7.0
+Dynamic: license-file
+
+# Fluss API Client
+
+A Python client for the [Fluss REST API](https://fluss.io/docs) — control gates, doors, and access devices programmatically.
+
+## Installation
+
+```bash
+pip install fluss_api
+```
+
+## Usage
+
+```python
+import asyncio
+from fluss_api import FlussApiClient
+
+async def main():
+    client = FlussApiClient(api_key="your-api-key")
+
+    # List all devices
+    devices = await client.async_get_devices()
+
+    # Get device status
+    status = await client.async_get_device_status("device-id")
+
+    # Trigger a device
+    await client.async_trigger_device("device-id")
+
+    # Trigger with optional parameters
+    await client.async_trigger_device("device-id", action="pulse", duration=3)
+
+    # Open a device
+    await client.async_open_device("device-id")
+
+    # Close a device
+    await client.async_close_device("device-id")
+
+    await client.close()
+
+asyncio.run(main())
+```
+
+### Custom Session
+
+You can pass your own `aiohttp.ClientSession` if needed:
+
+```python
+from aiohttp import ClientSession
+from fluss_api import FlussApiClient
+
+async with ClientSession() as session:
+    client = FlussApiClient(api_key="your-api-key", session=session)
+    devices = await client.async_get_devices()
+```
+
+## API Methods
+
+| Method | Description |
+|---|---|
+| `async_get_devices()` | List all devices on your account |
+| `async_get_device_status(device_id)` | Get current status of a device |
+| `async_trigger_device(device_id, **kwargs)` | Trigger a device |
+| `async_open_device(device_id, **kwargs)` | Open a gate/door |
+| `async_close_device(device_id, **kwargs)` | Close a gate/door |
+| `close()` | Close the HTTP session |
+
+## Building from Source
+
+```bash
+python -m pip install --upgrade build
+python -m build
+```
+
+## License
+
+MIT

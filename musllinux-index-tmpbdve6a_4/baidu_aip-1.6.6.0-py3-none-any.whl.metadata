@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: baidu-aip
+Version: 1.6.6.0
+Summary: Baidu AIP SDK
+Home-page: https://github.com/Baidu-AIP
+Author: Baidu
+Author-email: aip@baidu.com
+License: Apache License
+Keywords: baidu,aip,ocr,antiporn,nlp,face,kg,speech
+Requires-Dist: requests
+Requires-Dist: Pillow
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary

@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: pyEmby
+Version: 1.10
+Summary: Provides a python interface to interact with a Emby media server.
+Home-page: https://github.com/mezz64/pyemby
+Download-URL: https://github.com/mezz64/pyemby/tarball/1.10
+Author: John Mihalic
+Author-email: mezz64@users.noreply.github.com
+Keywords: emby,media sever,api wrapper
+Classifier: License :: OSI Approved :: MIT License
+License-File: LICENSE.txt
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license-file
+Dynamic: summary

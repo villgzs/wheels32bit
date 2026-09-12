@@ -1,1 +1,0 @@
-* [shellingham-1.5.4-py2.py3-none-any.whl](../shellingham-1.5.4-py2.py3-none-any.whl)    

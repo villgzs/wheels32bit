@@ -1,0 +1,154 @@
+Metadata-Version: 2.4
+Name: aio-wattwaechter
+Version: 1.0.0
+Summary: Async Python client for the WattWächter smart meter API
+Author-email: SmartCircuits GmbH <info@smartcircuits.de>
+License-Expression: Apache-2.0
+Project-URL: Homepage, https://github.com/SmartCircuits-GmbH/WattWaechter-PyPI
+Project-URL: Documentation, https://github.com/SmartCircuits-GmbH/WattWaechter-PyPI
+Project-URL: Repository, https://github.com/SmartCircuits-GmbH/WattWaechter-PyPI
+Project-URL: Issues, https://github.com/SmartCircuits-GmbH/WattWaechter-PyPI/issues
+Keywords: wattwaechter,smart-meter,energy,api,async,aiohttp
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: AsyncIO
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Home Automation
+Classifier: Typing :: Typed
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp>=3.9.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.24; extra == "dev"
+Requires-Dist: pytest-cov>=5.0; extra == "dev"
+Requires-Dist: aioresponses>=0.7; extra == "dev"
+Requires-Dist: mypy>=1.11; extra == "dev"
+Requires-Dist: ruff>=0.6; extra == "dev"
+Dynamic: license-file
+
+# aio-wattwaechter
+
+Async Python client for the [WattWächter](https://wattwächter.de) smart meter API.
+
+## Installation
+
+```bash
+pip install aio-wattwaechter
+```
+
+## Usage
+
+```python
+import asyncio
+from aio_wattwaechter import Wattwaechter
+
+async def main():
+    # No token needed if authentication is disabled (factory default)
+    async with Wattwaechter("192.168.1.100") as client:
+        # Check device connectivity
+        alive = await client.alive()
+        print(f"Device online: {alive.alive}, firmware: {alive.version}")
+
+        # Get current meter readings
+        data = await client.meter_data()
+        if data:
+            print(f"Power: {data.power} W")
+            print(f"Total consumption: {data.total_consumption} kWh")
+
+            # Access any OBIS code (short format, e.g. "1.8.0")
+            for code, value in data.values.items():
+                print(f"  {value.name} ({code}): {value.value} {value.unit}")
+
+        # Get system diagnostics
+        info = await client.system_info()
+        print(f"WiFi RSSI: {info.get_value('wifi', 'RSSI')} dBm")
+
+        # Check for firmware updates
+        ota = await client.ota_check()
+        if ota.data.update_available:
+            print(f"Update available: {ota.data.version}")
+
+        # Get 15-minute resolution history
+        history = await client.history_high_res("2024-03-08")
+        for entry in history.items:
+            print(f"  {entry.date}: {entry.power_w} W")
+        print(f"  Total import: {history.import_total_kwh} kWh")
+
+        # Get device logs
+        ram_log = await client.logs_ram()
+        print(f"RAM log: {len(ram_log)} bytes")
+
+asyncio.run(main())
+```
+
+## Authentication
+
+By default, the WattWächter device ships with authentication **disabled**. You can connect without a token:
+
+```python
+client = Wattwaechter("192.168.1.100")
+```
+
+When authentication is enabled on the device, it uses two tokens:
+- **READ token** — for reading data (meter values, settings, diagnostics)
+- **WRITE token** — for modifying settings, starting OTA updates, rebooting
+
+```python
+# Read-only access
+client = Wattwaechter("192.168.1.100", token="your-read-token")
+
+# Full access (read + write)
+client = Wattwaechter("192.168.1.100", token="your-write-token")
+```
+
+## Automatic Retry
+
+The client automatically retries requests when the device returns **429** (rate limit) or **503** (busy). By default, up to 3 attempts are made, respecting the `Retry-After` header:
+
+```python
+# Default: 3 retries
+client = Wattwaechter("192.168.1.100")
+
+# Customize retry behavior
+client = Wattwaechter("192.168.1.100", max_retries=5)
+
+# Disable retries
+client = Wattwaechter("192.168.1.100", max_retries=1)
+```
+
+## API Coverage
+
+| Category | Endpoints |
+|---|---|
+| System | `alive`, `system_info`, `led`, `selftest`, `wifi_scan`, `timezones`, `reboot` |
+| Meter Data | `meter_data`, `history_high_res`, `history_low_res` |
+| Logs | `logs_rawdump`, `logs_persistent`, `logs_ram` |
+| OTA | `ota_check`, `ota_start` |
+| Settings | `settings`, `update_settings` |
+| Auth | `generate_tokens`, `confirm_tokens`, `setup_token` |
+| MQTT | `mqtt_ca_status`, `mqtt_ca_upload`, `mqtt_ca_delete` |
+| Cloud | `cloud_pair`, `cloud_unpair` |
+
+## Using with Home Assistant
+
+This library is the foundation for the [WattWächter Home Assistant integration](https://github.com/SmartCircuits-GmbH/WattWaechter_HA_Integration). You can pass an existing `aiohttp.ClientSession`:
+
+```python
+from aio_wattwaechter import Wattwaechter
+
+client = Wattwaechter(
+    "192.168.1.100",
+    token="your-token",
+    session=existing_session,  # reuse HA's session
+)
+```
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE) for details.

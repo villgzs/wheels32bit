@@ -1,0 +1,100 @@
+Metadata-Version: 2.1
+Name: pydelijn
+Version: 1.1.0
+Summary: Get realtime info on stop passages of De Lijn (api.delijn.be)
+Home-page: https://github.com/bollewolle/pydelijn
+Author: bollewolle
+Author-email: dev@bollewolle.be
+License: MIT
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Developers
+Requires-Python: >=3.5.0
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp (<4.0,>=3.6.2)
+Requires-Dist: async-timeout (<5.0,>=4.0.0)
+Requires-Dist: pytz (>=2020.1)
+
+# pydelijn
+
+[![PyPI version](https://badge.fury.io/py/pydelijn.svg)](https://pypi.org/project/pydelijn)
+[![Build Status](https://github.com/emilv2/pydelijn/actions/workflows/ci.yml/badge.svg)](https://github.com/Emilv2/pydelijn/actions/workflows/ci.yml)
+
+A Python package to retrieve realtime data of passages at stops of De Lijn, the public transport company in Flanders (Belgium)
+
+Main purpose at the moment is to feed a sensor in Home-Assistant
+
+**Important note**: a developer account needs to be created at https://data.delijn.be to generate a subscription key for the api's.
+
+## Install
+
+```bash
+pip install pydelijn
+```
+
+### Example usage
+
+```python
+"""Example usage of pydelijn."""
+import asyncio
+import aiohttp
+from pydelijn.api import Passages
+
+
+async def test_pydelijn():
+    """Example usage of pydelijn."""
+    subscriptionkey = '<put your data.delijn.be subscriptionkey here>'
+    stopid = 200551
+    maxpassages = 10
+    custom_session = aiohttp.ClientSession()
+    delijndata = Passages(LOOP,
+                          stopid,
+                          maxpassages,
+                          subscriptionkey,
+                          custom_session,
+                          True)
+    await delijndata.get_passages()
+    await custom_session.close()
+
+    print_data(delijndata)
+
+
+def print_data(delijndata):
+    """Pretty Print the data."""
+    for line in delijndata.passages:
+        print("----------------------------------------")
+        print("Passage #: %s" % (line['passage']))
+        print("Stop Name: %s" % (line['stopname']))
+        print("Line Number (technical): %s" % (line['line_number']))
+        print("Line Number (public): %s" % (line['line_number_public']))
+        print("Line Description: %s" % (line['line_desc']))
+        print("Line Transport Type: %s" % (line['line_transport_type']))
+        print("Direction: %s" % (line['direction']))
+        print("Final Destination: %s" % (line['final_destination']))
+        print("Due At (schedule): %s" % (line['due_at_schedule']))
+        print("Due At (real-time): %s" % (line['due_at_realtime']))
+        print("Due In (min): %s" % (line['due_in_min']))
+        print("Line Colour - Front: %s - Hex: %s" % (
+            line['line_number_colourFront'],
+            line['line_number_colourFrontHex']))
+        print("Line Colour - Back: %s - Hex: %s" % (
+            line['line_number_colourBack'],
+            line['line_number_colourBackHex']))
+        print("Line Colour - Front Border: %s - Hex: %s" % (
+            line['line_number_colourFrontBorder'],
+            line['line_number_colourFrontBorderHex']))
+        print("Line Colour - Back Border: %s - Hex: %s" % (
+            line['line_number_colourBackBorder'],
+            line['line_number_colourBackBorderHex']))
+
+
+LOOP = asyncio.get_event_loop()
+LOOP.run_until_complete(test_pydelijn())
+LOOP.close()
+

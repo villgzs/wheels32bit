@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: vtjp
+Version: 0.2.1
+Summary: Västtrafik API.
+Home-page: https://github.com/Miicroo/python-vasttrafik
+Author: Per Sandström
+Author-email: per.j.sandstrom@gmail.com
+License: MIT
+Keywords: vasttrafik västtrafik
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Home Automation
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+License-File: LICENSE
+Requires-Dist: requests >=2.31.0
+Requires-Dist: tabulate >=0.7.5
+
+Python implementation of Västtrafik Journy planner(vtjp) public API.

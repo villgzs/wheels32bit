@@ -1,1 +1,0 @@
-* [text_unidecode-1.3-py2.py3-none-any.whl](../text_unidecode-1.3-py2.py3-none-any.whl)    

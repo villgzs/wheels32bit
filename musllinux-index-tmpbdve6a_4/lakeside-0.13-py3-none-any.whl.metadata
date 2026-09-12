@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: lakeside
+Version: 0.13
+Summary: Python API for controlling Eufy LED bulbs
+Home-page: http://github.com/nkgilley/python-lakeside
+Author: Matthew Garrett
+Author-email: mjg59@google.com
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+License-File: LICENSE
+Requires-Dist: protobuf
+Requires-Dist: pycryptodome
+Requires-Dist: requests
+

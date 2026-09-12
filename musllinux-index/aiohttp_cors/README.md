@@ -1,1 +1,0 @@
-* [aiohttp_cors-0.8.1-py3-none-any.whl](../aiohttp_cors-0.8.1-py3-none-any.whl)    

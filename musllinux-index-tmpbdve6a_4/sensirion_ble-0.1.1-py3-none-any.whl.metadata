@@ -1,0 +1,41 @@
+Metadata-Version: 2.1
+Name: sensirion-ble
+Version: 0.1.1
+Summary: Manage Sensirion BLE devices
+Project-URL: Bug Tracker, https://github.com/akx/sensirion-ble/issues
+Project-URL: Changelog, https://github.com/akx/sensirion-ble/blob/main/CHANGELOG.md
+Author-email: Aarni Koskela <akx@iki.fi>
+License-Expression: MIT
+License-File: LICENSE
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries
+Requires-Python: >=3.9
+Requires-Dist: bluetooth-data-tools>=0.1
+Requires-Dist: bluetooth-sensor-state-data>=1.6
+Requires-Dist: home-assistant-bluetooth>=1.6
+Requires-Dist: sensor-state-data>=2.9
+Description-Content-Type: text/markdown
+
+# sensirion-ble
+
+Parser for Sensirion BLE devices.
+
+## Supported devices
+
+* [MyCO2 (aka SCD4x CO2 Gadget)](https://sensirion.com/products/catalog/SCD4x-CO2-Gadget/)
+
+## Untested devices
+
+* SHT3x based gadgets
+* SHT4x based gadgets
+
+Other devices could be supported at a later time, but I don't have any at hand.
+
+## Reference
+
+The parser is based on the [Sensirion Bluetooth Low Energy (BLE) Specification][sble] (also available in the `reference` folder).
+
+[sble]: https://github.com/Sensirion/arduino-ble-gadget/blob/master/documents/Sensirion_BLE_communication_protocol.pdf

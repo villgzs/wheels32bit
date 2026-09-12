@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: pyfnip
+Version: 0.2
+Summary: Python wrapper for FutureNow IP relay/dimmer units
+Home-page: http://github.com/juhaniemi/pyfnip
+Author: Juha Niemi
+Author-email: juha@juhaniemi.net
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+
+UNKNOWN
+
+

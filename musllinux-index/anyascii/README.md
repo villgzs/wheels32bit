@@ -1,1 +1,0 @@
-* [anyascii-0.3.3-py3-none-any.whl](../anyascii-0.3.3-py3-none-any.whl)    

@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: wsdot
+Version: 0.0.1
+Summary: A Python wrapper of the wsdot.wa.gov APIs
+Project-URL: Home, https://github.com/ucodery/wsdot
+Author-email: Jeremiah Paige <ucodery@gmail.com>
+License-Expression: BSD-3-Clause
+License-File: LICENSE
+Requires-Dist: aiohttp
+Requires-Dist: pydantic
+Description-Content-Type: text/markdown
+
+# WSDOT
+
+An asynchronous Python wrapper of the Washington State Department of Transportation APIs hosted at <https://wsdot.wa.gov/traffic/api/>.
+
+## Setup
+
+Usage of these APIs requires an API key.
+
+Anyone can obtain a free API key by providing their email at <https://wsdot.wa.gov/traffic/api/>.
