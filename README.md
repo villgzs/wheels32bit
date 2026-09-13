@@ -1,7 +1,7 @@
 2026.07.0
 
 ### Last build from https://github.com/home-assistant/core: 2026.9.1  
-#### Musllinux wheels (armv7l + armv6l) (UTC 2026-Sep-12 21:13:32)  
+#### Musllinux wheels (armv7l + armv6l) (UTC 2026-Sep-13 00:50:29)  
 -  [Web page](https://villgzs.github.io/wheels32bit)  
 -  [musllinux git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux)  
 -  [musllinux on web page](https://villgzs.github.io/wheels32bit/musllinux)  
@@ -261,6 +261,7 @@
 * [batinfo](./musllinux/batinfo-0.4.2-py3-none-any.whl)    
 * [bcrypt](./musllinux/bcrypt-5.0.0-cp314-cp314-musllinux_1_2_armv7l.whl)    
 * [beautifulsoup4](./musllinux/beautifulsoup4-4.13.3-py3-none-any.whl)    
+* [beautifulsoup4](./musllinux/beautifulsoup4-4.15.0-py3-none-any.whl)    
 * [bellows](./musllinux/bellows-1.0.1-py3-none-any.whl)    
 * [besen](./musllinux/besen-0.3.4-py3-none-any.whl)    
 * [bidict](./musllinux/bidict-0.24.1-py3-none-any.whl)    
@@ -324,6 +325,7 @@
 * [ciso8601](./musllinux/ciso8601-2.3.3-cp314-cp314-musllinux_1_2_armv7l.whl)    
 * [clearpasspy](./musllinux/clearpasspy-1.0.2-py3-none-any.whl)    
 * [click](./musllinux/click-8.1.8-py3-none-any.whl)    
+* [click](./musllinux/click-8.5.0-py3-none-any.whl)    
 * [click_log](./musllinux/click_log-0.4.0-py2.py3-none-any.whl)    
 * [click_plugins](./musllinux/click_plugins-1.1.1.2-py2.py3-none-any.whl)    
 * [clx_sdk_xms](./musllinux/clx_sdk_xms-1.0.0-py2.py3-none-any.whl)    
@@ -556,6 +558,7 @@
 * [guppy3](./musllinux/guppy3-3.1.7-cp314-cp314-musllinux_1_2_armv7l.whl)    
 * [h11](./musllinux/h11-0.16.0-py3-none-any.whl)    
 * [h2](./musllinux/h2-4.3.0-py3-none-any.whl)    
+* [h2](./musllinux/h2-4.4.1-py3-none-any.whl)    
 * [ha_ffmpeg](./musllinux/ha_ffmpeg-3.2.2-py3-none-any.whl)    
 * [ha_iotawattpy](./musllinux/ha_iotawattpy-0.2.1-py3-none-any.whl)    
 * [ha_philipsjs](./musllinux/ha_philipsjs-3.2.5-py3-none-any.whl)    
@@ -971,6 +974,7 @@
 * [pycountry](./musllinux/pycountry-24.6.1-py3-none-any.whl)    
 * [pycparser](./musllinux/pycparser-3.0-py3-none-any.whl)    
 * [pycrc16](./musllinux/pycrc16-0.1.2-cp314-cp314-musllinux_1_2_armv7l.whl)    
+* [pycryptodome](./musllinux/pycryptodome-3.23.0-cp37-abi3-musllinux_1_2_armv7l.whl)    
 * [pycsspeechtts](./musllinux/pycsspeechtts-1.0.8-py3-none-any.whl)    
 * [pycync](./musllinux/pycync-0.5.0-py3-none-any.whl)    
 * [pydaikin](./musllinux/pydaikin-2.19.1-py3-none-any.whl)    
@@ -1106,6 +1110,7 @@
 * [pypalazzetti](./musllinux/pypalazzetti-0.1.20-py3-none-any.whl)    
 * [pypaperless](./musllinux/pypaperless-5.2.3-py3-none-any.whl)    
 * [pyparsing](./musllinux/pyparsing-3.3.2-py3-none-any.whl)    
+* [pypasser](./musllinux/pypasser-0.0.5-py3-none-any.whl)    
 * [pypca](./musllinux/pypca-0.0.7-py2.py3-none-any.whl)    
 * [pypck](./musllinux/pypck-0.9.13-py3-none-any.whl)    
 * [pypglab](./musllinux/pypglab-0.0.5-py3-none-any.whl)    
