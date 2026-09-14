@@ -376,7 +376,7 @@ jobs:
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             ${{ steps.builder.outputs.image }} \
-            --index "https://villgzs.github.io/musllinux-index" \
+            --index "https://villgzs.github.io/" \
             --upload rsync \
             --remote "/data/output" \
             --requirement "${{ steps.req.outputs.file }}" \
