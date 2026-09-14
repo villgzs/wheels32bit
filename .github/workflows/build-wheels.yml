@@ -570,28 +570,21 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [ -z "${TOKEN:-}" ]; then
+            echo "HIBA: MUSLLINUX_PUSH_TOKEN secret hiányzik vagy üres!"
+            exit 1
+          fi
+          echo "Token hossza: ${#TOKEN} karakter"
+
           python -m venv venv
           . venv/bin/activate
           python --version
           
           pip install index-503
   
-          # git clone --depth 1 --branch main \
-          #   https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
-          # cd index-repo
-
-          # git clone --depth 1 --branch main --filter=blob:none --sparse \
-          # https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git index-repo
-          # cd index-repo
-          # git sparse-checkout set musllinux-index
-          # A README automatikusan benne lesz (root fájlok cone módban)
-
-          # git clone --depth 1 --branch main --filter=blob:none --sparse \
-          #  https://x-access-token:${GH_TOKEN}@github.com/villgzs/musllinux.git musllinux-repo
-
           git clone --depth 1 --branch main \
-            https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git musllinux-repo
-            
+            "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git" musllinux-repo
+         
           cd musllinux-repo
           
           # git sparse-checkout init --no-cone
@@ -658,7 +651,7 @@ jobs:
           cd ..
 
           git clone --depth 1 --branch main \
-            https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git musllinux-index-repo
+            "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git" musllinux-index-repo
                     
           index-503 musllinux-repo/
 
