@@ -654,7 +654,7 @@ jobs:
                     
           index-503 musllinux-repo/
           
-          cp -a musllinux-index-tmp/. musllinux-index-repo/
+          cp -a musllinux-index-tmp*/. musllinux-index-repo/
 
           cd musllinux-index-repo
 
