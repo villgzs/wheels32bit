@@ -621,7 +621,7 @@ jobs:
           echo "  armv7/integrations: $(find ../dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
           echo "  armhf/core: $(find ../dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
           echo "  armhf/integrations: $(find ../dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
-          echo "  Wheel-ek száma: $(find musllinux -name '*.whl' | wc -l)  " | tee -a README.md
+          echo "  Wheel-ek száma: $(find . -name '*.whl' | wc -l)  " | tee -a README.md
           echo " --------------------------------------------- "
           for f in ./*.whl; do
             if [ -f "$f" ]; then
