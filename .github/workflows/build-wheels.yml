@@ -610,18 +610,14 @@ jobs:
             
           echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee README.md
           echo "#### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee -a README.md
-          echo "-  [Web page](https://villgzs.github.io/musllinux-index)  "  | tee -a README.md
-          echo "-  [musllinux git directory](https://github.com/villgzs/musllinux)  " | tee -a README.md
-          echo "-  [musllinux on web page](https://villgzs.github.io/musllinux)  " | tee -a README.md
-          echo "-  [musllinux-index on web page](https://villgzs.github.io/musllinux-index)  " | tee -a README.md
           
           echo "  " >> README.md
           pwd
-          echo "  armv7/core: $(find ../dist/armv7/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
-          echo "  armv7/integrations: $(find ../dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
-          echo "  armhf/core: $(find ../dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
-          echo "  armhf/integrations: $(find ../dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
-          echo "  Wheel-ek száma: $(find . -name '*.whl' | wc -l)  " | tee -a README.md
+          echo "  During the last build - armv7/core: $(find ../dist/armv7/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
+          echo "  During the last build - armv7/integrations: $(find ../dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
+          echo "  During the last build - armhf/core: $(find ../dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
+          echo "  During the last build - armhf/integrations: $(find ../dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
+          echo "  Number of wheels: $(find . -name '*.whl' | wc -l)  " | tee -a README.md
           echo " --------------------------------------------- "
           for f in ./*.whl; do
             if [ -f "$f" ]; then
