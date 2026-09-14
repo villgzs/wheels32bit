@@ -566,6 +566,7 @@ jobs:
       - name: Publish wheels and update README
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.MUSLLINUX_PUSH_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -589,7 +590,7 @@ jobs:
           #  https://x-access-token:${GH_TOKEN}@github.com/villgzs/musllinux.git musllinux-repo
 
           git clone --depth 1 --branch main \
-            https://x-access-token:${GH_TOKEN}@github.com/villgzs/musllinux.git musllinux-repo
+            https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git musllinux-repo
             
           cd musllinux-repo
           
@@ -657,7 +658,7 @@ jobs:
           cd ..
 
           git clone --depth 1 --branch main \
-            https://x-access-token:${GH_TOKEN}@github.com/villgzs/musllinux-index.git musllinux-index-repo
+            https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git musllinux-index-repo
                     
           index-503 musllinux-repo/
 
