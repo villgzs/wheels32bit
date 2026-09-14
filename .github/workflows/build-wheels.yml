@@ -653,8 +653,7 @@ jobs:
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git" musllinux-index-repo
                     
           index-503 musllinux-repo/
-
-          rm musllinux-index
+          
           cp -a musllinux-index-tmp/. musllinux-index-repo/
 
           cd musllinux-index-repo
@@ -667,6 +666,3 @@ jobs:
             git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
-
-          
-          
