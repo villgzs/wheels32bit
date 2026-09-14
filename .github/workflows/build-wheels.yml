@@ -565,12 +565,12 @@ jobs:
   
       - name: Publish wheels and update README
         env:
-          TOKEN: ${{ secrets.MUSLLINUX_PUSH_TOKEN }}
+          TOKEN: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}
         run: |
           set -euo pipefail
 
           if [ -z "${TOKEN:-}" ]; then
-            echo "HIBA: MUSLLINUX_PUSH_TOKEN secret hiányzik vagy üres!"
+            echo "HIBA: PUSH_MUSLLINUX_TOKEN secret hiányzik vagy üres!"
             exit 1
           fi
           echo "Token hossza: ${#TOKEN} karakter"
