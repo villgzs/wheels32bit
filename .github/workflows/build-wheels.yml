@@ -653,8 +653,9 @@ jobs:
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git" musllinux-index-repo
                     
           index-503 musllinux-repo/
+          ls -las
           
-          cp -a musllinux-index-tmp*/. musllinux-index-repo/
+          cp -a musllinux-repo-index-tmp*/. musllinux-index-repo/
 
           cd musllinux-index-repo
 
