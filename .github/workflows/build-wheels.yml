@@ -376,7 +376,7 @@ jobs:
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
             ${{ steps.builder.outputs.image }} \
-            --index "https://villgzs.github.io/wheels32bit" \
+            --index "https://villgzs.github.io/musllinux-index" \
             --upload rsync \
             --remote "/data/output" \
             --requirement "${{ steps.req.outputs.file }}" \
@@ -585,23 +585,24 @@ jobs:
           # git sparse-checkout set musllinux-index
           # A README automatikusan benne lesz (root fájlok cone módban)
 
-          git clone --depth 1 --branch main --filter=blob:none --sparse \
-            https://x-access-token:${GH_TOKEN}@github.com/villgzs/wheels32bit.git wheels32bit-repo
+          # git clone --depth 1 --branch main --filter=blob:none --sparse \
+          #  https://x-access-token:${GH_TOKEN}@github.com/villgzs/musllinux.git musllinux-repo
+
+          git clone --depth 1 --branch main \
+            https://x-access-token:${GH_TOKEN}@github.com/villgzs/musllinux.git musllinux-repo
             
-          cd wheels32bit-repo
+          cd musllinux-repo
           
-          git sparse-checkout init --no-cone
+          # git sparse-checkout init --no-cone
           # git sparse-checkout set README 'musllinux/**/*.whl'
-          git sparse-checkout set --no-cone \
-            /README \
-            /README.md \
-            'musllinux/*.whl' \
-            'musllinux/*.md' \
-            'musllinux-index/**'
+          # git sparse-checkout set --no-cone \
+          #   /README \
+          #   /README.md \
+          #   'musllinux/*.whl' \
+          #   'musllinux/*.md' \
+          #   'musllinux-index/**'
             
-          mkdir -p musllinux
-          echo "### Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))"
-          echo "### Last build from https://github.com/home-assistant/core:(${{ needs.init.outputs.version }}): ($(date -u +'%Z %Y-%b-%d %T'))" > musllinux/README.md
+          # mkdir -p musllinux
           pwd
           
           echo "=== dist tartalma ==="
@@ -613,15 +614,13 @@ jobs:
           cp -v ../dist/armv7/integrations/*.whl      musllinux/ 2>/dev/null || true
           cp -v ../dist/armhf/core/*.whl              musllinux/ 2>/dev/null || true
           cp -v ../dist/armhf/integrations/*.whl      musllinux/ 2>/dev/null || true
-  
-          # README frissítése
-          cat README > README.md
-          echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee -a README.md
+            
+          echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee README.md
           echo "#### Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee -a README.md
-          echo "-  [Web page](https://villgzs.github.io/wheels32bit)  "  | tee -a README.md
-          echo "-  [musllinux git directory](https://github.com/villgzs/wheels32bit/tree/main/musllinux)  " | tee -a README.md
-          echo "-  [musllinux on web page](https://villgzs.github.io/wheels32bit/musllinux)  " | tee -a README.md
-          echo "-  [musllinux-index on web page](https://villgzs.github.io/wheels32bit/musllinux-index)  " | tee -a README.md
+          echo "-  [Web page](https://villgzs.github.io/musllinux-index)  "  | tee -a README.md
+          echo "-  [musllinux git directory](https://github.com/villgzs/musllinux)  " | tee -a README.md
+          echo "-  [musllinux on web page](https://villgzs.github.io/musllinux)  " | tee -a README.md
+          echo "-  [musllinux-index on web page](https://villgzs.github.io/musllinux-index)  " | tee -a README.md
           
           echo "  " >> README.md
           pwd
@@ -631,33 +630,50 @@ jobs:
           echo "  armhf/integrations: $(find ../dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
           echo "  Wheel-ek száma: $(find musllinux -name '*.whl' | wc -l)  " | tee -a README.md
           echo " --------------------------------------------- "
-          for f in musllinux/*.whl; do
+          for f in ./*.whl; do
             if [ -f "$f" ]; then
               filename=$(basename "$f")
               package="${filename%%-*}"
 
-                  echo "* [$filename](./$filename)    " | tee -a musllinux/README.md
+                  echo "* [$filename](./$filename)    " | tee -a README.md
             fi
           done
-          echo " --------------------------------------------- "
+          echo " --------------------------------------------- "          
 
-          rm -rf musllinux-index
-          index-503 musllinux/
-
-          rm musllinux-index
-          mv musllinux-index-tmp* musllinux-index
-          
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Csak a 100 MiB-nél kisebb fájlokat adjuk hozzá
-          find musllinux -type f -size -100M -print0 | xargs -0 git add
-          git add README.md musllinux-index
-  
-          # git add musllinux/ README.md
+          # find musllinux -type f -size -100M -print0 | xargs -0 git add
+          git add .
+            
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
             git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
+
+          cd ..
+
+          git clone --depth 1 --branch main \
+            https://x-access-token:${GH_TOKEN}@github.com/villgzs/musllinux-index.git musllinux-index-repo
+                    
+          index-503 musllinux-repo/
+
+          rm musllinux-index
+          cp -a musllinux-index-tmp/. musllinux-index-repo/
+
+          cd musllinux-index-repo
+
+          git add .
+            
+          if git diff --staged --quiet; then
+            echo "Nincs változás, nem commitolok."
+          else
+            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
+            git push origin main
+          fi
+
+          
+          
