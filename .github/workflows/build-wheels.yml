@@ -619,14 +619,22 @@ jobs:
           echo "  During the last build - armhf/integrations: $(find ../dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md
           echo "  Number of wheels: $(find . -name '*.whl' | wc -l)  " | tee -a README.md
           echo " --------------------------------------------- "
-          for f in ./*.whl; do
-            if [ -f "$f" ]; then
-              filename=$(basename "$f")
-              package="${filename%%-*}"
+          # .nojekyll létrehozása (egyszer elég, de ártalmatlan minden futtatáskor)
+          touch .nojekyll
 
-                  echo "* [$filename](./$filename)    " | tee -a README.md
-            fi
-          done
+          # Egyszerű index.html generálása tiszta linkekkel
+          {
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>musllinux wheels</title></head><body>'
+            echo '<h1>musllinux wheels</h1>'
+            echo "<p>Last build: ${{ needs.init.outputs.version }}</p><ul>"
+            for f in ./*.whl; do
+              if [ -f "$f" ]; then
+                filename=$(basename "$f")
+                echo "<li><a href=\"$filename\">$filename</a></li>"
+              fi
+            done
+            echo '</ul></body></html>'
+          } > index.html
           echo " --------------------------------------------- "          
 
           git config --global user.name "github-actions[bot]"
