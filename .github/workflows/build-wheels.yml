@@ -599,8 +599,8 @@ jobs:
           pwd
           
           echo "=== dist tartalma ==="
-          find ../dist -type f -name "*.whl" | head -20
-          echo "Wheel-ek száma: $(find ../dist -name '*.whl' | wc -l)"
+          # find ../dist -type f -name "*.whl" | head -20
+          # echo "Wheel-ek száma: $(find ../dist -name '*.whl' | wc -l)"
           
           # ----- Összes wheel másolása (armv7 + armhf) -----
           cp -v ../dist/armv7/core/*.whl              musllinux/ 2>/dev/null || true
