@@ -291,7 +291,7 @@ jobs:
               echo 'CXXFLAGS=-march=armv6 -mfloat-abi=hard -mfpu=vfp'
               echo '_PYTHON_HOST_PLATFORM=linux-armv6l'
               echo 'BUILD_ARCH=armhf'
-              echo 'AUDITWHEEL_PLAT=musllinux_1_2_armv7l'
+              echo 'AUDITWHEEL_PLAT=musllinux_1_2_armv6l'
               echo 'ARCH=armhf'
             ) >> .env_file
             
@@ -587,7 +587,8 @@ jobs:
           git clone --depth 1 --branch main --filter=blob:none --sparse \
             "https://x-access-token:${TOKEN}@github.com/villgzs/wheels32bit.git" wheels32bit-repo
           cd wheels32bit-repo
-          git sparse-checkout set README.md
+          # git sparse-checkout set README.md || echo "Ez nem működik --no-cone nélkül"
+          git sparse-checkout set --no-cone README.md
           cd ..          
          
           cd musllinux-repo
