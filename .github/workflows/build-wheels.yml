@@ -458,7 +458,7 @@ jobs:
             fi
 
             # Ha van wheel, listázzuk
-            find "$OUT_DIR" -type f -name "*.whl" | head -n 30 || true
+            # find "$OUT_DIR" -type f -name "*.whl" | head -n 30 || true
             WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
             echo "Mentett .whl fájlok száma: $WHL_COUNT"
 
@@ -470,7 +470,7 @@ jobs:
               echo "Nem készült .whl fájl – üres marker létrehozása"
               echo "üres lista" > "$OUT_DIR/empty.txt"
               # opcionálisan még egy keresés a workspace-ben, ha esetleg máshova került
-              find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -n 20 || true
+              # find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -n 20 || true
             else
               echo "Wheel-ek sikeresen előállítva."
             fi
