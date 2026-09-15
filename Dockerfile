@@ -22,6 +22,7 @@ RUN \
         patchelf \
         build-base \
         cmake \
+        ninja \
         git \
         linux-headers \
         autoconf \
