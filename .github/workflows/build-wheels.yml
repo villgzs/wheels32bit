@@ -585,11 +585,10 @@ jobs:
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git" musllinux-repo
 
           git clone --depth 1 --branch main --filter=blob:none --sparse \
-            "https://x-access-token:${TOKEN}@github.com/villgzs//wheels32bit.git" wheels32bit-repo
-          cd index-repo
+            "https://x-access-token:${TOKEN}@github.com/villgzs/wheels32bit.git" wheels32bit-repo
+          cd wheels32bit-repo
           git sparse-checkout set README.md
-          cd ..
-          
+          cd ..          
          
           cd musllinux-repo
           
@@ -615,8 +614,9 @@ jobs:
           cp -v ../dist/armhf/core/*.whl              musllinux/ 2>/dev/null || true
           cp -v ../dist/armhf/integrations/*.whl      musllinux/ 2>/dev/null || true
 
-          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md
-          echo -e "\n### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee README.md | tee ../wheels32bit-repo/README.md           
+          echo "# Wheels32bit" | tee ../wheels32bit-repo/README.md
+          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee README.md | tee ../wheels32bit-repo/README.md
+          echo "### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md           
           
           echo "  "  | tee -a README.md | tee -a ../wheels32bit-repo/README.md
           
