@@ -438,7 +438,7 @@ jobs:
 
             # Próbáljuk ki a kimenetet, amíg a konténer még létezik
             docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || true
-            docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
+            # docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
 
             # === Nagy fájlok (>100 MiB) keresése ===
             echo "=== 100 MiB-nál nagyobb fájlok keresése ==="
@@ -608,7 +608,9 @@ jobs:
           echo "=== dist tartalma ==="
           # find ../dist -type f -name "*.whl" | head -20
           # echo "Wheel-ek száma: $(find ../dist -name '*.whl' | wc -l)"
-          
+          # Biztonságosabb másolás (rekurzív + verbose)
+          find ../dist -type f -name "*.whl" -print -exec cp -v {} . \;
+
           # ----- Összes wheel másolása (armv7 + armhf) -----
           cp -v ../dist/armv7/core/*.whl              musllinux/ 2>/dev/null || true
           cp -v ../dist/armv7/integrations/*.whl      musllinux/ 2>/dev/null || true
