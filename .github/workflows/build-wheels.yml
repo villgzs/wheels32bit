@@ -605,10 +605,10 @@ jobs:
           find dist -type f -name "*.whl" -print -exec cp -v {} musllinux-repo \;
 
           # ----- Összes wheel másolása (armv7 + armhf) -----
-          # cp -v dist/armv7/core/*.whl              musllinux-repo 2>/dev/null || true
-          # cp -v dist/armv7/integrations/*.whl      musllinux-repo 2>/dev/null || true
-          # cp -v dist/armhf/core/*.whl              musllinux-repo 2>/dev/null || true
-          # cp -v dist/armhf/integrations/*.whl      musllinux-repo 2>/dev/null || true
+          # cp -v dist/armv7/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v dist/armv7/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
+          # cp -v dist/armhf/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v dist/armhf/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
 
           pwd
           echo "Wheel-ek száma a musllinux-repo mappában: $(find musllinux-repo -name '*.whl' | wc -l)"
