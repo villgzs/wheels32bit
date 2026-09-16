@@ -365,7 +365,7 @@ jobs:
         working-directory: ha-core
         run: |
           set -euo pipefail
-          OUT_DIR="${{ github.workspace }}/wheels-out/${{ matrix.kind }}"
+          OUT_DIR="${{ github.workspace }}/wheels-out/${{matrix.arch}}-${{ matrix.kind }}"
           mkdir -p "$OUT_DIR"
 
           # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
@@ -493,8 +493,9 @@ jobs:
         if: '!cancelled()'
         uses: actions/upload-artifact@v4
         with:
+          # OUT_DIR="${{ github.workspace }}/wheels-out/${{matrix.arch}}-${{ matrix.kind }}"
           name: wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
-          path: wheels-out/${{ matrix.kind }}
+          path: wheels-out/${{matrix.arch}}-${{ matrix.kind }}
           if-no-files-found: warn
           retention-days: 14
 
@@ -552,10 +553,10 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY         
             
           done
-          ls -las dist/armhf/core
-          ls -las dist/armhf/integrations
-          ls -las dist/armhf/core
-          ls -las dist/armhf/integrations
+          ls -lasR dist/armhf/core
+          ls -lasR dist/armhf/integrations
+          ls -lasR dist/armhf/core
+          ls -lasR dist/armhf/integrations
   
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
@@ -581,75 +582,72 @@ jobs:
           echo "Token hossza: ${#TOKEN} karakter"
 
           echo "Verzió: ${{ needs.init.outputs.version }}"
-
-          python -m venv venv
-          . venv/bin/activate
-          python --version
-          
-          pip install index-503
   
           git clone --depth 1 --branch main \
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git" musllinux-repo
 
           git clone --depth 1 --branch main --filter=blob:none --sparse \
             "https://x-access-token:${TOKEN}@github.com/villgzs/wheels32bit.git" wheels32bit-repo
+            
           cd wheels32bit-repo
+          
           # git sparse-checkout set README.md || echo "Ez nem működik --no-cone nélkül"
           git sparse-checkout set --no-cone README.md
+          
           cd ..          
-         
-          cd musllinux-repo
 
           pwd
           
           echo "=== dist tartalma ==="
-          # find ../dist -type f -name "*.whl" | head -20
-          echo "Wheel-ek száma az összes ../dist-ben: $(find ../dist -name '*.whl' | wc -l)"
+          # find dist -type f -name "*.whl" | head -20
+          echo "Wheel-ek száma az összes dist-ben: $(find dist -name '*.whl' | wc -l)"
           # Biztonságosabb másolás (rekurzív + verbose)
-          find ../dist -type f -name "*.whl" -print -exec cp -v {} . \;
+          find dist -type f -name "*.whl" -print -exec cp -v {} musllinux-repo \;
 
           # ----- Összes wheel másolása (armv7 + armhf) -----
-          # cp -v ../dist/armv7/core/*.whl              . 2>/dev/null || true
-          # cp -v ../dist/armv7/integrations/*.whl      . 2>/dev/null || true
-          # cp -v ../dist/armhf/core/*.whl              . 2>/dev/null || true
-          # cp -v ../dist/armhf/integrations/*.whl      . 2>/dev/null || true
+          # cp -v dist/armv7/core/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v dist/armv7/integrations/*.whl      musllinux-repo 2>/dev/null || true
+          # cp -v dist/armhf/core/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v dist/armhf/integrations/*.whl      musllinux-repo 2>/dev/null || true
 
           pwd
-          echo "Wheel-ek száma az aktuális mappában: $(find ../dist -name '*.whl' | wc -l)"
+          echo "Wheel-ek száma a musllinux-repo mappában: $(find musllinux-repo -name '*.whl' | wc -l)"
 
-          echo "# Wheels32bit" | tee ../wheels32bit-repo/README.md
-          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee README.md | tee ../wheels32bit-repo/README.md
-          echo "### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md           
+          echo "# Wheels32bit" | tee wheels32bit-repo/README.md
+          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee musllinux-repo/README.md | tee wheels32bit-repo/README.md
+          echo "### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
           
-          echo "  "  | tee -a README.md | tee -a ../wheels32bit-repo/README.md
+          echo "  "  | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           
-          echo "  During the last build - armv7/core: $(find ../dist/armv7/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md
-          echo "  During the last build - armv7/integrations: $(find ../dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md
-          echo "  During the last build - armhf/core: $(find ../dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md
-          echo "  During the last build - armhf/integrations: $(find ../dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md
-          echo "  Number of wheels: $(find . -name '*.whl' | wc -l)  " | tee -a README.md | tee -a ../wheels32bit-repo/README.md
+          echo "  During the last build - armv7/core: $(find dist/armv7/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  During the last build - armv7/integrations: $(find dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  During the last build - armhf/core: $(find dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  During the last build - armhf/integrations: $(find dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  Number of wheels: $(find . -name '*.whl' | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           echo " --------------------------------------------- "
           # .nojekyll létrehozása (egyszer elég, de ártalmatlan minden futtatáskor)
-          touch .nojekyll
+          touch musllinux-repo/.nojekyll
 
           # Egyszerű index.html generálása tiszta linkekkel
           {
             echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>musllinux wheels</title></head><body>'
             echo '<h1>musllinux wheels</h1>'
             echo "<p>Last build: ${{ needs.init.outputs.version }} ($(date -u +'%Z %Y-%b-%d %T'))</p><ul>"
-            for f in ./*.whl; do
+            for f in musllinux-repo/*.whl; do
               if [ -f "$f" ]; then
                 filename=$(basename "$f")
                 echo "<li><a href=\"$filename\">$filename</a></li>"
               fi
             done
             echo '</ul></body></html>'
-          } > index.html
+          } > musllinux-repo/index.html
           echo " --------------------------------------------- "          
 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          cd musllinux-repo
+          
           # Csak a 100 MiB-nél kisebb fájlokat adjuk hozzá
           # find musllinux -type f -size -100M -print0 | xargs -0 git add
           git add .
@@ -663,8 +661,16 @@ jobs:
 
           cd ..
 
+          # musllinux done
+
           git clone --depth 1 --branch main \
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git" musllinux-index-repo
+
+          python -m venv venv
+          . venv/bin/activate
+          python --version
+          
+          pip install index-503
                     
           index-503 musllinux-repo/
           ls -las
@@ -684,6 +690,8 @@ jobs:
 
           cd ..
 
+          # musllinux-index done
+
           cd wheels32bit-repo 
 
           git add README.md
@@ -695,6 +703,5 @@ jobs:
             git push origin main
           fi
 
-          cd ..          
-
+          cd ..
           
