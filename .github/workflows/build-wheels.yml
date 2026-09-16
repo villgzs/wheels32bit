@@ -592,7 +592,7 @@ jobs:
           cd wheels32bit-repo
           
           # git sparse-checkout set README.md || echo "Ez nem működik --no-cone nélkül"
-          git sparse-checkout set --no-cone README.md
+          git sparse-checkout set --no-cone /README.md
           
           cd ..          
 
