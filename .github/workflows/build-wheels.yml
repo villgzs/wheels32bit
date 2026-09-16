@@ -549,8 +549,13 @@ jobs:
             find dist/$arch/core -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
             echo "#### integrations" >> $GITHUB_STEP_SUMMARY
             find dist/$arch/integrations -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY         
+            
           done
+          ls -las dist/armhf/core
+          ls -las dist/armhf/integrations
+          ls -las dist/armhf/core
+          ls -las dist/armhf/integrations
   
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
@@ -561,7 +566,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.14.6'   # vagy '3.11', '3.13', '3.14' stb.
+          python-version: '3.14.5'   # vagy '3.11', '3.13', '3.14' stb.
   
       - name: Publish wheels and update README
         env:
@@ -574,6 +579,8 @@ jobs:
             exit 1
           fi
           echo "Token hossza: ${#TOKEN} karakter"
+
+          echo "Verzió: ${{ needs.init.outputs.version }}"
 
           python -m venv venv
           . venv/bin/activate
@@ -592,30 +599,23 @@ jobs:
           cd ..          
          
           cd musllinux-repo
-          
-          # git sparse-checkout init --no-cone
-          # git sparse-checkout set README 'musllinux/**/*.whl'
-          # git sparse-checkout set --no-cone \
-          #   /README \
-          #   /README.md \
-          #   'musllinux/*.whl' \
-          #   'musllinux/*.md' \
-          #   'musllinux-index/**'
-            
-          # mkdir -p musllinux
+
           pwd
           
           echo "=== dist tartalma ==="
           # find ../dist -type f -name "*.whl" | head -20
-          # echo "Wheel-ek száma: $(find ../dist -name '*.whl' | wc -l)"
+          echo "Wheel-ek száma az összes ../dist-ben: $(find ../dist -name '*.whl' | wc -l)"
           # Biztonságosabb másolás (rekurzív + verbose)
           find ../dist -type f -name "*.whl" -print -exec cp -v {} . \;
 
           # ----- Összes wheel másolása (armv7 + armhf) -----
-          cp -v ../dist/armv7/core/*.whl              musllinux/ 2>/dev/null || true
-          cp -v ../dist/armv7/integrations/*.whl      musllinux/ 2>/dev/null || true
-          cp -v ../dist/armhf/core/*.whl              musllinux/ 2>/dev/null || true
-          cp -v ../dist/armhf/integrations/*.whl      musllinux/ 2>/dev/null || true
+          # cp -v ../dist/armv7/core/*.whl              . 2>/dev/null || true
+          # cp -v ../dist/armv7/integrations/*.whl      . 2>/dev/null || true
+          # cp -v ../dist/armhf/core/*.whl              . 2>/dev/null || true
+          # cp -v ../dist/armhf/integrations/*.whl      . 2>/dev/null || true
+
+          pwd
+          echo "Wheel-ek száma az aktuális mappában: $(find ../dist -name '*.whl' | wc -l)"
 
           echo "# Wheels32bit" | tee ../wheels32bit-repo/README.md
           echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee README.md | tee ../wheels32bit-repo/README.md
