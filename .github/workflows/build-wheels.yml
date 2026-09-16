@@ -623,7 +623,7 @@ jobs:
           echo "  During the last build - armv7/integrations: $(find dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           echo "  During the last build - armhf/core: $(find dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           echo "  During the last build - armhf/integrations: $(find dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
-          echo "  Number of wheels: $(find . -name '*.whl' | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  Number of wheels: $(find musllinux-repo -name '*.whl' | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           echo " --------------------------------------------- "
           # .nojekyll létrehozása (egyszer elég, de ártalmatlan minden futtatáskor)
           touch musllinux-repo/.nojekyll
