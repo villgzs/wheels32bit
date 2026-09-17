@@ -464,16 +464,7 @@ jobs:
 
           pwd
           echo "Wheel-ek száma a musllinux-repo mappában: $(find musllinux-repo -name '*.whl' | wc -l)"
-
-          echo "# Wheels32bit" | tee wheels32bit-repo/README.md
-          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee musllinux-repo/README.md | tee wheels32bit-repo/README.md
-          echo "### Last build from https://github.com/home-assistant/core: ${{ steps.version.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
           
-          echo "  "  | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
-          
-          echo "  During the last build - armv7: $(find ${{env.OUTDIR}} -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
-          echo "  Number of wheels: $(find musllinux-repo -name '*.whl' | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
-          echo " --------------------------------------------- "
           # .nojekyll létrehozása (egyszer elég, de ártalmatlan minden futtatáskor)
           touch musllinux-repo/.nojekyll
 
@@ -506,7 +497,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7)"
             git push origin main
           fi
 
@@ -549,6 +540,22 @@ jobs:
 
           cd wheels32bit-repo 
 
+          git pull
+
+          cd ..
+
+          echo "# Wheels32bit" | tee wheels32bit-repo/README.md
+          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee musllinux-repo/README.md | tee wheels32bit-repo/README.md
+          echo "### Last build from https://github.com/home-assistant/core: ${{ steps.version.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
+          
+          echo "  "  | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          
+          echo "  During the last build - armv7: $(find ${{env.OUTDIR}} -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  Number of wheels: $(find musllinux-repo -name '*.whl' | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo " --------------------------------------------- "
+
+          cd wheels32bit-repo 
+          
           git add README.md
             
           if git diff --staged --quiet; then
