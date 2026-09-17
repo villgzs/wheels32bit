@@ -430,11 +430,6 @@ jobs:
   
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- wheels-armv7-${{env.KIND}}-${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.14.5'   # vagy '3.11', '3.13', '3.14' stb.
   
       - name: Publish wheels and update README
         env:
@@ -470,12 +465,6 @@ jobs:
           echo "Wheel-ek száma az összes ${{env.OUTDIR}}-ben: $(find ${{env.OUTDIR}} -name '*.whl' | wc -l)"
           # Biztonságosabb másolás (rekurzív + verbose)
           find ${{env.OUTDIR}} -type f -name "*.whl" -print -exec cp -v {} musllinux-repo \;
-
-          # ----- Összes wheel másolása (armv7 + armhf) -----
-          # cp -v ${{env.OUTDIR}}/armv7/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
-          # cp -v ${{env.OUTDIR}}/armv7/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
-          # cp -v ${{env.OUTDIR}}/armhf/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
-          # cp -v ${{env.OUTDIR}}/armhf/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
 
           pwd
           echo "Wheel-ek száma a musllinux-repo mappában: $(find musllinux-repo -name '*.whl' | wc -l)"
@@ -527,7 +516,9 @@ jobs:
 
           cd ..
 
+          # -------------------------------------
           # musllinux done
+          # -------------------------------------
 
           git clone --depth 1 --branch main \
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git" musllinux-index-repo
@@ -556,7 +547,9 @@ jobs:
 
           cd ..
 
+          # -------------------------------------
           # musllinux-index done
+          # -------------------------------------
 
           cd wheels32bit-repo 
 
