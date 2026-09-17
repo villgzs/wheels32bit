@@ -452,16 +452,6 @@ jobs:
           git clone --depth 1 --branch main \
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git" musllinux-repo
 
-          git clone --depth 1 --branch main --filter=blob:none --sparse \
-            "https://x-access-token:${TOKEN}@github.com/villgzs/wheels32bit.git" wheels32bit-repo
-            
-          cd wheels32bit-repo
-          
-          # git sparse-checkout set README.md || echo "Ez nem működik --no-cone nélkül"
-          git sparse-checkout set --no-cone /README.md
-          
-          cd ..          
-
           pwd
           
           echo "=== ${{env.OUTDIR}} tartalma ==="
