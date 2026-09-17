@@ -25,6 +25,7 @@ env:
   TAG: musllinux_1_2
   WBRANCH: "2026.07.0"
   ARCH: armv7
+  BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
   BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
   # LISTMAX: 30
@@ -177,6 +178,9 @@ jobs:
         working-directory: ha-core-repo
         run: |
           (
+            echo "ARCH=${{ env.ARCH }}"
+            echo "BUILD_ARCH=${{ env.ARCH }}"
+            
             echo "GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true"
             echo "GRPC_PYTHON_BUILD_WITH_CYTHON=true"
             # echo "GRPC_PYTHON_BUILD_SYSTEM_ZLIB=true"
