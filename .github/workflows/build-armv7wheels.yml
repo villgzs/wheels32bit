@@ -220,6 +220,9 @@ jobs:
             sed -i "/numpy/d" homeassistant/package_constraints.txt || true
           fi
 
+      # --------------------------------------------------
+      # 2. - BUILD
+      # --------------------------------------------------
       - name: maximize cython version
         working-directory: ha-core-repo
         run: |
@@ -229,7 +232,7 @@ jobs:
             head -n 20 requirements.txt || true
             head -n 20 requirements_all.txt || true
 
-      - name: Set up QEMU (${{ matrix.arch }})
+      - name: Set up QEMU (${{ env.ARCH }})
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
@@ -245,9 +248,9 @@ jobs:
       - name: Set builder image and platform
         id: builder
         run: |
-          echo "image=ghcr.io/villgzs/wheels32bit/${{ matrix.arch }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.BRANCH }}" >> $GITHUB_OUTPUT
+          echo "image=ghcr.io/villgzs/wheels32bit/${{ env.ARCH }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.BRANCH }}" >> $GITHUB_OUTPUT
           
-          if [ "${{ matrix.arch }}" = "armhf" ]; then
+          if [ "${{ env.ARCH }}" = "armhf" ]; then
             echo "platform=linux/arm/v6" >> $GITHUB_OUTPUT
           else
             echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
@@ -261,11 +264,12 @@ jobs:
         id: req
         working-directory: ha-core-repo
         run: |
-          REQ="${{ matrix.requirements }}"
+          # !!! FOR ciklus kell !!!
+          REQ="${{ env.REQUIREMENTS }}"
           # integrations: ha van arch-specifikus, azt preferáljuk
-          if [ "${{ matrix.kind }}" = "integrations" ]; then
-            if [ -f "requirements_all_wheels_${{ matrix.arch }}.txt" ]; then
-              REQ="requirements_all_wheels_${{ matrix.arch }}.txt"
+          if [ "${{ env.KIND }}" = "integrations" ]; then
+            if [ -f "requirements_all_wheels_${{ env.ARCH }}.txt" ]; then
+              REQ="requirements_all_wheels_${{ env.ARCH }}.txt"
             elif [ -f requirements_all_wheels_amd64.txt ]; then
               # fallback – legalább a lista megvan (evdev stb. eltérhet)
               REQ=requirements_all.txt
@@ -282,16 +286,16 @@ jobs:
           # head -n 20 "$REQ"
           cat "$REQ"
 
-      - name: Build wheels with custom (${{matrix.arch}}) builder
+      - name: Build wheels with custom (${{env.ARCH}}) builder
         working-directory: ha-core-repo
         run: |
           set -euo pipefail
-          OUT_DIR="${{ github.workspace }}/wheels-out/${{matrix.arch}}-${{ matrix.kind }}"
+          OUT_DIR="${{ github.workspace }}/wheels-out/${{env.ARCH}}-${{  env.KIND }}"
           mkdir -p "$OUT_DIR"
 
           # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
           # 
-          docker create --name "wheels-${{ matrix.kind }}" -t \
+          docker create --name "wheels-${{ env.KIND }}" -t \
             --platform ${{ steps.builder.outputs.platform }} \
             --workdir /data \
             --env-file .env_file \
@@ -303,15 +307,15 @@ jobs:
             --requirement "${{ steps.req.outputs.file }}" \
             --requirement-diff "requirements_diff.txt" \
             --constraint "homeassistant/package_constraints.txt" \
-            --skip-binary "${{ matrix.skip_binary }}" \
-            --apk "${{ matrix.apk }}"
+            --skip-binary "${{ _matrix_.skip_binary }}" \
+            --apk "${{ _matrix_.apk }}"
 
           # Forrás bemásolása a konténerbe
-          docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ matrix.kind }}:/data"
+          docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ env.KIND }}:/data"
 
           echo "=== Aux konténer létrehozása és indítása ==="
 
-          docker create --name "wheels-${{ matrix.kind }}-aux" -t \
+          docker create --name "wheels-${{ env.KIND }}-aux" -t \
             --platform ${{ steps.builder.outputs.platform }} \
             --workdir /data \
             --env-file .env_file \
@@ -321,35 +325,35 @@ jobs:
             -c "while true; do sleep 3600; done"
 
           # Forrás bemásolása a konténerbe
-          docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ matrix.kind }}-aux:/data"            
+          docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ env.KIND }}-aux:/data"            
 
-          docker start "wheels-${{ matrix.kind }}-aux"
+          docker start "wheels-${{ env.KIND }}-aux"
 
           echo "=== Cython ellenőrzése ==="
-          docker exec "wheels-${{ matrix.kind }}-aux" \
+          docker exec "wheels-${{ env.KIND }}-aux" \
             python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
 
           echo "=== Build constraints ==="
-          docker exec "wheels-${{ matrix.kind }}-aux" \
+          docker exec "wheels-${{ env.KIND }}-aux" \
             cat /pip-build-constraints.txt
 
           echo "=== Extra checkings ==="
           echo "uname -m"
-          docker exec "wheels-${{ matrix.kind }}-aux" uname -m
+          docker exec "wheels-${{ env.KIND }}-aux" uname -m
           echo "python3 -c import sysconfig; print(sysconfig.get_platform())"
-          docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import sysconfig; print(sysconfig.get_platform())"
+          docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import sysconfig; print(sysconfig.get_platform())"
           echo "python3 -c import os; print(os.environ.get('BUILD_ARCH'))"
-          docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
+          docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
           echo "python3 -c import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
-          docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
+          docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
           # echo "auditwheel repair --help"
-          # docker exec -e AUDITWHEEL_PLAT="" "wheels-${{ matrix.kind }}-aux" auditwheel repair --help
-          # docker exec -e AUDITWHEEL_PLAT="musllinux_1_2_armv7l" "wheels-${{ matrix.kind }}-aux" auditwheel repair --help
-          # docker exec -e AUDITWHEEL_PLAT="auto" "wheels-${{ matrix.kind }}-aux" auditwheel repair --help
+          # docker exec -e AUDITWHEEL_PLAT="" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
+          # docker exec -e AUDITWHEEL_PLAT="musllinux_1_2_armv7l" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
+          # docker exec -e AUDITWHEEL_PLAT="auto" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
 
           echo "=== Aux konténer leállítása és törlése ==="
-          docker stop "wheels-${{ matrix.kind }}-aux"
-          docker rm "wheels-${{ matrix.kind }}-aux"
+          docker stop "wheels-${{ env.KIND }}-aux"
+          docker rm "wheels-${{ env.KIND }}-aux"
           echo "=== Aux konténer leállítás megtörtént ==="
 
           # === Trap: timeout / megszakítás / hiba esetén is mentsünk ki ===
@@ -358,8 +362,8 @@ jobs:
             echo "=== Cleanup & partial save (exit code: $exit_code) ==="
 
             # Próbáljuk ki a kimenetet, amíg a konténer még létezik
-            docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || true
-            # docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
+            docker cp "wheels-${{ env.KIND }}:/data/output/." "$OUT_DIR/" 2>/dev/null || true
+            # docker cp "wheels-${{ env.KIND }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
 
             # === Nagy fájlok (>100 MiB) keresése ===
             echo "=== 100 MiB-nál nagyobb fájlok keresése ==="
@@ -384,8 +388,8 @@ jobs:
             echo "Mentett .whl fájlok száma: $WHL_COUNT"
 
             # Konténer törlése
-            docker rm -f "wheels-${{ matrix.kind }}" 2>/dev/null || true
-            docker rm -f "wheels-${{ matrix.kind }}-aux" 2>/dev/null || true
+            docker rm -f "wheels-${{ env.KIND }}" 2>/dev/null || true
+            docker rm -f "wheels-${{ env.KIND }}-aux" 2>/dev/null || true
 
             if [ "$WHL_COUNT" -eq 0 ]; then
               echo "Nem készült .whl fájl – üres marker létrehozása"
@@ -403,7 +407,7 @@ jobs:
 
           # Build indítása
           set +e
-          docker start -a "wheels-${{ matrix.kind }}"
+          docker start -a "wheels-${{ env.KIND }}"
           RC=$?
           set -e
 
@@ -414,55 +418,48 @@ jobs:
         if: '!cancelled()'
         uses: actions/upload-artifact@v4
         with:
-          # OUT_DIR="${{ github.workspace }}/wheels-out/${{matrix.arch}}-${{ matrix.kind }}"
-          name: wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
-          path: wheels-out/${{matrix.arch}}-${{ matrix.kind }}
+          # OUT_DIR="${{ github.workspace }}/wheels-out/${{env.ARCH}}-${{ env.KIND }}"
+          name: wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
+          path: wheels-out/${{env.ARCH}}-${{ env.KIND }}
           if-no-files-found: warn
           retention-days: 14
 
   # --------------------------------------------------
   # 3) Összefűzés + feltöltés villgzs alá
   # --------------------------------------------------
-  publish:
-    name: Publish wheels under villgzs
-    needs: [init, build]
-    if: always() && needs.init.result == 'success'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
+
       # ----- Letöltés mind a 4 artifactból -----
       - name: Download armv7 core wheels
         uses: actions/download-artifact@v4
         with:
-          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
-          name: wheels-armv7-core-${{ needs.init.outputs.version }}
+          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
+          name: wheels-armv7-core-${{ needs.inbupu.outputs.version }}
           path: dist/armv7/core
   
       - name: Download armv7 integrations wheels
         uses: actions/download-artifact@v4
         with:
-          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
-          name: wheels-armv7-integrations-${{ needs.init.outputs.version }}
+          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
+          name: wheels-armv7-integrations-${{ needs.inbupu.outputs.version }}
           path: dist/armv7/integrations
   
       - name: Download armhf core wheels
         uses: actions/download-artifact@v4
         with:
-          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
-          name: wheels-armhf-core-${{ needs.init.outputs.version }}
+          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
+          name: wheels-armhf-core-${{ needs.inbupu.outputs.version }}
           path: dist/armhf/core
   
       - name: Download armhf integrations wheels
         uses: actions/download-artifact@v4
         with:
-          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
-          name: wheels-armhf-integrations-${{ needs.init.outputs.version }}
+          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
+          name: wheels-armhf-integrations-${{ needs.inbupu.outputs.version }}
           path: dist/armhf/integrations
   
       - name: Summary
         run: |
-          echo "## Wheels – HA ${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Wheels – HA ${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
   
           for arch in armv7 armhf; do
@@ -480,10 +477,10 @@ jobs:
           ls -lasR dist/armhf/integrations
   
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armhf-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armhf-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armv7-core-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armv7-integrations-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armhf-core-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armhf-integrations-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -502,7 +499,7 @@ jobs:
           fi
           echo "Token hossza: ${#TOKEN} karakter"
 
-          echo "Verzió: ${{ needs.init.outputs.version }}"
+          echo "Verzió: ${{ needs.inbupu.outputs.version }}"
   
           git clone --depth 1 --branch main \
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git" musllinux-repo
@@ -536,7 +533,7 @@ jobs:
 
           echo "# Wheels32bit" | tee wheels32bit-repo/README.md
           echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee musllinux-repo/README.md | tee wheels32bit-repo/README.md
-          echo "### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
+          echo "### Last build from https://github.com/home-assistant/core: ${{ needs.inbupu.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
           
           echo "  "  | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           
@@ -553,7 +550,7 @@ jobs:
           {
             echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>musllinux wheels</title></head><body>'
             echo '<h1>musllinux wheels</h1>'
-            echo "<p>Last build: ${{ needs.init.outputs.version }} ($(date -u +'%Z %Y-%b-%d %T'))</p><ul>"
+            echo "<p>Last build: ${{ needs.inbupu.outputs.version }} ($(date -u +'%Z %Y-%b-%d %T'))</p><ul>"
             for f in musllinux-repo/*.whl; do
               if [ -f "$f" ]; then
                 filename=$(basename "$f")
@@ -576,7 +573,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ needs.inbupu.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
 
@@ -605,7 +602,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ needs.inbupu.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
 
@@ -620,7 +617,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ needs.inbupu.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
 
