@@ -1,4 +1,4 @@
-name: Compiling the Python sources from requirements to build the wheels.
+name: ARM/V7 - Python wheels fabrication
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ env:
   KIND: combined
   ABI: cp314
   TAG: musllinux_1_2
-  BRANCH: "2026.07.0"
+  WBRANCH: "2026.07.0"
   ARCH: armv7
   # A te 32 bites builder image-ed
   BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
@@ -32,6 +32,7 @@ env:
   REQUIREMENTS: "requirements.txt requirements_all.txt"
   APK: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev;bluez-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;uchardet-dev"
   SKIP_BINARY: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad"
+  OUTDIR: wheels-out
 
 permissions:
   contents: read
@@ -248,14 +249,9 @@ jobs:
       - name: Set builder image and platform
         id: builder
         run: |
-          echo "image=ghcr.io/villgzs/wheels32bit/${{ env.ARCH }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.BRANCH }}" >> $GITHUB_OUTPUT
+          echo "image=ghcr.io/villgzs/wheels32bit/${{ env.ARCH }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.WBRANCH }}" >> $GITHUB_OUTPUT
+          echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
           
-          if [ "${{ env.ARCH }}" = "armhf" ]; then
-            echo "platform=linux/arm/v6" >> $GITHUB_OUTPUT
-          else
-            echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
-          fi
-
       - name: Pull 32-bit builder image
         run: |
           docker pull --platform ${{ steps.builder.outputs.platform }} ${{ steps.builder.outputs.image }}
@@ -267,14 +263,14 @@ jobs:
           # !!! FOR ciklus kell !!!
           REQ="${{ env.REQUIREMENTS }}"
           # integrations: ha van arch-specifikus, azt preferáljuk
-          if [ "${{ env.KIND }}" = "integrations" ]; then
-            if [ -f "requirements_all_wheels_${{ env.ARCH }}.txt" ]; then
-              REQ="requirements_all_wheels_${{ env.ARCH }}.txt"
-            elif [ -f requirements_all_wheels_amd64.txt ]; then
-              # fallback – legalább a lista megvan (evdev stb. eltérhet)
-              REQ=requirements_all.txt
-            fi
+          
+          if [ -f "requirements_all_wheels_${{ env.ARCH }}.txt" ]; then
+            REQ="requirements_all_wheels_${{ env.ARCH }}.txt"
+          elif [ -f requirements_all_wheels_amd64.txt ]; then
+            # fallback – legalább a lista megvan (evdev stb. eltérhet)
+            REQ=requirements_all.txt
           fi
+          
           if [ ! -f "$REQ" ]; then
             echo "Hiányzó requirements fájl: $REQ"
             ls -la requirements*.txt || true
@@ -290,7 +286,7 @@ jobs:
         working-directory: ha-core-repo
         run: |
           set -euo pipefail
-          OUT_DIR="${{ github.workspace }}/wheels-out/${{env.ARCH}}-${{  env.KIND }}"
+          OUT_DIR="${{ github.workspace }}/${{env.OUTDIR}}/${{env.ARCH}}-${{ env.KIND }}"
           mkdir -p "$OUT_DIR"
 
           # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
@@ -307,8 +303,8 @@ jobs:
             --requirement "${{ steps.req.outputs.file }}" \
             --requirement-diff "requirements_diff.txt" \
             --constraint "homeassistant/package_constraints.txt" \
-            --skip-binary "${{ _matrix_.skip_binary }}" \
-            --apk "${{ _matrix_.apk }}"
+            --skip-binary "${{ env.SKIP_BINARY }}" \
+            --apk "${{ env.APK }}"
 
           # Forrás bemásolása a konténerbe
           docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ env.KIND }}:/data"
@@ -414,73 +410,26 @@ jobs:
           echo "Exit code: $RC"
           # A trap automatikusan lefut a script végén is
 
-      - name: Upload wheels artifact
-        if: '!cancelled()'
-        uses: actions/upload-artifact@v4
-        with:
-          # OUT_DIR="${{ github.workspace }}/wheels-out/${{env.ARCH}}-${{ env.KIND }}"
-          name: wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
-          path: wheels-out/${{env.ARCH}}-${{ env.KIND }}
-          if-no-files-found: warn
-          retention-days: 14
 
   # --------------------------------------------------
   # 3) Összefűzés + feltöltés villgzs alá
   # --------------------------------------------------
 
-      # ----- Letöltés mind a 4 artifactból -----
-      - name: Download armv7 core wheels
-        uses: actions/download-artifact@v4
-        with:
-          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
-          name: wheels-armv7-core-${{ needs.inbupu.outputs.version }}
-          path: dist/armv7/core
-  
-      - name: Download armv7 integrations wheels
-        uses: actions/download-artifact@v4
-        with:
-          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
-          name: wheels-armv7-integrations-${{ needs.inbupu.outputs.version }}
-          path: dist/armv7/integrations
-  
-      - name: Download armhf core wheels
-        uses: actions/download-artifact@v4
-        with:
-          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
-          name: wheels-armhf-core-${{ needs.inbupu.outputs.version }}
-          path: dist/armhf/core
-  
-      - name: Download armhf integrations wheels
-        uses: actions/download-artifact@v4
-        with:
-          # wheels-${{env.ARCH}}-${{ env.KIND }}-${{ needs.inbupu.outputs.version }}
-          name: wheels-armhf-integrations-${{ needs.inbupu.outputs.version }}
-          path: dist/armhf/integrations
-  
       - name: Summary
+        working-directory: "${{env.OUTDIR}}/${{env.ARCH}}-${{ env.KIND }}"
         run: |
-          echo "## Wheels – HA ${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-  
-          for arch in armv7 armhf; do
-            echo "### $arch" >> $GITHUB_STEP_SUMMARY
-            echo "#### core" >> $GITHUB_STEP_SUMMARY
-            find dist/$arch/core -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
-            echo "#### integrations" >> $GITHUB_STEP_SUMMARY
-            find dist/$arch/integrations -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY         
-            
-          done
-          ls -lasR dist/armhf/core
-          ls -lasR dist/armhf/integrations
-          ls -lasR dist/armhf/core
-          ls -lasR dist/armhf/integrations
+          echo "## Wheels – HA ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY  
+          
+          echo "### ${{env.ARCH}}" >> $GITHUB_STEP_SUMMARY
+          echo "#### wheels " >> $GITHUB_STEP_SUMMARY
+          find ${{env.ARCH}}"-${{env.KIND}} -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY          
+          echo "" >> $GITHUB_STEP_SUMMARY         
+          
+          ls -lasR ${{env.ARCH}}"-${{env.KIND}}"          
   
           echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armv7-core-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armv7-integrations-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armhf-core-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armhf-integrations-${{ needs.inbupu.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armv7-${{env.KIND}}-${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -499,7 +448,7 @@ jobs:
           fi
           echo "Token hossza: ${#TOKEN} karakter"
 
-          echo "Verzió: ${{ needs.inbupu.outputs.version }}"
+          echo "Verzió: ${{ steps.version.outputs.version }}"
   
           git clone --depth 1 --branch main \
             "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git" musllinux-repo
@@ -516,31 +465,28 @@ jobs:
 
           pwd
           
-          echo "=== dist tartalma ==="
-          # find dist -type f -name "*.whl" | head -20
-          echo "Wheel-ek száma az összes dist-ben: $(find dist -name '*.whl' | wc -l)"
+          echo "=== ${{env.OUTDIR}} tartalma ==="
+          # find ${{env.OUTDIR}} -type f -name "*.whl" | head -20
+          echo "Wheel-ek száma az összes ${{env.OUTDIR}}-ben: $(find ${{env.OUTDIR}} -name '*.whl' | wc -l)"
           # Biztonságosabb másolás (rekurzív + verbose)
-          find dist -type f -name "*.whl" -print -exec cp -v {} musllinux-repo \;
+          find ${{env.OUTDIR}} -type f -name "*.whl" -print -exec cp -v {} musllinux-repo \;
 
           # ----- Összes wheel másolása (armv7 + armhf) -----
-          # cp -v dist/armv7/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
-          # cp -v dist/armv7/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
-          # cp -v dist/armhf/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
-          # cp -v dist/armhf/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
+          # cp -v ${{env.OUTDIR}}/armv7/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v ${{env.OUTDIR}}/armv7/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
+          # cp -v ${{env.OUTDIR}}/armhf/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v ${{env.OUTDIR}}/armhf/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
 
           pwd
           echo "Wheel-ek száma a musllinux-repo mappában: $(find musllinux-repo -name '*.whl' | wc -l)"
 
           echo "# Wheels32bit" | tee wheels32bit-repo/README.md
           echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee musllinux-repo/README.md | tee wheels32bit-repo/README.md
-          echo "### Last build from https://github.com/home-assistant/core: ${{ needs.inbupu.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
+          echo "### Last build from https://github.com/home-assistant/core: ${{ steps.version.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
           
           echo "  "  | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           
-          echo "  During the last build - armv7/core: $(find dist/armv7/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
-          echo "  During the last build - armv7/integrations: $(find dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
-          echo "  During the last build - armhf/core: $(find dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
-          echo "  During the last build - armhf/integrations: $(find dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  During the last build - armv7: $(find ${{env.OUTDIR}} -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           echo "  Number of wheels: $(find musllinux-repo -name '*.whl' | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
           echo " --------------------------------------------- "
           # .nojekyll létrehozása (egyszer elég, de ártalmatlan minden futtatáskor)
@@ -550,14 +496,16 @@ jobs:
           {
             echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>musllinux wheels</title></head><body>'
             echo '<h1>musllinux wheels</h1>'
-            echo "<p>Last build: ${{ needs.inbupu.outputs.version }} ($(date -u +'%Z %Y-%b-%d %T'))</p><ul>"
+            echo "<p>Last build: ${{ steps.version.outputs.version }} ($(date -u +'%Z %Y-%b-%d %T'))</p>"
+            echo "<ul>"
             for f in musllinux-repo/*.whl; do
               if [ -f "$f" ]; then
                 filename=$(basename "$f")
                 echo "<li><a href=\"$filename\">$filename</a></li>"
               fi
             done
-            echo '</ul></body></html>'
+            echo '</ul>'
+            echo '</body></html>'
           } > musllinux-repo/index.html
           echo " --------------------------------------------- "          
 
@@ -573,7 +521,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.inbupu.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
 
@@ -602,7 +550,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.inbupu.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
 
@@ -617,7 +565,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ needs.inbupu.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7 + armhf)"
             git push origin main
           fi
 
