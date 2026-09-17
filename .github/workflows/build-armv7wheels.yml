@@ -44,7 +44,7 @@ jobs:
   # 1) Core verzió + requirements előkészítés
   # --------------------------------------------------
   inbupu:
-    name: Initialize Build Publish(Core version + requirements)
+    name: Initialize, Build, Publish (Core version + requirements)
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
