@@ -427,7 +427,7 @@ jobs:
           
           echo "### ${{env.ARCH}}" >> $GITHUB_STEP_SUMMARY
           echo "#### wheels " >> $GITHUB_STEP_SUMMARY
-          find ${{env.ARCH}}"-${{env.KIND}} -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY          
+          find ${{env.ARCH}}-${{env.KIND}} -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY          
           echo "" >> $GITHUB_STEP_SUMMARY         
           
           ls -lasR ${{env.ARCH}}"-${{env.KIND}}"          
