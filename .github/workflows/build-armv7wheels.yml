@@ -420,7 +420,7 @@ jobs:
   # --------------------------------------------------
 
       - name: Summary
-        working-directory: "${{env.OUTDIR}}/${{env.ARCH}}-${{ env.KIND }}"
+        working-directory: "${{env.OUTDIR}}"
         run: |
           echo "## Wheels – HA ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY  
