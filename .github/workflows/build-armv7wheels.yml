@@ -433,8 +433,9 @@ jobs:
           
           ls -lasR ${{env.ARCH}}"-${{env.KIND}}"          
   
-          echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
-          echo "- wheels-armv7-${{env.KIND}}-${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "Requirements lines:" >> $GITHUB_STEP_SUMMARY
+          echo "- test running ${{inputs.test_build}}" >> $GITHUB_STEP_SUMMARY
+          echo "- max. lines:  ${{inputs.maxlines}}" >> $GITHUB_STEP_SUMMARY
   
       - name: Publish wheels and update README
         env:
