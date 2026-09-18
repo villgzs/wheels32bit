@@ -1,3 +1,9 @@
+# Ha reprodukálható / pinelt build kell, a pontos verziót érdemes használni, pl.:
+# ghcr.io/home-assistant/amd64-base-python:3.14-alpine3.24-2026.06.x (ami a 2026.júniusi release idején aktuális volt).
+# https://github.com/home-assistant/wheels/actions/runs/28389244836
+#   https://github.com/home-assistant/docker-base/pkgs/container/amd64-base-python/1149340342?tag=3.14-alpine3.24-2026.08.0
+# docker pull ghcr.io/home-assistant/amd64-base-python:3.14-alpine3.24-2026.08.0
+
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
