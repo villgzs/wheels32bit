@@ -293,6 +293,8 @@ jobs:
           cat "$REQ"
 
       - name: Build wheels with custom ( ${{env.ARCH}} ) builder
+        env:
+          TEST_BUILD: ${{ inputs.test_build }}
         working-directory: ha-core-repo
         run: |
           set -euo pipefail
