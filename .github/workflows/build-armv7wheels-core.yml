@@ -232,6 +232,7 @@ jobs:
             sed -i "/numpy/d" homeassistant/package_constraints.txt || true
             if [ "$TEST_BUILD" = "true" ]; then
               sed -i "setuptools==" homeassistant/package_constraints.txt || true
+              echo setuptools==78.1.1 >> homeassistant/package_constraints.txt || true 
             fi
           fi
           echo "req_diff"
