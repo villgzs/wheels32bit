@@ -266,7 +266,8 @@ caio<0.12.3
 auth0-python<5.0
 
 # Setuptools >=82.0.0 doesn't contain pkg_resources anymore
-setuptools<82.0.0
+# setuptools<82.0.0
+setuptools<78.1.2
 
 # backoff and python-backoff share the same package name
 # pin versions which are mostly compatible to each other
