@@ -289,7 +289,7 @@ jobs:
           echo "file=$REQ" >> $GITHUB_OUTPUT
           echo "Használt requirements: $REQ"
           wc -l "$REQ"
-          echo"$REQ :"
+          echo "$REQ :"
           cat "$REQ"
 
       - name: Build wheels with custom ( ${{env.ARCH}} ) builder
