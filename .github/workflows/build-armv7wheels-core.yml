@@ -132,7 +132,6 @@ jobs:
           if [[ "${GITHUB_EVENT_NAME}" =~ (schedule|workflow_dispatch) ]]; then
             echo "dispatch mode..."
             touch requirements_diff.txt
-            echo setuptools==78.1.1 >> requirements_diff.txt || true 
           else
             echo "NOT dispatch mode... comes from home-assistant/core/master"
             curl -s -o requirements_diff.txt https://raw.githubusercontent.com/home-assistant/core/master/requirements.txt
