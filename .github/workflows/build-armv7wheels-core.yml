@@ -230,6 +230,9 @@ jobs:
           # numpy pin eltávolítása az integrations buildhez (hivatalos gyakorlat)
           if [ -f homeassistant/package_constraints.txt ]; then
             sed -i "/numpy/d" homeassistant/package_constraints.txt || true
+            if [ "$TEST_BUILD" = "true" ]; then
+              sed -i "setuptools==" homeassistant/package_constraints.txt || true
+            fi
           fi
           echo "req_diff"
           cat requirements_diff.txt || true
