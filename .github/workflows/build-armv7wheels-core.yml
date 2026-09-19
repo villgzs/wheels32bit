@@ -177,8 +177,11 @@ jobs:
           # head -n 50 requirements_all.txt || true
           # head -n 50 requirements_test.txt || true
 
+          echo "requirements:"
           cat requirements.txt || true
+          echo "requirements_all:"
           cat requirements_all.txt || true
+          echo "requirements_test:"
           cat requirements_test.txt || true
 
           # Tisztázott kilistázás minta-átfedés nélkül ---=== UTÁNA ===---
