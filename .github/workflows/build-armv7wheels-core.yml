@@ -130,8 +130,11 @@ jobs:
         working-directory: ha-core-repo
         run: |
           if [[ "${GITHUB_EVENT_NAME}" =~ (schedule|workflow_dispatch) ]]; then
+            echo "dispatch mode..."
             touch requirements_diff.txt
+            echo setuptools==78.1.1 >> requirements_diff.txt || true 
           else
+            echo "NOT dispatch mode... comes from home-assistant/core/master"
             curl -s -o requirements_diff.txt https://raw.githubusercontent.com/home-assistant/core/master/requirements.txt
           fi
 
@@ -163,7 +166,7 @@ jobs:
             
             # echo "Extended by grpcio altough it came from constraints..."
             # echo " ">> requirements.txt || true
-            echo setuptools==78.1.1 >> requirements.txt || true 
+            # echo setuptools==78.1.1 >> requirements.txt || true 
             # echo grpcio-status==1.78.0  >> requirements.txt || true 
             # echo grpcio-reflection==1.78.0  >> requirements.txt || true 
             
