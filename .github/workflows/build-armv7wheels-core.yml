@@ -229,11 +229,7 @@ jobs:
           sed -i "/^uv/d" requirements_diff.txt || true
           # numpy pin eltávolítása az integrations buildhez (hivatalos gyakorlat)
           if [ -f homeassistant/package_constraints.txt ]; then
-            sed -i "/numpy/d" homeassistant/package_constraints.txt || true
-            if [ "$TEST_BUILD" = "true" ]; then
-              sed -i "setuptools==" homeassistant/package_constraints.txt || true
-              echo setuptools==78.1.1 >> homeassistant/package_constraints.txt || true 
-            fi
+            sed -i "/numpy/d" homeassistant/package_constraints.txt || true            
           fi
           echo "req_diff"
           cat requirements_diff.txt || true
@@ -317,10 +313,18 @@ jobs:
           cat pip-build-constraints.txt || true
           echo "  requirements_diff.txt"
           cat "requirements_diff.txt" || true
+
+          if [ "$TEST_BUILD" = "true" ]; then
+            sed -i '/^setuptools==/d' homeassistant/package_constraints.txt
+            echo "setuptools==78.1.1" >> homeassistant/package_constraints.txt
+          fi
+
           echo "  homeassistant/package_constraints.txt"
           cat homeassistant/package_constraints.txt || true
           echo "  requirements.txt"
           cat "requirements.txt" || true
+
+          
           
           docker create --name "wheels-${{ env.KIND }}" -t \
             --platform ${{ steps.builder.outputs.platform }} \
