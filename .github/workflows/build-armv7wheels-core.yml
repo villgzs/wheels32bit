@@ -222,12 +222,6 @@ jobs:
 
           ) > .env_file
  
-      - name: Prepare requirements_diff (full rebuild)
-        working-directory: ha-core-repo
-        run: |
-          # Üres diff = minden csomagot újraépít
-          touch requirements_diff.txt
-
       - name: Adjust requirements (uv kihagyása)
         working-directory: ha-core-repo
         run: |
@@ -237,6 +231,11 @@ jobs:
           if [ -f homeassistant/package_constraints.txt ]; then
             sed -i "/numpy/d" homeassistant/package_constraints.txt || true
           fi
+          echo "req_diff"
+          cat requirements_diff.txt || true
+          echo 
+          echo "reqirements:"
+          cat requirements.txt || true
 
       # --------------------------------------------------
       # 2. - BUILD
