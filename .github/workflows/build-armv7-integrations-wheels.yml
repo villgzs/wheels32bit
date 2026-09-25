@@ -11,7 +11,7 @@ on:
         description: 'Teszt üzemmód (csak az első néhány sor feldolgozása)'
         required: false
         type: boolean
-        default: false  # Alapértelmezetten bepipálva
+        default: false  # Alapértelmezetten nincs bepipálva
       maxlines:
         description: 'Sorok száma:'
         required: false
@@ -133,18 +133,20 @@ jobs:
         working-directory: ha-core-repo
         run: |
           if [[ "${GITHUB_EVENT_NAME}" =~ (schedule|workflow_dispatch) ]]; then
+            echo "dispatch mode..."
             touch requirements_diff.txt
           else
+            echo "NOT dispatch mode... comes from home-assistant/core/master"
             curl -s -o requirements_diff.txt https://raw.githubusercontent.com/home-assistant/core/master/requirements.txt
           fi
-      
+
       - name: Generate requirements_all_wheels
         working-directory: ha-core-repo
         env:
           TEST_BUILD: ${{ inputs.test_build }}
         run: |
           . venv/bin/activate
-          
+
           cp ../wheels32bit-repo/script/patch_for_gen_requirements.py script/patch_for_gen_requirements.py
           python -m script.patch_for_gen_requirements ci || true
           
@@ -160,12 +162,6 @@ jobs:
               [ -f "$f" ] && sed -i '${{env.LISTMAX}},$d' "$f"
             done
 
-            # echo "Extended by grpcio altough it came from constraints..."
-            # echo " ">> requirements.txt || true
-            # echo grpcio==1.78.0 >> requirements.txt || true 
-            # echo grpcio-status==1.78.0  >> requirements.txt || true 
-            # echo grpcio-reflection==1.78.0  >> requirements.txt || true 
-            
           else
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
           fi
@@ -173,8 +169,11 @@ jobs:
           # head -n 50 requirements_all.txt || true
           # head -n 50 requirements_test.txt || true
 
+          echo "requirements:"
           cat requirements.txt || true
+          echo "requirements_all:"
           cat requirements_all.txt || true
+          echo "requirements_test:"
           cat requirements_test.txt || true
 
           # Tisztázott kilistázás minta-átfedés nélkül ---=== UTÁNA ===---
@@ -230,7 +229,7 @@ jobs:
           if [ -f homeassistant/package_constraints.txt ]; then
             sed -i "/numpy/d" homeassistant/package_constraints.txt || true
           fi
-          
+
 
       # --------------------------------------------------
       # 2. - BUILD
@@ -290,30 +289,38 @@ jobs:
           echo "file=$REQ" >> $GITHUB_OUTPUT
           echo "Használt requirements: $REQ"
           wc -l "$REQ"
-          # head -n 20 "$REQ"
+          echo "$REQ :"
           cat "$REQ"
 
-      - name: Modify contraints
-        env: 
-          REQ: ${{ steps.req.outputs.file }}
-        working-directory: ha-core-repo
-        if: failure()
-        run: |
-          echo "req = $REQ"
-          cp "$REQ" "homeassistant/package_constraints.txt" || true
-          sed -i "/^package_constraints/d" "homeassistant/package_constraints.txt" || true
-          sed -i "/requirements/d" "homeassistant/package_constraints.txt" || true
-          head -n 30 "homeassistant/package_constraints.txt" || true
-
       - name: Build wheels with custom ( ${{env.ARCH}} ) builder
+        env:
+          TEST_BUILD: ${{ inputs.test_build }}
         working-directory: ha-core-repo
         run: |
           set -euo pipefail
           OUT_DIR="${{ github.workspace }}/${{env.OUTDIR}}/${{env.ARCH}}-${{ env.KIND }}"
           mkdir -p "$OUT_DIR"
 
+          # --------------------------------------------------
+          echo "steps.builder.outputs.platform ${{ steps.builder.outputs.platform }}"
+          echo "steps.builder.outputs.image ${{ steps.builder.outputs.image }}"
+          echo "steps.req.outputs.file ${{ steps.req.outputs.file }}"
+          echo "env.SKIP_BINARY ${{ env.SKIP_BINARY }}" 
+          echo "env.APK ${{ env.APK }}"
+
           # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
           # 
+          echo "Docker create parameters: "
+          echo "  pip-build-constraints.txt"
+          cat pip-build-constraints.txt || true
+          echo "  requirements_diff.txt"
+          cat "requirements_diff.txt" || true
+
+          echo "  homeassistant/package_constraints.txt"
+          cat homeassistant/package_constraints.txt || true
+          echo "  requirements.txt"
+          cat "requirements.txt" || true
+
           docker create --name "wheels-${{ env.KIND }}" -t \
             --platform ${{ steps.builder.outputs.platform }} \
             --workdir /data \
@@ -519,7 +526,7 @@ jobs:
           cd musllinux-repo
 
           cp ../tobe_README.md ./README.md
-          
+
           # Csak a 100 MiB-nél kisebb fájlokat adjuk hozzá
           # find musllinux -type f -size -100M -print0 | xargs -0 git add
           git add .
@@ -561,7 +568,7 @@ jobs:
           cd musllinux-index-repo
 
           cp ../tobe_README.md ./README.md
-          
+
           git add .
             
           if git diff --staged --quiet; then
