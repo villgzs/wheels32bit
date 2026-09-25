@@ -1,0 +1,48 @@
+--- a/builder/pip.py
++++ b/builder/pip.py
+@@ -20,6 +20,22 @@ def build_wheels_package(
+     # Modify speed
+     build_env = os.environ.copy()
+     build_env["MAKEFLAGS"] = f"-j{cpu}"
++
++    # === ARM32 SIGBUS fix ===
++    arch = os.environ.get("ARCH", "")
++    if arch in ("armv7", "armhf"):
++        # Force the compiler to never generate unaligned accesses
++        # This is the most reliable way to avoid SIGBUS on strict ARM32 CPUs
++        arm_flags = "-mno-unaligned-access -mfloat-abi=hard"
++        # Optional more specific flags:
++        # arm_flags = "-march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -mno-unaligned-access"
++
++        build_env["CFLAGS"] = f"{build_env.get('CFLAGS', '')} {arm_flags}".strip()
++        build_env["CXXFLAGS"] = f"{build_env.get('CXXFLAGS', '')} {arm_flags}".strip()
++        build_env["FFLAGS"] = f"{build_env.get('FFLAGS', '')} {arm_flags}".strip()
++        # NumPy specific
++        build_env["NPY_CFLAGS"] = arm_flags
++        build_env["NPY_CXXFLAGS"] = arm_flags
+ 
+     # Add constraint
+     constraint_cmd = f"--constraint {constraint}" if constraint else ""
+@@ -46,6 +62,22 @@ def build_wheels_requirement(
+     # Modify speed
+     build_env = os.environ.copy()
+     build_env["MAKEFLAGS"] = f"-j{cpu}"
++
++    # === ARM32 SIGBUS fix ===
++    arch = os.environ.get("ARCH", "")
++    if arch in ("armv7", "armhf"):
++        # Force the compiler to never generate unaligned accesses
++        # This is the most reliable way to avoid SIGBUS on strict ARM32 CPUs
++        arm_flags = "-mno-unaligned-access -mfloat-abi=hard"
++        # Optional more specific flags:
++        # arm_flags = "-march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -mno-unaligned-access"
++
++        build_env["CFLAGS"] = f"{build_env.get('CFLAGS', '')} {arm_flags}".strip()
++        build_env["CXXFLAGS"] = f"{build_env.get('CXXFLAGS', '')} {arm_flags}".strip()
++        build_env["FFLAGS"] = f"{build_env.get('FFLAGS', '')} {arm_flags}".strip()
++        # NumPy specific
++        build_env["NPY_CFLAGS"] = arm_flags
++        build_env["NPY_CXXFLAGS"] = arm_flags
+ 
+     # Add constraint
+     constraint_cmd = f"--constraint {constraint}" if constraint else ""
