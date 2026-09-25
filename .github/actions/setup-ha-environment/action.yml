@@ -1,0 +1,118 @@
+name: 'Setup Home Assistant Build Environment'
+description: 'Prepares HA wheels, patches wheel.py, checkouts HA core and sets up Python'
+
+inputs:
+  wheels_version:
+    description: 'Home Assistant wheels version'
+    required: false
+    default: ''
+
+# --- ÚJ: Itt adjuk meg, hogy az Action ad vissza egy verzió kimenetet ---
+outputs:
+  wheels_version:
+    description: "A megállapított wheels verzió"
+    # Lényeges: A 'version' nevű lépés kimenetét küldjük tovább
+    value: ${{ steps.version.outputs.version }}    
+
+runs:
+  using: "composite"
+  steps:
+    - name: Determine wheels version
+      id: version
+      shell: bash
+      env:
+        GH_TOKEN: ${{ env.GH_TOKEN }}
+      run: |
+        if [ -n "${{ inputs.wheels_version }}" ]; then
+          VERSION="${{ inputs.wheels_version }}"
+        else
+          VERSION=$(gh api repos/home-assistant/wheels/releases/latest --jq '.tag_name')
+        fi
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Home Assistant wheels: ${VERSION}"
+        echo "Home Assistant wheels: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+        echo "version=${VERSION}" >> $GITHUB_STEP_SUMMARY
+
+    - name: Checkout home-assistant/wheels
+      uses: actions/checkout@v4
+      with:
+        repository: home-assistant/wheels
+        ref: ${{ steps.version.outputs.version }}
+        path: ha-wheels-repo
+
+    - name: Patch _ARCH_PLAT in ha-wheels-repo
+      working-directory: ha-wheels-repo
+      shell: bash
+      run: |
+        python3 -c '
+        from pathlib import Path
+        import re
+
+        file_path = Path("builder/wheel.py")
+        content = file_path.read_text(encoding="utf-8")
+
+        new_arch_plat = """_ARCH_PLAT = {
+            "amd64": "x86_64",
+            "i386": "i686",
+            "aarch64": "aarch64",
+            "armhf": "armv6l",
+            "armv7": "armv7l",
+        }"""
+
+        updated_content, count = re.subn(
+            r"_ARCH_PLAT\s*=\s*\{[^}]*\}",
+            new_arch_plat,
+            content,
+            flags=re.DOTALL
+        )
+
+        if count == 0:
+            print("Nem sikerült a csere!")
+            raise SystemExit(1)
+
+        file_path.write_text(updated_content, encoding="utf-8")
+        print("Sikeres patch")
+        '
+        echo "=== Ellenőrzés ==="
+        cat builder/wheel.py
+
+    - name: Checkout home-assistant/core
+      uses: actions/checkout@v4
+      with:
+        repository: home-assistant/core
+        ref: "2026.7.2"
+        path: ha-core-repo
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version-file: ha-core-repo/.python-version
+        cache: 'pip'
+        cache-dependency-path: |
+          ha-core-repo/requirements.txt
+          ha-core-repo/pyproject.toml
+
+    - name: Pin Cython version in pyproject.toml
+      working-directory: ha-wheels-repo
+      shell: bash
+      run: |
+        python3 - <<'EOF'
+        from pathlib import Path
+        import re
+
+        path = Path("pyproject.toml")
+        content = path.read_text()
+
+        pattern = r'(requires\s*=\s*\[\s*"setuptools==78\.1\.1")(\s*\])'
+        replacement = r'\1, "cython<=3.2.9"\2'
+
+        new_content, count = re.subn(pattern, replacement, content, count=1)
+
+        if count == 0:
+            print("A setuptools==78.1.1 bejegyzés nem található, nincs módosítás.")
+            raise SystemExit(0)
+
+        path.write_text(new_content)
+        print("Sikeresen módosítva:")
+        print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
+        EOF

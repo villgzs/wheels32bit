@@ -1,0 +1,77 @@
+name: WHEELS-ARM/V7 - for builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      wheels_version:
+        description: "Home Assistant Wheels verzió (üres = legfrissebb stable)"
+        required: false
+        default: ""
+      test_build:
+        description: 'Teszt üzemmód (csak az első néhány sor feldolgozása)'
+        required: false
+        type: boolean
+        default: false  # Alapértelmezetten nincs bepipálva
+      maxlines:
+        description: 'Sorok száma:'
+        required: false
+        default: "30"  
+  # schedule:
+  #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
+
+env:
+  KIND: combined
+  ABI: cp314
+  TAG: musllinux_1_2
+  WHEELSBRANCH: "2026.07.0"
+  ARCH: armv7
+  BUILD_ARCH: armv7
+  # A te 32 bites builder image-ed
+  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314
+  # LISTMAX: 30
+  LISTMAX: ${{inputs.maxlines}}
+  REQUIREMENTS: "requirements.txt requirements_cp314.txt requirements_tests.txt requirements_wheels_test.txt"
+  APK: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev;bluez-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;uchardet-dev;mariadb-connector-c-dev;postgresql-dev"
+  SKIP_BINARY: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad"
+  OUTDIR: wheels-out
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
+jobs:
+  # --------------------------------------------------
+  # 1) wheels verzió + requirements előkészítés
+  # --------------------------------------------------
+  inbupu:
+    name: Initialize, Build, Publish (wheels version + requirements)
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ha_setup.outputs.wheels_version }}
+    steps:
+
+# 1. Ez az egyedi lépés, ami eltér vagy változik a workflow-k között:
+    - name: Checkout wheels32bit
+      uses: actions/checkout@v4
+      with:
+        repository: villgzs/wheels32bit
+        path: wheels32bit-repo
+        token: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}
+
+    # 2. Meghívjuk a közös lépéseket tartalmazó akciót:
+    - name: Run HA Common Setup
+      id: ha_setup  # <-- Erre az ID-re hivatkozunk a job outputs-nál!
+      uses: ./.github/actions/setup-ha-environment
+      with:
+        wheels_version: ${{ inputs.wheels_version }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  next_job:
+    needs: inbupu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Használjuk a verziót
+        run: |
+          echo "Az előző jobból átvett verzió: ${{ needs.inbupu.outputs.version }}"

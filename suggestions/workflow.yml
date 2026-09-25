@@ -1,0 +1,12 @@
+- name: Build and push
+  uses: docker/build-push-action@v6
+  with:
+    context: .
+    file: ./python/3.14/Dockerfile
+    platforms: linux/amd64,linux/arm64
+    push: true
+    tags: |
+      ghcr.io/villgzs/basic-python:3.14-alpine3.24
+      ghcr.io/villgzs/basic-python:latest
+    cache-from: type=registry,ref=ghcr.io/villgzs/basic-python:buildcache
+    cache-to: type=registry,ref=ghcr.io/villgzs/basic-python:buildcache,mode=max

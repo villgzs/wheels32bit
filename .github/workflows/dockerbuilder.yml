@@ -1,0 +1,158 @@
+name: "Carefully put together a Docker image"
+
+on:
+  # release:
+  #   types: [published]
+  # push:
+  #   branches:
+  #     - master
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - master
+  #     - main
+  workflow_dispatch:   # manuális indítás
+
+env:
+  KIND: combined
+  ABI: cp314
+  TAG: musllinux_1_2
+  PLATFORM: linux/arm/v7
+  WHEELSBRANCH: "2026.07.0"
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
+jobs:
+  publish:
+    name: Publish builder docker image (${{ matrix.arch }}/${{ matrix.abi }}) 
+    permissions:
+      packages: write
+      contents: read
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: armv7
+            abi: cp314
+            tag: musllinux_1_2
+            platform: linux/arm/v7
+            runs-on: ubuntu-24.04
+            base: 3.14-alpine3.24
+    
+          # - arch: armhf
+          #  abi: cp314
+          #  tag: musllinux_1_2
+          #  platform: linux/arm/v6
+          #  runs-on: ubuntu-latest
+          #  base: 3.14-alpine3.24
+
+          # i386 (32-bit x86)
+          # - arch: i386
+          #   platform: linux/386
+          #   runs-on: ubuntu-latest
+
+    steps:
+      # 1. A te repo-d (csak a 32 bites Dockerfile miatt)
+      - name: Checkout this repository (a te Dockerfile-od miatt)
+        uses: actions/checkout@v4
+        with:
+          path: build-repo
+
+      # 2. Hivatalos home-assistant/wheels ${{ env.WHEELSBRANCH }} (rootfs, builder, requirements stb.)
+      - name: Checkout official Home Assistant wheels (${{ env.WHEELSBRANCH }})
+        uses: actions/checkout@v4
+        with:
+          repository: home-assistant/wheels
+          ref: ${{ env.WHEELSBRANCH }}
+          path: wheels-repo
+
+      - name: Update _ARCH_PLAT in builder/wheel.py
+        shell: bash
+        run: |
+          python3 -c '
+          import re
+          from pathlib import Path
+
+          file_path = Path("wheels-repo/builder/wheel.py")
+          content = file_path.read_text(encoding="utf-8")
+
+          new_arch_plat = """_ARCH_PLAT = {
+              "amd64": "x86_64",
+              "i386": "i686",
+              "aarch64": "aarch64",
+              "armhf": "armv6l",
+              "armv7": "armv7l",
+          }"""
+
+          updated_content = re.sub(r"_ARCH_PLAT\s*=\s*\{[^}]*\}", new_arch_plat, content)
+          file_path.write_text(updated_content, encoding="utf-8")
+          '
+          cat wheels-repo/builder/wheel.py
+
+          python3 -c '
+          from pathlib import Path
+          file_path = Path("wheels-repo/builder/__main__.py")
+          content = file_path.read_text(encoding="utf-8")
+          updated_content = content.replace("wheels.home-assistant.io", "villgzs.github.io")
+          file_path.write_text(updated_content, encoding="utf-8")
+          print("Csere kész.")
+          '
+          grep -n "villgzs.github.io\|wheels.home-assistant.io" wheels-repo/builder/__main__.py          
+
+      # 3. A te 32 bites Dockerfile-od felülírja a hivatalosat
+      - name: Replace Dockerfile with your 32-bit version
+        run: |
+          echo "=== Dockerfile másolása ==="
+          cp build-repo/Dockerfile wheels-repo/Dockerfile
+          echo "Sikeresen másolva: build-repo/Dockerfile → wheels-repo/Dockerfile"
+          echo ""
+          echo "=== A használt Dockerfile eleje ==="
+          head -n 20 wheels-repo/Dockerfile
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Generate image name and version
+        id: info
+        shell: bash
+        run: |
+          # Saját registry / image név
+          name="ghcr.io/${{ github.repository_owner }}/wheels32bit/${{ matrix.arch }}/${{ matrix.tag }}/${{ matrix.abi }}"
+
+          version=${{ env.WHEELSBRANCH }}
+
+          echo "name=$name" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 4. Build a hivatalos wheels struktúrából + a te Dockerfile-oddal
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./wheels-repo
+          file: ./wheels-repo/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          platforms: ${{ matrix.platform }}
+          
+          build-args: |            
+            BUILD_FROM=ghcr.io/villgzs/basic-python:latest
+            BUILD_ARCH=${{ matrix.arch }}
+            CPYTHON_ABI=${{ matrix.abi }}
+          tags: |
+            ${{ steps.info.outputs.name }}:${{ steps.info.outputs.version }}
+            ${{ steps.info.outputs.name }}:${{ github.sha }}
+            ${{ steps.info.outputs.name }}:latest

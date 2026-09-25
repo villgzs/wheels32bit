@@ -1,0 +1,707 @@
+name: Compiling the Python sources from requirements to build the wheels.
+
+on:
+  workflow_dispatch:
+    inputs:
+      core_version:
+        description: "Home Assistant Core verzió (üres = legfrissebb stable)"
+        required: false
+        default: ""
+      test_build:
+        description: 'Teszt üzemmód (csak az első néhány sor feldolgozása)'
+        required: false
+        type: boolean
+        default: true  # Alapértelmezetten bepipálva
+      maxlines:
+        description: 'Sorok száma:'
+        required: false
+        default: "30"  
+  # schedule:
+  #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
+
+env:
+  ABI: cp314
+  TAG: musllinux_1_2
+  BRANCH: "2026.07.0"
+  # ARCH: armv7
+  # A te 32 bites builder image-ed
+  ## BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
+  # LISTMAX: 30
+  LISTMAX: ${{inputs.maxlines}}
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
+jobs:
+  # --------------------------------------------------
+  # 1) Core verzió + requirements előkészítés
+  # --------------------------------------------------
+  init:
+    name: Initialize (Core version + requirements)
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout wheels32bit
+        uses: actions/checkout@v4
+        with:
+          repository: villgzs/wheels32bit
+          path: wheels32bit
+          
+      - name: Determine Core version
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.core_version }}" ]; then
+            VERSION="${{ inputs.core_version }}"
+          else
+            VERSION=$(gh api repos/home-assistant/core/releases/latest --jq '.tag_name')
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Home Assistant Core: ${VERSION}"
+
+      - name: Checkout home-assistant/core
+        uses: actions/checkout@v4
+        with:
+          repository: home-assistant/core
+          ref: ${{ steps.version.outputs.version }}
+          path: ha-core
+          # sparse-checkout: |
+          #   requirements.txt
+          #   requirements_all.txt
+          #   homeassistant/package_constraints.txt
+          #   pyproject.toml
+          #   scripts/**
+          # sparse-checkout-cone-mode: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ha-core/.python-version
+          cache: 'pip'          # vagy 'uv' ha támogatott
+          cache-dependency-path: |
+            ha-core/requirements.txt
+            ha-core/pyproject.toml
+          
+      - name: Pin Cython version in pyproject.toml
+        run: |
+          python3 - <<'EOF'
+          from pathlib import Path
+          import re
+
+          path = Path("ha-core/pyproject.toml")
+          content = path.read_text()
+
+          # A [build-system] requires listába beszúrja a cython<=3.2.9-et
+          pattern = r'(requires\s*=\s*\[\s*"setuptools==78\.1\.1")(\s*\])'
+          replacement = r'\1, "cython<=3.2.9"\2'
+
+          new_content, count = re.subn(pattern, replacement, content, count=1)
+
+          if count == 0:
+              raise SystemExit("Nem találtam a setuptools==78.1.1 sort a pyproject.toml-ben!")
+
+          path.write_text(new_content)
+          print("Sikeresen módosítva:")
+          print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
+          EOF
+
+      - name: Create venv and install tools
+        working-directory: ha-core
+        run: |
+          python -m venv venv
+          . venv/bin/activate
+          python --version
+          pip install "$(grep '^uv' < requirements.txt)"
+          uv pip install -r requirements.txt
+
+      - name: Create requirements_diff file
+        working-directory: ha-core
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" =~ (schedule|workflow_dispatch) ]]; then
+            touch requirements_diff.txt
+          else
+            curl -s -o requirements_diff.txt https://raw.githubusercontent.com/home-assistant/core/master/requirements.txt
+          fi
+
+      - name: Generate requirements_all_wheels
+        working-directory: ha-core
+        env:
+          TEST_BUILD: ${{ inputs.test_build }}
+        run: |
+          . venv/bin/activate          
+          cp ../wheels32bit/script/gen_requirements_all.py script/gen_requirements_all.py
+          
+          python -m script.gen_requirements_all ci || true
+          # python ../wheels32bit/script/gen_requirements_all.py ci || true 
+
+          # Rövidítés teszteléshez. ---=== ELŐTTE ===---
+          ls -la requirements*.txt  2>/dev/null || true
+
+          if [ "$TEST_BUILD" = "true" ]; then
+            echo "Rövidített requirements fájlok használata teszteléshez... ${{env.LISTMAX}}. sortól vágás"
+            for f in requirements*.txt; do
+              [ -f "$f" ] && sed -i '${{env.LISTMAX}},$d' "$f"
+            done
+
+            # echo "Extended by grpcio altough it came from constraints..."
+            # echo " ">> requirements.txt || true
+            # echo grpcio==1.78.0 >> requirements.txt || true 
+            # echo grpcio-status==1.78.0  >> requirements.txt || true 
+            # echo grpcio-reflection==1.78.0  >> requirements.txt || true 
+            
+          else
+            echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
+          fi
+          # head -n 50 requirements.txt || true
+          # head -n 50 requirements_all.txt || true
+          # head -n 50 requirements_test.txt || true
+
+          cat requirements.txt || true
+          cat requirements_all.txt || true
+          cat requirements_test.txt || true
+
+          # Tisztázott kilistázás minta-átfedés nélkül ---=== UTÁNA ===---
+          ls -la requirements.txt requirements_all.txt requirements_all_wheels_*.txt requirements_test*.txt 2>/dev/null || true
+          
+      - name: Write env-file
+        run: |
+          (
+            echo "GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true"
+            echo "GRPC_PYTHON_BUILD_WITH_CYTHON=true"
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_ZLIB=true"
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_CARES=true"
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_RE2=true"
+            # opcionális, de Alpine-on hasznos:
+            echo "GRPC_PYTHON_DISABLE_LIBC_COMPATIBILITY=true"
+            # ha abseil is elérhető a builder image-ben:
+            # echo "GRPC_PYTHON_BUILD_SYSTEM_ABSL=true"
+            
+            # Fix out of memory issues with rust
+            echo "CARGO_NET_GIT_FETCH_WITH_CLI=true"
+
+            # OpenCV headless installation
+            echo "CI_BUILD=1"
+            echo "ENABLE_HEADLESS=1"
+
+            # Use C-Extension for SQLAlchemy
+            echo "REQUIRE_SQLALCHEMY_CEXT=1"
+
+            echo "PIP_BUILD_CONSTRAINT=/pip-build-constraints.txt" 
+            echo "PIP_VERBOSE=0"
+
+            echo "UV_BUILD_CONSTRAINT=/pip-build-constraints.txt"
+            echo "UV_CONSTRAINT=/pip-build-constraints.txt"
+
+          ) > .env_file
+ 
+
+      - name: Upload env_file      
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: env_file
+          path: ./.env_file
+          include-hidden-files: true
+          overwrite: true
+
+      - name: Prepare requirements_diff (full rebuild)
+        working-directory: ha-core
+        run: |
+          # Üres diff = minden csomagot újraépít
+          touch requirements_diff.txt
+
+      - name: Adjust requirements (uv kihagyása)
+        working-directory: ha-core
+        run: |
+          sed -i "/^uv/d" requirements.txt || true
+          sed -i "/^uv/d" requirements_diff.txt || true
+          # numpy pin eltávolítása az integrations buildhez (hivatalos gyakorlat)
+          if [ -f homeassistant/package_constraints.txt ]; then
+            sed -i "/numpy/d" homeassistant/package_constraints.txt || true
+          fi
+
+      - name: Upload prepared Core tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: ha-core-prepared
+          path: ha-core
+          retention-days: 1
+
+  # --------------------------------------------------
+  # 2) Wheels építés – mátrix: core + integrations
+  # --------------------------------------------------
+  build:
+    name: Build ${{ matrix.kind }} wheels (${{ matrix.arch }})
+    needs: init
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # arch: [armv7, armhf]
+        include:
+          # ---------- Core ----------
+        - kind: core
+          arch: armv7
+          requirements: requirements.txt
+          apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev"
+          skip_binary: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy"
+
+        - kind: core
+          arch: armhf
+          requirements: requirements.txt
+          apk: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev"
+          skip_binary: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy"
+
+        # ---------- Integrations ----------
+        - kind: integrations
+          arch: armv7
+          requirements: requirements_all.txt
+          apk: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev;zlib-dev;;re2-dev"
+          skip_binary: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
+
+        - kind: integrations
+          arch: armhf
+          requirements: requirements_all.txt
+          apk: "bluez-dev;libffi-dev;openssl-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;tiff-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;yaml-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;freetype-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;openjpeg-dev;uchardet-dev;nasm;zlib-ng-dev;zlib-dev;;re2-dev"
+          skip_binary: "aiohttp;charset-normalizer;grpcio;multidict;SQLAlchemy;propcache;protobuf;pymicro-vad;yarl"
+
+    steps:
+      - name: Download prepared Core tree
+        uses: actions/download-artifact@v4
+        with:
+          name: ha-core-prepared
+          path: ha-core
+
+      - name: Download env_file
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: env_file
+          path: ha-core
+
+      - name: Append ARMv6 flags for armhf architecture
+        working-directory: ha-core
+        run: |
+          if [ "${{ matrix.arch }}" = "armhf" ]; then
+            echo "=== ARMv6 fordítási zászlók hozzáadása a .env_file-hoz ==="
+            (
+              echo 'CFLAGS=-march=armv6 -mfloat-abi=hard -mfpu=vfp'
+              echo 'CXXFLAGS=-march=armv6 -mfloat-abi=hard -mfpu=vfp'
+              echo '_PYTHON_HOST_PLATFORM=linux-armv6l'
+              echo 'BUILD_ARCH=armhf'
+              echo 'AUDITWHEEL_PLAT=musllinux_1_2_armv6l'
+              echo 'ARCH=armhf'
+            ) >> .env_file
+            
+            echo "A .env_file tartalma az armhf építéshez:"
+            cat .env_file
+          fi
+
+      - name: maximize cython version
+        working-directory: ha-core
+        run: |
+            echo "cython<=3.2.9" >> pip-build-constraints.txt
+            echo "HA-CORE lista...."
+            ls -las 
+            head -n 20 requirements.txt || true
+            head -n 20 requirements_all.txt || true
+
+      - name: Set up QEMU (${{ matrix.arch }})
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR (builder image pull)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set builder image and platform
+        id: builder
+        run: |
+          echo "image=ghcr.io/villgzs/wheels32bit/${{ matrix.arch }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.BRANCH }}" >> $GITHUB_OUTPUT
+          
+          if [ "${{ matrix.arch }}" = "armhf" ]; then
+            echo "platform=linux/arm/v6" >> $GITHUB_OUTPUT
+          else
+            echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pull 32-bit builder image
+        run: |
+          docker pull --platform ${{ steps.builder.outputs.platform }} ${{ steps.builder.outputs.image }}
+
+      - name: Select requirements file
+        id: req
+        working-directory: ha-core
+        run: |
+          REQ="${{ matrix.requirements }}"
+          # integrations: ha van arch-specifikus, azt preferáljuk
+          if [ "${{ matrix.kind }}" = "integrations" ]; then
+            if [ -f "requirements_all_wheels_${{ matrix.arch }}.txt" ]; then
+              REQ="requirements_all_wheels_${{ matrix.arch }}.txt"
+            elif [ -f requirements_all_wheels_amd64.txt ]; then
+              # fallback – legalább a lista megvan (evdev stb. eltérhet)
+              REQ=requirements_all.txt
+            fi
+          fi
+          if [ ! -f "$REQ" ]; then
+            echo "Hiányzó requirements fájl: $REQ"
+            ls -la requirements*.txt || true
+            exit 1
+          fi
+          echo "file=$REQ" >> $GITHUB_OUTPUT
+          echo "Használt requirements: $REQ"
+          wc -l "$REQ"
+          # head -n 20 "$REQ"
+          cat "$REQ"
+
+      - name: Build wheels with custom (${{matrix.arch}}) builder
+        working-directory: ha-core
+        run: |
+          set -euo pipefail
+          OUT_DIR="${{ github.workspace }}/wheels-out/${{matrix.arch}}-${{ matrix.kind }}"
+          mkdir -p "$OUT_DIR"
+
+          # Builder futtatása (a hivatalos action logikája szerint, de local outputtal)
+          # 
+          docker create --name "wheels-${{ matrix.kind }}" -t \
+            --platform ${{ steps.builder.outputs.platform }} \
+            --workdir /data \
+            --env-file .env_file \
+            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
+            ${{ steps.builder.outputs.image }} \
+            --index "https://villgzs.github.io" \
+            --upload rsync \
+            --remote "/data/output" \
+            --requirement "${{ steps.req.outputs.file }}" \
+            --requirement-diff "requirements_diff.txt" \
+            --constraint "homeassistant/package_constraints.txt" \
+            --skip-binary "${{ matrix.skip_binary }}" \
+            --apk "${{ matrix.apk }}"
+
+          # Forrás bemásolása a konténerbe
+          docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}:/data"
+
+          echo "=== Aux konténer létrehozása és indítása ==="
+
+          docker create --name "wheels-${{ matrix.kind }}-aux" -t \
+            --platform ${{ steps.builder.outputs.platform }} \
+            --workdir /data \
+            --env-file .env_file \
+            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
+            --entrypoint /bin/sh \
+            ${{ steps.builder.outputs.image }} \
+            -c "while true; do sleep 3600; done"
+
+          # Forrás bemásolása a konténerbe
+          docker cp "${{ github.workspace }}/ha-core/." "wheels-${{ matrix.kind }}-aux:/data"            
+
+          docker start "wheels-${{ matrix.kind }}-aux"
+
+          echo "=== Cython ellenőrzése ==="
+          docker exec "wheels-${{ matrix.kind }}-aux" \
+            python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
+
+          echo "=== Build constraints ==="
+          docker exec "wheels-${{ matrix.kind }}-aux" \
+            cat /pip-build-constraints.txt
+
+          echo "=== Extra checkings ==="
+          echo "uname -m"
+          docker exec "wheels-${{ matrix.kind }}-aux" uname -m
+          echo "python3 -c import sysconfig; print(sysconfig.get_platform())"
+          docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import sysconfig; print(sysconfig.get_platform())"
+          echo "python3 -c import os; print(os.environ.get('BUILD_ARCH'))"
+          docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
+          echo "python3 -c import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
+          docker exec "wheels-${{ matrix.kind }}-aux" python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
+          # echo "auditwheel repair --help"
+          # docker exec -e AUDITWHEEL_PLAT="" "wheels-${{ matrix.kind }}-aux" auditwheel repair --help
+          # docker exec -e AUDITWHEEL_PLAT="musllinux_1_2_armv7l" "wheels-${{ matrix.kind }}-aux" auditwheel repair --help
+          # docker exec -e AUDITWHEEL_PLAT="auto" "wheels-${{ matrix.kind }}-aux" auditwheel repair --help
+
+          echo "=== Aux konténer leállítása és törlése ==="
+          docker stop "wheels-${{ matrix.kind }}-aux"
+          docker rm "wheels-${{ matrix.kind }}-aux"
+          echo "=== Aux konténer leállítás megtörtént ==="
+
+          # === Trap: timeout / megszakítás / hiba esetén is mentsünk ki ===
+          cleanup_and_save() {
+            local exit_code=$?
+            echo "=== Cleanup & partial save (exit code: $exit_code) ==="
+
+            # Próbáljuk ki a kimenetet, amíg a konténer még létezik
+            docker cp "wheels-${{ matrix.kind }}:/data/output/." "$OUT_DIR/" 2>/dev/null || true
+            # docker cp "wheels-${{ matrix.kind }}:/data/." "$OUT_DIR/raw/" 2>/dev/null || true
+
+            # === Nagy fájlok (>100 MiB) keresése ===
+            echo "=== 100 MiB-nál nagyobb fájlok keresése ==="
+            find "$OUT_DIR" -type f -size +100M -printf '%s\t%p\n' 2>/dev/null | \
+              awk '{
+                size = $1
+                $1 = ""
+                printf "%.1f MiB  %s\n", size/1024/1024, substr($0,2)
+              }' || true
+
+            # Törlés
+            LARGE_COUNT=$(find "$OUT_DIR" -type f -size +100M -print -delete 2>/dev/null | wc -l)
+            if [ "$LARGE_COUNT" -gt 0 ]; then
+              echo "::warning::${LARGE_COUNT} db 100 MiB-nál nagyobb fájl törölve"
+            else
+              echo "Nincs 100 MiB-nál nagyobb fájl."
+            fi
+
+            # Ha van wheel, listázzuk
+            # find "$OUT_DIR" -type f -name "*.whl" | head -n 30 || true
+            WHL_COUNT=$(find "$OUT_DIR" -type f -name "*.whl" | wc -l)
+            echo "Mentett .whl fájlok száma: $WHL_COUNT"
+
+            # Konténer törlése
+            docker rm -f "wheels-${{ matrix.kind }}" 2>/dev/null || true
+            docker rm -f "wheels-${{ matrix.kind }}-aux" 2>/dev/null || true
+
+            if [ "$WHL_COUNT" -eq 0 ]; then
+              echo "Nem készült .whl fájl – üres marker létrehozása"
+              echo "üres lista" > "$OUT_DIR/empty.txt"
+              # opcionálisan még egy keresés a workspace-ben, ha esetleg máshova került
+              # find "${{ github.workspace }}" -name "*.whl" 2>/dev/null | head -n 20 || true
+            else
+              echo "Wheel-ek sikeresen előállítva."
+            fi
+
+            exit $exit_code
+          }
+
+          trap cleanup_and_save EXIT TERM INT
+
+          # Build indítása
+          set +e
+          docker start -a "wheels-${{ matrix.kind }}"
+          RC=$?
+          set -e
+
+          echo "Exit code: $RC"
+          # A trap automatikusan lefut a script végén is
+
+      - name: Upload wheels artifact
+        if: '!cancelled()'
+        uses: actions/upload-artifact@v4
+        with:
+          # OUT_DIR="${{ github.workspace }}/wheels-out/${{matrix.arch}}-${{ matrix.kind }}"
+          name: wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          path: wheels-out/${{matrix.arch}}-${{ matrix.kind }}
+          if-no-files-found: warn
+          retention-days: 14
+
+  # --------------------------------------------------
+  # 3) Összefűzés + feltöltés villgzs alá
+  # --------------------------------------------------
+  publish:
+    name: Publish wheels under villgzs
+    needs: [init, build]
+    if: always() && needs.init.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # ----- Letöltés mind a 4 artifactból -----
+      - name: Download armv7 core wheels
+        uses: actions/download-artifact@v4
+        with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          name: wheels-armv7-core-${{ needs.init.outputs.version }}
+          path: dist/armv7/core
+  
+      - name: Download armv7 integrations wheels
+        uses: actions/download-artifact@v4
+        with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          name: wheels-armv7-integrations-${{ needs.init.outputs.version }}
+          path: dist/armv7/integrations
+  
+      - name: Download armhf core wheels
+        uses: actions/download-artifact@v4
+        with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          name: wheels-armhf-core-${{ needs.init.outputs.version }}
+          path: dist/armhf/core
+  
+      - name: Download armhf integrations wheels
+        uses: actions/download-artifact@v4
+        with:
+          # wheels-${{matrix.arch}}-${{ matrix.kind }}-${{ needs.init.outputs.version }}
+          name: wheels-armhf-integrations-${{ needs.init.outputs.version }}
+          path: dist/armhf/integrations
+  
+      - name: Summary
+        run: |
+          echo "## Wheels – HA ${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+  
+          for arch in armv7 armhf; do
+            echo "### $arch" >> $GITHUB_STEP_SUMMARY
+            echo "#### core" >> $GITHUB_STEP_SUMMARY
+            find dist/$arch/core -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+            echo "#### integrations" >> $GITHUB_STEP_SUMMARY
+            find dist/$arch/integrations -name "*.whl" 2>/dev/null | wc -l | xargs -I{} echo "Wheel count: {}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY         
+            
+          done
+          ls -lasR dist/armhf/core
+          ls -lasR dist/armhf/integrations
+          ls -lasR dist/armhf/core
+          ls -lasR dist/armhf/integrations
+  
+          echo "Artifacts:" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armv7-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armv7-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armhf-core-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- wheels-armhf-integrations-${{ needs.init.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.5'   # vagy '3.11', '3.13', '3.14' stb.
+  
+      - name: Publish wheels and update README
+        env:
+          TOKEN: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TOKEN:-}" ]; then
+            echo "HIBA: PUSH_MUSLLINUX_TOKEN secret hiányzik vagy üres!"
+            exit 1
+          fi
+          echo "Token hossza: ${#TOKEN} karakter"
+
+          echo "Verzió: ${{ needs.init.outputs.version }}"
+  
+          git clone --depth 1 --branch main \
+            "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux.git" musllinux-repo
+
+          git clone --depth 1 --branch main --filter=blob:none --sparse \
+            "https://x-access-token:${TOKEN}@github.com/villgzs/wheels32bit.git" wheels32bit-repo
+            
+          cd wheels32bit-repo
+          
+          # git sparse-checkout set README.md || echo "Ez nem működik --no-cone nélkül"
+          git sparse-checkout set --no-cone /README.md
+          
+          cd ..          
+
+          pwd
+          
+          echo "=== dist tartalma ==="
+          # find dist -type f -name "*.whl" | head -20
+          echo "Wheel-ek száma az összes dist-ben: $(find dist -name '*.whl' | wc -l)"
+          # Biztonságosabb másolás (rekurzív + verbose)
+          find dist -type f -name "*.whl" -print -exec cp -v {} musllinux-repo \;
+
+          # ----- Összes wheel másolása (armv7 + armhf) -----
+          # cp -v dist/armv7/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v dist/armv7/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
+          # cp -v dist/armhf/core/musllinux/*.whl              musllinux-repo 2>/dev/null || true
+          # cp -v dist/armhf/integrations/musllinux/*.whl      musllinux-repo 2>/dev/null || true
+
+          pwd
+          echo "Wheel-ek száma a musllinux-repo mappában: $(find musllinux-repo -name '*.whl' | wc -l)"
+
+          echo "# Wheels32bit" | tee wheels32bit-repo/README.md
+          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee musllinux-repo/README.md | tee wheels32bit-repo/README.md
+          echo "### Last build from https://github.com/home-assistant/core: ${{ needs.init.outputs.version }}  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md           
+          
+          echo "  "  | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          
+          echo "  During the last build - armv7/core: $(find dist/armv7/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  During the last build - armv7/integrations: $(find dist/armv7/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  During the last build - armhf/core: $(find dist/armhf/core -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  During the last build - armhf/integrations: $(find dist/armhf/integrations -maxdepth 1 -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo "  Number of wheels: $(find musllinux-repo -name '*.whl' | wc -l)  " | tee -a musllinux-repo/README.md | tee -a wheels32bit-repo/README.md
+          echo " --------------------------------------------- "
+          # .nojekyll létrehozása (egyszer elég, de ártalmatlan minden futtatáskor)
+          touch musllinux-repo/.nojekyll
+
+          # Egyszerű index.html generálása tiszta linkekkel
+          {
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>musllinux wheels</title></head><body>'
+            echo '<h1>musllinux wheels</h1>'
+            echo "<p>Last build: ${{ needs.init.outputs.version }} ($(date -u +'%Z %Y-%b-%d %T'))</p><ul>"
+            for f in musllinux-repo/*.whl; do
+              if [ -f "$f" ]; then
+                filename=$(basename "$f")
+                echo "<li><a href=\"$filename\">$filename</a></li>"
+              fi
+            done
+            echo '</ul></body></html>'
+          } > musllinux-repo/index.html
+          echo " --------------------------------------------- "          
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          cd musllinux-repo
+          
+          # Csak a 100 MiB-nél kisebb fájlokat adjuk hozzá
+          # find musllinux -type f -size -100M -print0 | xargs -0 git add
+          git add .
+            
+          if git diff --staged --quiet; then
+            echo "Nincs változás, nem commitolok."
+          else
+            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
+            git push origin main
+          fi
+
+          cd ..
+
+          # musllinux done
+
+          git clone --depth 1 --branch main \
+            "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git" musllinux-index-repo
+
+          python -m venv venv
+          . venv/bin/activate
+          python --version
+          
+          pip install index-503
+                    
+          index-503 musllinux-repo/
+          ls -las
+          
+          cp -a musllinux-repo-index-tmp*/. musllinux-index-repo/
+
+          cd musllinux-index-repo
+
+          git add .
+            
+          if git diff --staged --quiet; then
+            echo "Nincs változás, nem commitolok."
+          else
+            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
+            git push origin main
+          fi
+
+          cd ..
+
+          # musllinux-index done
+
+          cd wheels32bit-repo 
+
+          git add README.md
+            
+          if git diff --staged --quiet; then
+            echo "Nincs változás, nem commitolok."
+          else
+            git commit -m "Update README and wheels for HA ${{ needs.init.outputs.version }} (armv7 + armhf)"
+            git push origin main
+          fi
+
+          cd ..
+          
