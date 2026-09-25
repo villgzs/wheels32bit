@@ -4,7 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       wheels_version:
-        description: "Home Assistant Wheels verzió (üres = legfrissebb stable)"
+        description: "Home Assistant !!!Wheels!!! verzió (üres = legfrissebb stable)"
+        required: false
+        default: ""
+      core_version:
+        description: "Home Assistant Core verzió (üres = legfrissebb stable)"
         required: false
         default: ""
       test_build:
@@ -27,7 +31,7 @@ env:
   ARCH: armv7
   BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
-  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314
+  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:latest
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_cp314.txt requirements_tests.txt requirements_wheels_test.txt"
@@ -55,10 +59,41 @@ jobs:
         with:
           repository: villgzs/wheels32bit
           path: wheels32bit-repo
-          token: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}         
-          
-      - name: Determine wheels version
+          token: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}
+
+      - name: Determine Core version
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.core_version }}" ]; then
+            VERSION="${{ inputs.core_version }}"
+          else
+            VERSION=$(gh api repos/home-assistant/core/releases/latest --jq '.tag_name')
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Home Assistant Core: ${VERSION}"
+
+          echo "Home Assistant Core: ${VERSION}"  >> $GITHUB_STEP_SUMMARY
+          echo "version=${VERSION}"  >> $GITHUB_STEP_SUMMARY
+
+      - name: Checkout home-assistant/core
+        uses: actions/checkout@v4
+        with:
+          repository: home-assistant/core
+          ref: ${{ steps.version.outputs.version }}
+          path: ha-core-repo
+          # sparse-checkout: |
+          #   requirements.txt
+          #   requirements_all.txt
+          #   homeassistant/package_constraints.txt
+          #   pyproject.toml
+          #   scripts/**
+          # sparse-checkout-cone-mode: false      
+          
+
+      - name: Determine wheels version
+        id: coreversion
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -67,7 +102,7 @@ jobs:
           else
             VERSION=$(gh api repos/home-assistant/wheels/releases/latest --jq '.tag_name')
           fi
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "coreversion=${VERSION}" >> $GITHUB_OUTPUT
           echo "Home Assistant wheels: ${VERSION}"
 
           echo "Home Assistant wheels: ${VERSION}"  >> $GITHUB_STEP_SUMMARY
@@ -77,7 +112,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: home-assistant/wheels
-          ref: ${{ steps.version.outputs.version }}
+          ref: ${{ steps.coreversion.outputs.coreversion }}
           path: ha-wheels-repo
           # sparse-checkout: |
           #   requirements.txt
@@ -150,13 +185,13 @@ jobs:
           content = path.read_text()
 
           # A [build-system] requires listába beszúrja a cython<=3.2.9-et
-          pattern = r'(requires\s*=\s*\[\s*"setuptools==78\.1\.1")(\s*\])'
+          pattern = r'(requires\s*=\s*\[\s*"setuptools==[^"]+")(\s*\])'
           replacement = r'\1, "cython<=3.2.9"\2'
 
           new_content, count = re.subn(pattern, replacement, content, count=1)
 
           if count == 0:
-              print("A setuptools==78.1.1 bejegyzés nem található, nincs módosítás.")
+              print("A setuptools==__._._ bejegyzés nem található, nincs módosítás.")
               raise SystemExit(0)
 
           path.write_text(new_content)
@@ -247,18 +282,6 @@ jobs:
               [ -f "$f" ] && sed -i '${{env.LISTMAX}},$d' "$f"
             done
 
-            # echo "Extended by grpcio altough it came from constraints..."
-            # echo " ">> requirements.txt || true
-            # echo grpcio==1.78.0 >> requirements.txt || true 
-            # echo grpcio-status==1.78.0  >> requirements.txt || true 
-            # echo grpcio-reflection==1.78.0  >> requirements.txt || true 
-            
-            # echo "Extended by grpcio altough it came from constraints..."
-            # echo " ">> requirements.txt || true
-            echo setuptools==78.1.1 >> requirements.txt || true 
-            # echo grpcio-status==1.78.0  >> requirements.txt || true 
-            # echo grpcio-reflection==1.78.0  >> requirements.txt || true 
-            
           else
             echo "--- NORMÁL ÜZEMMÓD: Teljes requirements fájlok használata ---"
           fi
@@ -321,7 +344,13 @@ jobs:
         working-directory: ha-wheels-repo
         run: |
           sed -i "/^uv/d" requirements_all_combined.txt || true
-          
+
+
+
+
+
+
+
       # --------------------------------------------------
       # 2. - BUILD
       # --------------------------------------------------
@@ -403,8 +432,6 @@ jobs:
           echo "  "${{ steps.req.outputs.file }}""
           cat "${{ steps.req.outputs.file }}" || true
 
-          
-          
           docker create --name "wheels-${{ env.KIND }}" -t \
             --platform ${{ steps.builder.outputs.platform }} \
             --workdir /data \
@@ -425,46 +452,46 @@ jobs:
 
           echo "=== Aux konténer létrehozása és indítása ==="
 
-          docker create --name "wheels-${{ env.KIND }}-aux" -t \
-            --platform ${{ steps.builder.outputs.platform }} \
-            --workdir /data \
-            --env-file .env_file \
-            -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
-            --entrypoint /bin/sh \
-            ${{ steps.builder.outputs.image }} \
-            -c "while true; do sleep 3600; done"
+          # docker create --name "wheels-${{ env.KIND }}-aux" -t \
+          #   --platform ${{ steps.builder.outputs.platform }} \
+          #   --workdir /data \
+          #   --env-file .env_file \
+          #   -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
+          #   --entrypoint /bin/sh \
+          #   ${{ steps.builder.outputs.image }} \
+          #   -c "while true; do sleep 3600; done"
 
           # Forrás bemásolása a konténerbe
-          docker cp "${{ github.workspace }}/ha-wheels-repo/." "wheels-${{ env.KIND }}-aux:/data"            
+          # docker cp "${{ github.workspace }}/ha-wheels-repo/." "wheels-${{ env.KIND }}-aux:/data"            
 
-          docker start "wheels-${{ env.KIND }}-aux"
+          # docker start "wheels-${{ env.KIND }}-aux"
 
-          echo "=== Cython ellenőrzése ==="
-          docker exec "wheels-${{ env.KIND }}-aux" \
-            python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
+          # echo "=== Cython ellenőrzése ==="
+          # docker exec "wheels-${{ env.KIND }}-aux" \
+          #   python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
 
-          echo "=== Build constraints ==="
-          docker exec "wheels-${{ env.KIND }}-aux" \
-            cat /pip-build-constraints.txt
+          # echo "=== Build constraints ==="
+          # docker exec "wheels-${{ env.KIND }}-aux" \
+          #   cat /pip-build-constraints.txt
 
-          echo "=== Extra checkings ==="
-          echo "uname -m"
-          docker exec "wheels-${{ env.KIND }}-aux" uname -m
-          echo "python3 -c import sysconfig; print(sysconfig.get_platform())"
-          docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import sysconfig; print(sysconfig.get_platform())"
-          echo "python3 -c import os; print(os.environ.get('BUILD_ARCH'))"
-          docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
-          echo "python3 -c import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
-          docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
+          # echo "=== Extra checkings ==="
+          # echo "uname -m"
+          # docker exec "wheels-${{ env.KIND }}-aux" uname -m
+          # echo "python3 -c import sysconfig; print(sysconfig.get_platform())"
+          # docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import sysconfig; print(sysconfig.get_platform())"
+          # echo "python3 -c import os; print(os.environ.get('BUILD_ARCH'))"
+          # docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
+          # echo "python3 -c import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
+          # docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
           # echo "auditwheel repair --help"
           # docker exec -e AUDITWHEEL_PLAT="" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
           # docker exec -e AUDITWHEEL_PLAT="musllinux_1_2_armv7l" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
           # docker exec -e AUDITWHEEL_PLAT="auto" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
 
-          echo "=== Aux konténer leállítása és törlése ==="
-          docker stop "wheels-${{ env.KIND }}-aux"
-          docker rm "wheels-${{ env.KIND }}-aux"
-          echo "=== Aux konténer leállítás megtörtént ==="
+          # echo "=== Aux konténer leállítása és törlése ==="
+          # docker stop "wheels-${{ env.KIND }}-aux"
+          # docker rm "wheels-${{ env.KIND }}-aux"
+          # echo "=== Aux konténer leállítás megtörtént ==="
 
           # === Trap: timeout / megszakítás / hiba esetén is mentsünk ki ===
           cleanup_and_save() {
@@ -595,14 +622,14 @@ jobs:
           echo " --------------------------------------------- "      
 
           echo "# Wheels32bit" | tee tobe_README.md
-          echo "## Musllinux wheels (armv7l + armv6l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee tobe_README.md
+          echo "## Musllinux wheels (armv7l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee tobe_README.md
           echo "### Last build from https://github.com/home-assistant/core: ${{ steps.version.outputs.version }}  " | tee -a tobe_README.md       
           
           echo "  "  | tee -a tobe_README.md
           
           echo "  During the last build - armv7 - wheels: $(find ${{env.OUTDIR}} -type f -name '*.whl' 2>/dev/null | wc -l)  " | tee -a tobe_README.md
           echo "  Number of wheels: $(find musllinux-repo -name '*.whl' | wc -l)  " | tee -a tobe_README.md
-          echo " --------------------------------------------- "          
+          echo " --------------------------------------------- "
 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -610,7 +637,7 @@ jobs:
           cd musllinux-repo
 
           cp ../tobe_README.md ./README.md
-          
+
           # Csak a 100 MiB-nél kisebb fájlokat adjuk hozzá
           # find musllinux -type f -size -100M -print0 | xargs -0 git add
           git add .
@@ -652,7 +679,7 @@ jobs:
           cd musllinux-index-repo
 
           cp ../tobe_README.md ./README.md
-          
+
           git add .
             
           if git diff --staged --quiet; then
@@ -693,3 +720,4 @@ jobs:
           fi
 
           cd ..
+

@@ -23,11 +23,11 @@ env:
   KIND: combined
   ABI: cp314
   TAG: musllinux_1_2
-  WBRANCH: "2026.07.0"
+  WHEELSBRANCH: "2026.07.0"
   ARCH: armv7
   BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
-  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
+  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:latest
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
@@ -55,8 +55,8 @@ jobs:
         with:
           repository: villgzs/wheels32bit
           path: wheels32bit-repo
-          token: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}         
-          
+          token: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}
+
       - name: Determine Core version
         id: version
         env:
@@ -107,13 +107,14 @@ jobs:
           content = path.read_text()
 
           # A [build-system] requires listába beszúrja a cython<=3.2.9-et
-          pattern = r'(requires\s*=\s*\[\s*"setuptools==78\.1\.1")(\s*\])'
+          pattern = r'(requires\s*=\s*\[\s*"setuptools==[^"]+")(\s*\])'
           replacement = r'\1, "cython<=3.2.9"\2'
 
           new_content, count = re.subn(pattern, replacement, content, count=1)
 
           if count == 0:
-              raise SystemExit("Nem találtam a setuptools==78.1.1 sort a pyproject.toml-ben!")
+              print("A setuptools==__._._ bejegyzés nem található, nincs módosítás.")
+              raise SystemExit(0)
 
           path.write_text(new_content)
           print("Sikeresen módosítva:")
@@ -259,7 +260,7 @@ jobs:
       - name: Set builder image and platform
         id: builder
         run: |
-          echo "image=ghcr.io/villgzs/wheels32bit/${{ env.ARCH }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.WBRANCH }}" >> $GITHUB_OUTPUT
+          echo "image=ghcr.io/villgzs/wheels32bit/${{ env.ARCH }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.WHEELSBRANCH }}" >> $GITHUB_OUTPUT
           echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
           
       - name: Pull 32-bit builder image
@@ -508,7 +509,7 @@ jobs:
             echo '</ul>'
             echo '</body></html>'
           } > musllinux-repo/index.html
-          echo " --------------------------------------------- "          
+          echo " --------------------------------------------- "      
 
           echo "# Wheels32bit" | tee tobe_README.md
           echo "## Musllinux wheels (armv7l) ($(date -u +'%Z %Y-%b-%d %T'))  " | tee tobe_README.md
@@ -609,4 +610,4 @@ jobs:
           fi
 
           cd ..
-          
+
