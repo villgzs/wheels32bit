@@ -1,0 +1,109 @@
+--- a/builder/__main__.py
++++ b/builder/__main__.py
+@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
+ 
+ import click
+ 
++from packaging.utils import canonicalize_name
+ from builder.apk import install_apks
+ from builder.infra import (
+     check_available_binary,
+@@ -121,6 +122,12 @@ def builder(  # noqa: C901, PLR0913, PLR0912, PLR0915
+     type=int,
+     help="Max runtime for pip before abort.",
+ )
++@click.option(
++    "--force-rebuild",
++    default="",
++    help="Semicolon-separated list of packages that must always be built from source "
++    "(ignore existing wheels on the index and always upload the result).",
++)
+ def builder(  # noqa: C901, PLR0913, PLR0912, PLR0915
+     apk: str | None,
+     pip: str | None,
+@@ -136,6 +143,7 @@ def builder(  # noqa: C901, PLR0913, PLR0912, PLR0915
+     upload: str,
+     remote: str,
+     timeout: int,
++    force_rebuild: str,
+ ) -> None:
+     """Build wheels precompiled for Home Assistant container."""
+     check_url(index)
+@@ -148,6 +156,11 @@ def builder(  # noqa: C901, PLR0913, PLR0912, PLR0915
+         skip_binary = ";".join(override)
+         print(f"Setting skip binary to: {skip_binary}")
+ 
++    force_set: set[str] = set()
++    if force_rebuild:
++        force_set = set(map(canonicalize_name, force_rebuild.split(";")))
++        print(f"Force rebuild packages: {force_set}")
++
+     exit_code = ExitCodes.SUCCESS
+     with TemporaryDirectory() as temp_dir:
+         output = Path(temp_dir)
+@@ -183,6 +196,7 @@ def builder(  # noqa: C901, PLR0913, PLR0912, PLR0915
+                 skip_binary,
+                 packages,
+                 constraints,
++                force_rebuild=force_set,
+             )
+             for package in packages:
+                 print(f"Process package: {package}", flush=True)
+@@ -210,6 +224,7 @@ def builder(  # noqa: C901, PLR0913, PLR0912, PLR0915
+                 skip_binary,
+                 packages,
+                 constraints,
++                force_rebuild=force_set,
+             )
+             try:
+                 build_wheels_requirement(
+@@ -262,6 +277,7 @@ def builder(  # noqa: C901, PLR0913, PLR0912, PLR0915
+                 skip_binary,
+                 packages + constraints,
+                 wheels_dir,
++                force_rebuild=force_set,
+             )
+ 
+         if not test:
+--- a/builder/infra.py
++++ b/builder/infra.py
+@@ -129,7 +129,8 @@ def check_available_binary(
+     package_index: dict[NormalizedName, list[WhlPackage]],
+     skip_binary: str,
+     packages: list[str],
+-    constraints: list[str],
++    constraints: list[str],
++    force_rebuild: set[NormalizedName] | None = None,
+ ) -> str:
+     """Check if binary exists and ignore this skip."""
+     if skip_binary == ":none:":
+@@ -153,7 +154,11 @@ def check_available_binary(
+ 
+     print(f"Checking if binaries already exist for packages {binary_package_map}")
+     list_found = check_existing_packages(package_index, binary_package_map)
++    if force_rebuild:
++        list_found -= force_rebuild
+     print(f"Packages already exist: {list_found}")
+     list_needed = binary_package_map.keys() - list_found
+ 
+     # Generate needed list of skip binary
+@@ -168,8 +173,9 @@ def remove_local_wheels(
+     package_index: dict[NormalizedName, list[WhlPackage]],
+     skip_exists: str,
+     packages: list[str],
+-    wheels_dir: Path,
++    wheels_dir: Path,
++    force_rebuild: set[NormalizedName] | None = None,
+ ) -> None:
+     """Remove existing wheels if they already exist in the index to avoid syncing."""
+     package_map = create_package_map(packages)
+     list_exists = list(map(canonicalize_name, skip_exists.split(";")))
+@@ -178,6 +184,8 @@ def remove_local_wheels(
+     }
+     print(f"Checking if binaries already exist for packages {binary_package_map}")
+     exists = check_existing_packages(package_index, binary_package_map)
++    if force_rebuild:
++        exists -= force_rebuild
+     wheel_map = extract_package_names_from_wheels(wheels_dir)
+     for binary in exists:
+         version = binary_package_map[binary]
