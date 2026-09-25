@@ -19,6 +19,7 @@ env:
   TAG: musllinux_1_2
   PLATFORM: linux/arm/v7
   WHEELSBRANCH: "2026.07.0"
+  PYTHONBRANCH: "2026.06.1"
 
 permissions:
   contents: read
@@ -157,7 +158,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           
           build-args: |            
-            BUILD_FROM=ghcr.io/villgzs/basic-python:latest
+            BUILD_FROM=ghcr.io/villgzs/basic-python:${{env.PYTHONBRANCH}}
             BUILD_ARCH=${{ matrix.arch }}
             CPYTHON_ABI=${{ matrix.abi }}
           tags: |
