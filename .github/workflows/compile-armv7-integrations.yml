@@ -1,4 +1,4 @@
-name: ARM/V7 - A - INTEGRATIONS - Python wheels fabrication
+name: ARM/V7 - INTEGRATIONS - Python wheels fabrication
 
 on:
   workflow_dispatch:
