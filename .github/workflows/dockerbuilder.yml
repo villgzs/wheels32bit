@@ -70,6 +70,14 @@ jobs:
           ref: ${{ env.WHEELSBRANCH }}
           path: wheels-repo
 
+      - name: Apply arm32-sigbus-patch pip.py
+        shell: bash
+        working-directory: wheels-repo
+        run: |
+          cp ../build-repo/patches/arm32-sigbus-fix.patch . || true
+          patch -p1 < arm32-sigbus-fix.patch || true
+          tail -n 100 builder/pip.py || true
+
       - name: Update _ARCH_PLAT in builder/wheel.py
         shell: bash
         run: |
