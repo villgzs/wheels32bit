@@ -215,7 +215,7 @@ jobs:
             echo "UV_CONSTRAINT=/pip-build-constraints.txt"
 
             echo "CFLAGS=${{env.COMPILEFLAGS}}"
-            echo "CXXFLAGS=${{env.COMPILEFLAGS}}
+            echo "CXXFLAGS=${{env.COMPILEFLAGS}}"
             echo "FFLAGS=${{env.COMPILEFLAGS}}"
             echo "NPY_CFLAGS=${{env.COMPILEFLAGS}}"
             echo "NPY_CXXFLAGS=${{env.COMPILEFLAGS}}"
