@@ -122,8 +122,14 @@ jobs:
           #   scripts/**
           # sparse-checkout-cone-mode: false
 
+      - name: remove buildre from ha-wheels-repo
+        working-directory: ha-wheels-repo
+        run: |
+          rm -rf ./builder || true
+
       - name: Patch _ARCH_PLAT in ha-wheels-repo
         working-directory: ha-wheels-repo
+        if: failure()
         run: |
           python3 -c '
           from pathlib import Path
@@ -157,13 +163,6 @@ jobs:
 
           echo "=== Ellenőrzés ==="
           cat builder/wheel.py
-
-      - name: Checkout home-assistant/core
-        uses: actions/checkout@v4
-        with:
-          repository: home-assistant/core
-          ref: "2026.7.2"
-          path: ha-core-repo
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -264,8 +263,7 @@ jobs:
             > requirements_all_combined.txt
             
           echo ""
-          echo "Kész: $OUTPUT ($(wc -l < "$OUTPUT") sor)"          
-     
+          echo "Kész: $OUTPUT ($(wc -l < "$OUTPUT") sor)" 
 
       - name: Generate requirements_all_wheels
         working-directory: ha-wheels-repo
@@ -344,12 +342,6 @@ jobs:
         working-directory: ha-wheels-repo
         run: |
           sed -i "/^uv/d" requirements_all_combined.txt || true
-
-
-
-
-
-
 
       # --------------------------------------------------
       # 2. - BUILD
