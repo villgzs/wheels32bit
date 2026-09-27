@@ -34,6 +34,7 @@ env:
   APK: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev;bluez-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;uchardet-dev"
   SKIP_BINARY: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad"
   OUTDIR: wheels-out
+  COMPILEFLAGS: "-mno-unaligned-access -mfloat-abi=hard"
 
 permissions:
   contents: read
@@ -212,6 +213,12 @@ jobs:
 
             echo "UV_BUILD_CONSTRAINT=/pip-build-constraints.txt"
             echo "UV_CONSTRAINT=/pip-build-constraints.txt"
+
+            echo "CFLAGS=${{env.COMPILEFLAGS}}"
+            echo "CXXFLAGS=${{env.COMPILEFLAGS}}
+            echo "FFLAGS=${{env.COMPILEFLAGS}}"
+            echo "NPY_CFLAGS=${{env.COMPILEFLAGS}}"
+            echo "NPY_CXXFLAGS=${{env.COMPILEFLAGS}}"
 
           ) > .env_file
  
