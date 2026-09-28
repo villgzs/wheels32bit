@@ -34,7 +34,7 @@ env:
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
   APK: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev;bluez-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;uchardet-dev"
-  SKIP_BINARY: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad;av"
+  SKIP_BINARY: "aiohttp;av;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad"
   OUTDIR: wheels-out
 
 permissions:
