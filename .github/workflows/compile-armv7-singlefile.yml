@@ -30,8 +30,6 @@ env:
   WBRANCH: "2026.07.0"
   ARCH: armv7
   BUILD_ARCH: armv7
-  # A te 32 bites builder image-ed
-  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:2026.07.0
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
