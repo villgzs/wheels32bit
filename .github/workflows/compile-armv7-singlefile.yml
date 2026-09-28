@@ -31,12 +31,12 @@ env:
   ARCH: armv7
   BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
-  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:dev
+  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:2026.07.0
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
   APK: "libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev;bluez-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;uchardet-dev"
-  SKIP_BINARY: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad"
+  SKIP_BINARY: "aiohttp;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad;av"
   OUTDIR: wheels-out
 
 permissions:
@@ -347,7 +347,9 @@ jobs:
           cat homeassistant/package_constraints.txt || true
           echo "${{inputs.reqfile}}" > requirements.txt
           echo "  .---=== Content of requirements.txt ===---."
-          cat "requirements.txt" || true          
+          cat "requirements.txt" || true         
+
+          export QEMU_CPU=cortex-a7
           
           docker create --name "wheels-${{ env.KIND }}" -t \
             --platform ${{ steps.builder.outputs.platform }} \
