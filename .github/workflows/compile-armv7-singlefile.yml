@@ -226,6 +226,19 @@ jobs:
             echo "UV_BUILD_CONSTRAINT=/pip-build-constraints.txt"
             echo "UV_CONSTRAINT=/pip-build-constraints.txt"
 
+            # --- armv7 biztonságos fordítási flag-ek (Cortex-A7 / Orange Pi Zero) ---
+            echo "CFLAGS=-O2 -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -fno-strict-aliasing -fPIC"
+            echo "CXXFLAGS=-O2 -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -fno-strict-aliasing -fPIC"
+            echo "CPPFLAGS=-O2 -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard"
+            echo "LDFLAGS=-Wl,-O1 -Wl,--as-needed"
+          
+            # CMake-alapú csomagok (pl. egyes natív libek)
+            echo "CMAKE_ARGS=-DCMAKE_C_FLAGS=-O2 -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -DCMAKE_CXX_FLAGS=-O2 -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard"
+          
+            # Rust (ha van maturin/cargo build)
+            echo "CARGO_NET_GIT_FETCH_WITH_CLI=true"
+            echo "RUSTFLAGS=-C target-cpu=cortex-a7 -C opt-level=2"
+
           ) > .env_file
  
       - name: Adjust requirements (uv kihagyása)
