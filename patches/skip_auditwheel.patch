@@ -1,0 +1,27 @@
+--- a/builder/wheel.py
++++ b/builder/wheel.py
+@@ -1,6 +1,7 @@
+ """Utils for wheel."""
+ 
+ import re
++import os
+ import shutil
+ from contextlib import suppress
+ from functools import cache
+@@ -100,12 +101,15 @@ def copy_wheels_from_cache(cache_folder: Path, wheels_folder: Path) -> None:
+ def run_auditwheel(wheels_folder: Path) -> bool:
+     """Run auditwheel to include shared library."""
+     success = True
++    extra = os.environ.get("AUDITWHEEL_REPAIR_ARGS", "").strip()
+     with TemporaryDirectory() as temp_dir:
+         for wheel_file in wheels_folder.glob("*.whl"):
+             if not _RE_LINUX_PLATFORM.search(wheel_file.name):
+                 continue
+             try:
+-                run_command(f"auditwheel repair -w {temp_dir} {wheel_file}")
++                cmd = f"auditwheel repair {extra} -w {temp_dir} {wheel_file}"
++                print(f"auditwheel: {cmd}", flush=True)
++                run_command(cmd)
+             except CalledProcessError as err:
+                 print(f"Issues auditwheel {wheel_file.name}: {err!s}", flush=True)
+                 success = False
