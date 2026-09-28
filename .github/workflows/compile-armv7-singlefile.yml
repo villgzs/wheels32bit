@@ -237,6 +237,8 @@ jobs:
             echo "CARGO_NET_GIT_FETCH_WITH_CLI=true"
             echo "RUSTFLAGS=-C target-cpu=cortex-a7 -C opt-level=2"
 
+            echo "AUDITWHEEL_REPAIR_ARGS=--exclude libavcodec --exclude libavformat --exclude libavutil --exclude libavfilter --exclude libavdevice --exclude libswscale --exclude libswresample --exclude libaom --exclude libdav1d --exclude libvpx --exclude libx264 --exclude libx265 --exclude libplacebo --exclude libshaderc"
+
           ) > .env_file
  
       - name: Adjust requirements (uv kihagyása)
