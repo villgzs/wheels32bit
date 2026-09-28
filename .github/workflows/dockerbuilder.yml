@@ -19,7 +19,7 @@ env:
   TAG: musllinux_1_2
   PLATFORM: linux/arm/v7
   WHEELSBRANCH: "2026.07.0"
-  PYTHONBRANCH: "2026.06.1"
+  PYTHONBRANCH: "2026.05.0"
 
 permissions:
   contents: read
