@@ -80,6 +80,16 @@ jobs:
           patch -p1 < arm32-sigbus-fix.patch || true
           tail -n 100 builder/pip.py || true
 
+          
+      - name: Apply skip_auditwheel.patch
+        shell: bash
+        working-directory: wheels-repo
+        if: always()
+        run: |
+          cp ../build-repo/patches/skip_auditwheel.patch . || true
+          patch -p1 < skip_auditwheel.patch || true
+          tail -n 100 builder/wheel.py || true
+
       - name: Update _ARCH_PLAT in builder/wheel.py
         shell: bash
         run: |
