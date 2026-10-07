@@ -12,6 +12,11 @@ on:
         required: false
         type: boolean
         default: false  # Alapértelmezetten nincs bepipálva
+      force_python:
+        description: 'Python korlátozás <3.2.9'
+        required: false
+        type: boolean
+        default: false  # Alapértelmezetten nincs bepipálva
       maxlines:
         description: 'Sorok száma:'
         required: false
@@ -99,6 +104,7 @@ jobs:
           
       - name: Pin Cython version in pyproject.toml
         working-directory: ha-core-repo
+        if: inputs.force_python
         run: |
           python3 - <<'EOF'
           from pathlib import Path
