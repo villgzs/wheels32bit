@@ -109,13 +109,14 @@ jobs:
           content = path.read_text()
 
           # A [build-system] requires listába beszúrja a cython<=3.2.9-et
-          pattern = r'(requires\s*=\s*\[\s*"setuptools==78\.1\.1")(\s*\])'
+          # pattern = r'(requires\s*=\s*\[\s*"setuptools==78\.1\.1")(\s*\])'
+          pattern = r'(requires\s*=\s*\[\s*"setuptools==[^"]+")(\s*\])'
           replacement = r'\1, "cython<=3.2.9"\2'
 
           new_content, count = re.subn(pattern, replacement, content, count=1)
 
           if count == 0:
-              raise SystemExit("Nem találtam a setuptools==78.1.1 sort a pyproject.toml-ben!")
+              raise SystemExit("Nem találtam a setuptools== sort a pyproject.toml-ben!")
 
           path.write_text(new_content)
           print("Sikeresen módosítva:")
