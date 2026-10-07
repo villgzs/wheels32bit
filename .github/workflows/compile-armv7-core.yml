@@ -243,8 +243,14 @@ jobs:
       # --------------------------------------------------
       - name: maximize cython version
         working-directory: ha-core-repo
+        env:
+          FORCE_PYTHON: ${{ inputs.force_python }}
         run: |
-            echo "cython<=3.2.9" >> pip-build-constraints.txt
+            touch pip-build-constraints.txt
+            if [ "$FORCE_PYTHON" = "true" ]; then
+              echo "cython<=3.2.9" >> pip-build-constraints.txt
+            fi
+            # echo "cython<=3.2.9" >> pip-build-constraints.txt
             echo "HA-CORE lista...."
             ls -las 
             head -n 20 requirements.txt || true
