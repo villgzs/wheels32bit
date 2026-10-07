@@ -12,6 +12,11 @@ on:
         required: false
         type: boolean
         default: false  # Alapértelmezetten nincs bepipálva
+      force_cython:
+        description: 'Cython korlátozás <3.2.9'
+        required: false
+        type: boolean
+        default: false  # Alapértelmezetten nincs bepipálva
       maxlines:
         description: 'Sorok száma:'
         required: false
@@ -100,6 +105,7 @@ jobs:
           
       - name: Pin Cython version in pyproject.toml
         working-directory: ha-core-repo
+        if: ${{ inputs.force_cython }}
         run: |
           python3 - <<'EOF'
           from pathlib import Path
@@ -262,8 +268,12 @@ jobs:
       # --------------------------------------------------
       - name: maximize cython version
         working-directory: ha-core-repo
+        env:
+          FORCE_PYTHON: ${{ inputs.force_cython }}
         run: |
-            echo "cython<=3.2.9" >> pip-build-constraints.txt
+            if [ "$FORCE_PYTHON" = "true" ]; then
+              echo "cython<=3.2.9" >> pip-build-constraints.txt
+            fi
             echo "HA-CORE lista...."
             ls -las 
             head -n 20 requirements.txt || true
