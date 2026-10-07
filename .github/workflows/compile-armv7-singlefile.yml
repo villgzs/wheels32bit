@@ -271,6 +271,8 @@ jobs:
         env:
           FORCE_PYTHON: ${{ inputs.force_cython }}
         run: |
+            touch pip-build-constraints.txt
+            
             if [ "$FORCE_PYTHON" = "true" ]; then
               echo "cython<=3.2.9" >> pip-build-constraints.txt
             fi
