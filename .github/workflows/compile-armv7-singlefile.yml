@@ -155,7 +155,10 @@ jobs:
           TEST_BUILD: ${{ inputs.test_build }}
         run: |
           . venv/bin/activate          
-          cp ../wheels32bit-repo/script/gen_requirements_all.py script/gen_requirements_all.py
+          # cp ../wheels32bit-repo/script/gen_requirements_all.py script/gen_requirements_all.py
+
+          cp ../wheels32bit-repo/script/patch_for_gen_requirements.py script/patch_for_gen_requirements.py
+          python -m script.patch_for_gen_requirements ci || true
           
           python -m script.gen_requirements_all ci || true
           # python ../wheels32bit-repo/script/gen_requirements_all.py ci || true 
@@ -177,7 +180,7 @@ jobs:
             
             # echo "Extended by grpcio altough it came from constraints..."
             # echo " ">> requirements.txt || true
-            echo setuptools==78.1.1 >> requirements.txt || true 
+            # echo setuptools==78.1.1 >> requirements.txt || true 
             # echo grpcio-status==1.78.0  >> requirements.txt || true 
             # echo grpcio-reflection==1.78.0  >> requirements.txt || true 
             
