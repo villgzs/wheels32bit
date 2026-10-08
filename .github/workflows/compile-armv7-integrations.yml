@@ -128,6 +128,36 @@ jobs:
           print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
           EOF
 
+      - name: Downgrade pywaze in requirements_all.txt
+        working-directory: ha-core-repo
+        # if: inputs.force_python
+        run: |
+          python3 - <<'EOF'
+          from pathlib import Path
+          import re
+
+          path = Path("requirements_all.txt")
+          content = path.read_text()
+
+          # A requirements.txt-ben cseréli a verziószámot
+          pattern = r'(pywaze==)[^\s]+'
+          replacement = r'\g<1>1.2.0'
+
+          # kommentelés
+          # pattern = r'^(Mastodon\.py==)'
+          # replacement = r'# \1'
+
+          new_content, count = re.subn(pattern, replacement, content, count=1)
+
+          if count == 0:
+              print("A pywaze==__._._ bejegyzés nem található, nincs módosítás.")
+              raise SystemExit(0)
+
+          path.write_text(new_content)
+          print("Sikeresen módosítva:")
+          print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
+          EOF
+
       - name: Create venv and install tools
         working-directory: ha-core-repo
         run: |
