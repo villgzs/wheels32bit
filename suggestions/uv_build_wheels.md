@@ -187,3 +187,7 @@ Kész:
 ```
 auditwheel repair ./wheels/av-19.0.0-cp314-cp314-linux_armv7l.whl -w ./wheelhouse/
 ```
+
+```
+docker cp b7a1f97ea5d8:/data/wheelhouse/av-19.0.0-cp314-cp314-musllinux_1_2_armv7l.whl .
+```
