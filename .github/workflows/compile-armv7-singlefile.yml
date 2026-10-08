@@ -639,11 +639,13 @@ jobs:
 
           cd wheels32bit-repo 
 
+          git switch main || true
+
           git pull
 
           cp ../tobe_README.md ./README.md
 
-          cat README.txt.md >> README.md
+          cat README.txt.md >> README.md          
           
           git add README.md
             
