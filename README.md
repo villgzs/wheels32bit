@@ -1,8 +1,8 @@
-## Musllinux wheels (armv7l) (UTC 2026-Oct-07 20:24:18)  
+## Musllinux wheels (armv7l) (UTC 2026-Oct-08 04:45:33)  
 ### Last build from https://github.com/home-assistant/core: 2026.10.0  
   
-  During the last build - armv7 - integrations : 188  
-  Number of wheels: 1731  
+  During the last build - armv7 - integrations : 281  
+  Number of wheels: 1758  
 - [musllinux wheels packages](https://villgzs.github.io/musllinux/)  
 - [musllinux-index - Simple package repository](https://villgzs.github.io/musllinux-index/)  
 
