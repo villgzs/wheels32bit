@@ -160,3 +160,30 @@ PYTHON=/path/to/venv/bin/python ./pack-installed.sh av
 5. Kitakarítja az ideiglenes mappát  
 
 **Figyelem:** compiled extension (`.so`) esetén a kapott wheel csak ugyanarra a platformra (OS + architektúra + Python verzió) lesz használható.
+
+
+```
+b7a1f97ea5d8:/data# apk add nano
+WARNING: updating https://dl-cdn.alpinelinux.org/alpine/v3.24/main/armv7/APKINDEX.tar.gz: DNS: transient error (try again later)
+(1/1) Installing nano (9.2-r0)
+Executing busybox-1.37.0-r31.trigger
+OK: 770.5 MiB in 211 packages
+b7a1f97ea5d8:/data# nano wheelminer.sh
+b7a1f97ea5d8:/data# bash wheelminer.sh av
+==> Csomag keresése: av
+    site-packages: /usr/local/lib/python3.14/site-packages
+    modul:     /usr/local/lib/python3.14/site-packages/av
+    dist-info: /usr/local/lib/python3.14/site-packages/av-19.0.0.dist-info
+    verzió:    19.0.0
+==> Másolás → /tmp/pack-FJpNCK
+==> Wheel készítése...
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+Repacking wheel as ./wheels/av-19.0.0-cp314-cp314-linux_armv7l.whl...OK
+
+Kész:
+-rw-r--r--    1 root     root        1.6M Oct  8 11:55 ./wheels/av-19.0.0-cp314-cp314-linux_armv7l.whl
+```
+
+```
+auditwheel repair ./wheels/av-19.0.0-cp314-cp314-linux_armv7l.whl -w ./wheelhouse/
+```
