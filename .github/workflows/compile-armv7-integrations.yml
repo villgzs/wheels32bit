@@ -132,6 +132,8 @@ jobs:
         working-directory: ha-core-repo
         # if: inputs.force_python
         run: |
+          echo "Downgrade előtt"
+          grep -Ev '^[[:space:]]*($|#)' requirements_all.txt | wc -l
           python3 - <<'EOF'
           from pathlib import Path
           import re
@@ -139,7 +141,7 @@ jobs:
           path = Path("requirements_all.txt")
           content = path.read_text()
 
-          # A requirements.txt-ben cseréli a verziószámot
+          # A requirements_all.txt-ben cseréli a verziószámot
           pattern = r'(pywaze==)[^\s]+'
           replacement = r'\g<1>1.2.0'
 
@@ -157,6 +159,11 @@ jobs:
           print("Sikeresen módosítva:")
           print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
           EOF
+
+          echo "Downgrade után:"
+          grep -Ev '^[[:space:]]*($|#)' requirements_all.txt | wc -l
+
+          grep 'pywaze' requirements_all.txt
 
       - name: Create venv and install tools
         working-directory: ha-core-repo
@@ -642,6 +649,8 @@ jobs:
 
           cd wheels32bit-repo 
 
+          git switch main || true          
+
           git pull
 
           cp ../tobe_README.md ./README.md
@@ -653,8 +662,8 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7 + armhf)"
-            git push origin main
+            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7)"
+            git push -u origin main
           fi
 
           cd ..
