@@ -597,7 +597,7 @@ jobs:
             git checkout --orphan new-main
             git add -A
           
-            git commit -m "Update indexes as INTEGRATIONS - HA 2026.10.0 (armv7 only)"
+            git commit -m "Update indexes as INTEGRATIONS - - HA ${{ steps.version.outputs.version }} (armv7)"
           
             git branch -M main
             git push -u origin main --force
