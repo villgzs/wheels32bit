@@ -9,3 +9,5 @@
 -   https://github.com/home-assistant/docker-base/pkgs/container/amd64-base-python/1149340342?tag=3.14-alpine3.24-2026.08.0
 - docker pull ghcr.io/home-assistant/amd64-base-python:3.14-alpine3.24-2026.08.0
 
+**A dockerbuilder a wheel gyártásakor már a legfrissebb base-alpine és base-python szinten kell legyen!** Például az av==19.0.0 csomag fordításához már ffmpeg 9 kell, ami nincs benne a 2026.05.0/2026.06.1 csomagokban.
+
