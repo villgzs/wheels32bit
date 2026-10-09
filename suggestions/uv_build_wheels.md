@@ -1,11 +1,24 @@
 ```
-# Telepítsd a szükséges ffmpeg / jxl fejlesztői csomagokat az Alpine/musl csomagkezelővel (apk):
+# 1. Telepítsd a szükséges ffmpeg / jxl fejlesztői csomagokat az Alpine/musl csomagkezelővel (apk):
 apk add ffmpeg-dev pkgconf gcc musl-dev
+
+python -m pip install --upgrade Cython
 
 uv pip install --no-binary av  --index-strategy unsafe-best-match av==19.0.0
 
 # Esetleg
 uv pip install --system --index-strategy unsafe-best-match --no-binary av "av==19.0.0"
+
+# 2.
+# Megkeresed a telepített csomagot
+python -c "import av; print(av.__file__)"
+
+# A .dist-info és a modul mappáját bemásolod egy ideiglenes könyvtárba
+# Majd:
+pip install wheel
+wheel pack /tmp/av-extracted
+
+
 ```
 
 Igen, össze lehet rakni. Íme egy működő bash szkript:
