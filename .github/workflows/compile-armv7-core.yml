@@ -552,7 +552,7 @@ jobs:
             git checkout --orphan new-main
             git add -A
           
-            git commit -m "Update indexes as CORE - HA 2026.10.0 (armv7 only)"
+            git commit -m "Update indexes as CORE - - HA ${{ steps.version.outputs.version }} (armv7)"
           
             git branch -M main
             git push -u origin main --force
@@ -577,7 +577,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nincs változás, nem commitolok."
           else
-            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7 + armhf)"
+            git commit -m "Update README and wheels for HA ${{ steps.version.outputs.version }} (armv7)"
             git push origin main
           fi
 
