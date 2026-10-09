@@ -2,6 +2,11 @@
 # 1. Telepítsd a szükséges ffmpeg / jxl fejlesztői csomagokat az Alpine/musl csomagkezelővel (apk):
 apk add ffmpeg-dev pkgconf gcc musl-dev
 
+# verzió elleneőrzések:
+ffmpeg -version
+pkg-config --modversion libavutil
+pkg-config --modversion libavcodec
+
 python -m pip install --upgrade Cython
 
 uv pip install --no-binary av  --index-strategy unsafe-best-match av==19.0.0
