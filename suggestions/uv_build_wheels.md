@@ -209,6 +209,8 @@ Kész:
 ```
 
 ```
+uv pip install auditwheel --system
+uv pip install patchelf --system 
 auditwheel repair ./wheels/av-19.0.0-cp314-cp314-linux_armv7l.whl -w ./wheelhouse/
 ```
 
