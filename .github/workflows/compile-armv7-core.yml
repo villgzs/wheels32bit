@@ -564,46 +564,6 @@ jobs:
           # musllinux done
           # -------------------------------------
 
-          git clone --depth 1 --branch main \
-            "https://x-access-token:${TOKEN}@github.com/villgzs/musllinux-index.git" musllinux-index-repo
-
-          python -m venv venv
-          . venv/bin/activate
-          python --version
-          
-          pip install index-503
-                    
-          index-503 musllinux-repo/
-          ls -las
-          
-          cp -a musllinux-repo-index-tmp*/. musllinux-index-repo/
-
-          cd musllinux-index-repo
-
-          cp ../tobe_README.md ./README.md
-
-          git add .
-            
-          if git diff --staged --quiet; then
-            echo "Nincs változás, nem commitolok."
-          else
-            git commit -m "Update indexes as INTEGRATIONS for HA ${{ steps.version.outputs.version }} (armv7)"
-            git push origin main
-
-            echo "orphan"
-            git checkout --orphan new-main
-            git add -A
-            git commit -m "Update indexes as INTEGRATIONS - HA ${{ steps.version.outputs.version }} (armv7 only)"
-            git branch -M main
-            git push -u origin main --force
-          fi
-
-          cd ..
-
-          # -------------------------------------
-          # musllinux-index done
-          # -------------------------------------
-
           cd wheels32bit-repo 
 
           git pull
