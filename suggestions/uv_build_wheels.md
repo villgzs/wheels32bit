@@ -1,4 +1,10 @@
 ```
+# Telepítsd a szükséges ffmpeg / jxl fejlesztői csomagokat az Alpine/musl csomagkezelővel (apk):
+apk add ffmpeg-dev pkgconf gcc musl-dev
+
+uv pip install --no-binary av  --index-strategy unsafe-best-match av==19.0.0
+
+# Esetleg
 uv pip install --system --index-strategy unsafe-best-match --no-binary av "av==19.0.0"
 ```
 
