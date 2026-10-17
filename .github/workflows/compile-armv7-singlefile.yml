@@ -32,7 +32,7 @@ env:
   KIND: combined
   ABI: cp314
   TAG: musllinux_1_2
-  WBRANCH: "2026.06.1-2026.10.0"
+  WBRANCH: "2026.08.0-2026.10.0"
   ARCH: armv7
   BUILD_ARCH: armv7
   # LISTMAX: 30
