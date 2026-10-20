@@ -42,6 +42,10 @@ env:
   OUTDIR: wheels-out
   HA_CORE_REPO: home-assistant/core
   HA_CORE_REPO_PATH: ha-core
+  HA_WHEELS_REPO: home-assistant/wheels
+  HA_WHEELS_REPO_PATH: ha-wheels
+  THIS_REPO: villgzs/wheels32bit
+  THIS_REPO_PATH: wheels32bit
 
 permissions:
   contents: read
@@ -61,8 +65,8 @@ jobs:
       - name: Checkout wheels32bit
         uses: actions/checkout@v4
         with:
-          repository: villgzs/wheels32bit
-          path: wheels32bit-repo
+          repository: ${{ env.THIS_REPO }}
+          path: ${{ env.THIS_REPO_PATH }}
           token: ${{ secrets.PUSH_MUSLLINUX_TOKEN }}
 
       - name: Determine Core version
@@ -125,8 +129,8 @@ jobs:
           python-version-file: ${{ env.HA_CORE_REPO_PATH }}/.python-version
           cache: 'pip'          # vagy 'uv' ha támogatott
           cache-dependency-path: |
-            ha-core-repo/requirements.txt
-            ha-core-repo/pyproject.toml
+            ${{ env.HA_CORE_REPO_PATH }}/requirements.txt
+            ${{ env.HA_CORE_REPO_PATH }}/pyproject.toml
           
       - name: Pin Cython version in pyproject.toml
         working-directory: ${{ env.HA_CORE_REPO_PATH }}
@@ -155,7 +159,7 @@ jobs:
           EOF
 
       - name: Create venv and install tools
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
           python -m venv venv
           . venv/bin/activate
@@ -164,7 +168,7 @@ jobs:
           uv pip install -r requirements.txt
 
       - name: Create requirements_diff file
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
           if [[ "${GITHUB_EVENT_NAME}" =~ (schedule|workflow_dispatch) ]]; then
             echo "dispatch mode..."
@@ -175,17 +179,17 @@ jobs:
           fi
 
       - name: Generate requirements_all_wheels
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         env:
           TEST_BUILD: ${{ inputs.test_build }}
         run: |
           . venv/bin/activate
 
-          cp ../wheels32bit-repo/script/patch_for_gen_requirements.py script/patch_for_gen_requirements.py
+          cp ../${{ env.THIS_REPO_PATH }}/script/patch_for_gen_requirements.py script/patch_for_gen_requirements.py
           python -m script.patch_for_gen_requirements ci || true
           
           python -m script.gen_requirements_all ci || true
-          # python ../wheels32bit-repo/script/gen_requirements_all.py ci || true 
+          # python ../${{ env.THIS_REPO_PATH }}/script/gen_requirements_all.py ci || true 
 
           # Rövidítés teszteléshez. ---=== ELŐTTE ===---
           ls -la requirements*.txt  2>/dev/null || true
@@ -214,7 +218,7 @@ jobs:
           ls -la requirements.txt requirements_all.txt requirements_all_wheels_*.txt requirements_test*.txt 2>/dev/null || true
           
       - name: Write env-file
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
           (
             echo "ARCH=${{ env.ARCH }}"
@@ -249,13 +253,13 @@ jobs:
           ) > .env_file
  
       - name: Prepare requirements_diff (full rebuild)
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
           # Üres diff = minden csomagot újraépít
           touch requirements_diff.txt
 
       - name: Adjust requirements (uv kihagyása)
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
           sed -i "/^uv/d" requirements.txt || true
           sed -i "/^uv/d" requirements_diff.txt || true
@@ -269,7 +273,7 @@ jobs:
       # 2. - BUILD
       # --------------------------------------------------
       - name: maximize cython version
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         env:
           FORCE_PYTHON: ${{ inputs.force_python }}
         run: |
@@ -302,7 +306,7 @@ jobs:
 
       - name: Select requirements file
         id: req
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
           # !!! FOR ciklus kell !!!
           REQ="${{ env.REQUIREMENTS }}"
@@ -329,7 +333,7 @@ jobs:
       - name: Build wheels with custom ( ${{env.ARCH}} ) builder
         env:
           TEST_BUILD: ${{ inputs.test_build }}
-        working-directory: ha-core-repo
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
           set -euo pipefail
           OUT_DIR="${{ github.workspace }}/${{env.OUTDIR}}/${{env.ARCH}}-${{ env.KIND }}"
@@ -371,7 +375,7 @@ jobs:
             --apk "${{ env.APK }}"
 
           # Forrás bemásolása a konténerbe
-          docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ env.KIND }}:/data"
+          docker cp "${{ github.workspace }}/${{ env.HA_CORE_REPO_PATH }}/." "wheels-${{ env.KIND }}:/data"
 
           echo "=== Aux konténer létrehozása és indítása ==="
 
@@ -385,7 +389,7 @@ jobs:
           #   -c "while true; do sleep 3600; done"
 
           # Forrás bemásolása a konténerbe
-          # docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ env.KIND }}-aux:/data"            
+          # docker cp "${{ github.workspace }}/${{ env.HA_CORE_REPO_PATH }}/." "wheels-${{ env.KIND }}-aux:/data"            
 
           # docker start "wheels-${{ env.KIND }}-aux"
 
@@ -585,7 +589,7 @@ jobs:
           # musllinux done
           # -------------------------------------
 
-          cd wheels32bit-repo 
+          cd ${{ env.THIS_REPO_PATH }} 
 
           git pull
 
