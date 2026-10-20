@@ -61,7 +61,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
-      tags: ${{ steps.version.outputs.tags }}
       sha: ${{ steps.version.outputs.sha }}
     steps:
       - name: Checkout wheels32bit
@@ -110,7 +109,6 @@ jobs:
           echo "  version    = $VERSION"
 
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tags=${DOCKERTAGS}" >> $GITHUB_OUTPUT
           echo "sha=${HEAD_SHA}" >> $GITHUB_OUTPUT
           echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
 
@@ -122,7 +120,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ env.HA_CORE_REPO }}
-          ref: ${{ steps.version.outputs.version }}
+          ref: ${{ steps.version.outputs.sha }}
           path: ${{ env.HA_CORE_REPO_PATH }}
 
       - name: Set up Python
