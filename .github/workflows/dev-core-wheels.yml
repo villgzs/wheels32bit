@@ -61,6 +61,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      tags: ${{ steps.version.outputs.tags }}
+      sha: ${{ steps.version.outputs.sha }}
     steps:
       - name: Checkout wheels32bit
         uses: actions/checkout@v4
