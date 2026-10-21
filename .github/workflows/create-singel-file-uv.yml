@@ -1,4 +1,4 @@
-name: ARM/V7 - SINGLE FILE - Python wheels fabrication
+name: UV-ARM/V7-SINGLE FILE-Python wheels fabrication
 
 on:
   workflow_dispatch:
@@ -24,7 +24,7 @@ on:
       reqfile:
         description: 'Lefordítandó csomag:'
         required: false
-        default: "setuptools==78.1.1"  
+        default: "grpcio==1.83.1"  
   # schedule:
   #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
 
@@ -32,6 +32,7 @@ env:
   KIND: combined
   ABI: cp314
   TAG: musllinux_1_2
+  BUILDERIMAGE: ghcr.io/villgzs/hass-core32-baseadded
   WBRANCH: "2026.10.0-2026.10.0"
   ARCH: armv7
   BUILD_ARCH: armv7
@@ -300,7 +301,7 @@ jobs:
       - name: Set builder image and platform
         id: builder
         run: |
-          echo "image=ghcr.io/villgzs/hass-core32-wheeler:${{ env.WBRANCH }}" >> $GITHUB_OUTPUT
+          echo "image=${{ env.BUILDERIMAGE }}:${{ env.WBRANCH }}" >> $GITHUB_OUTPUT
           echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
           
       - name: Pull 32-bit builder image
