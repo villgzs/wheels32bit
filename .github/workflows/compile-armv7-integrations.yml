@@ -32,6 +32,7 @@ env:
   ARCH: armv7
   BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
+  PLATFORM: linux/arm/v7
   BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.10.0-2026.10.0
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
@@ -278,7 +279,7 @@ jobs:
 
       - name: Pull 32-bit builder image
         run: |
-          docker pull --platform ${{ env.ARCH }} ${{ env.BUILDER_IMAGE }}
+          docker pull --platform ${{ env.PLATFORM }} ${{ env.BUILDER_IMAGE }}
 
       - name: Select requirements file
         id: req
@@ -354,7 +355,7 @@ jobs:
           mkdir -p "$OUT_DIR"
 
           # --------------------------------------------------
-          echo "steps.builder.outputs.platform ${{env.ARCH}}"
+          echo "steps.builder.outputs.platform ${{env.PLATFORM}}"
           echo "steps.builder.outputs.image ${{env.BUILDER_IMAGE}}"
           echo "steps.req.outputs.file ${{ steps.req.outputs.file }}"
           echo "env.SKIP_BINARY ${{ env.SKIP_BINARY }}" 
@@ -374,7 +375,7 @@ jobs:
           cat "${{ steps.req.outputs.file }}" || true
 
           docker create --name "wheels-${{ env.KIND }}" -t \
-            --platform ${{ env.ARCH }} \
+            --platform ${{ env.PLATFORM }} \
             --workdir /data \
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
