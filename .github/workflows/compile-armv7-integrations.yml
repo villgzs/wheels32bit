@@ -32,7 +32,7 @@ env:
   ARCH: armv7
   BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
-  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:latest
+  BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.10.0-2026.10.0
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
