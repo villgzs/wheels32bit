@@ -61,7 +61,7 @@ jobs:
           echo "  GRPC_VERSION = $GRPC_VERSION"
 
           cat > Dockerfile.txt <<'EOF'
-          ARG BUILD_FROM
+          ARG BUILD_FROM=${{ env.BUILD_FROM }}
           FROM $BUILD_FROM
           
           ARG BUILD_ARCH
