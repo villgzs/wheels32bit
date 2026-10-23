@@ -360,8 +360,8 @@ jobs:
           mkdir -p "$OUT_DIR"
 
           # --------------------------------------------------
-          echo "steps.builder.outputs.platform ${{ steps.builder.outputs.platform }}"
-          echo "steps.builder.outputs.image ${{ steps.builder.outputs.image }}"
+          echo "steps.builder.outputs.platform ${{env.ARCH}}"
+          echo "steps.builder.outputs.image ${{env.BUILDER_IMAGE}}"
           echo "steps.req.outputs.file ${{ steps.req.outputs.file }}"
           echo "env.SKIP_BINARY ${{ env.SKIP_BINARY }}" 
           echo "env.APK ${{ env.APK }}"
@@ -380,11 +380,11 @@ jobs:
           cat "${{ steps.req.outputs.file }}" || true
 
           docker create --name "wheels-${{ env.KIND }}" -t \
-            --platform ${{ steps.builder.outputs.platform }} \
+            --platform ${{ env.ARCH }} \
             --workdir /data \
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
-            ${{ steps.builder.outputs.image }} \
+            ${{ env.BUILDER_IMAGE }} \
             --index "https://villgzs.github.io" \
             --upload rsync \
             --remote "/data/output" \
