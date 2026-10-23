@@ -52,31 +52,23 @@ jobs:
           GRPC_VERSION="${{ github.event.inputs.grpc_version }}"
           PYTHON_VERSION="${{ github.event.inputs.python_version }}"
           ALPINE_VERSION="${{ github.event.inputs.alpine_version }}"
-          ARCH="armv7"
+          ARCH=${{env.ARCH}}
 
-          BUILD_FROM="ghcr.io/villgzs/hass-core32-basepython:2026.10.0"
+          BUILD_FROM=${{ env.BUILD_FROM }}
 
           echo "Building with:"
           echo "  BUILD_FROM = $BUILD_FROM"
           echo "  GRPC_VERSION = $GRPC_VERSION"
 
-          # Builder image építése (az allenporter Dockerfile-ja alapján, frissítve)
-          docker buildx build \
-            --platform linux/arm/v7 \
-            --build-arg BUILD_FROM="$BUILD_FROM" \
-            --build-arg BUILD_ARCH="$ARCH" \
-            --build-arg GRPC_VERSION="$GRPC_VERSION" \
-            --tag grpc-builder:${ARCH} \
-            --load \
-            -f - . <<'EOF'
+          cat > Dockerfile.txt <<'EOF'
           ARG BUILD_FROM
           FROM $BUILD_FROM
-
+          
           ARG BUILD_ARCH
           ARG GRPC_VERSION=1.83.1
-
+          
           WORKDIR /work
-
+          
           RUN apk add --no-cache \
                   autoconf \
                   automake \
@@ -87,16 +79,16 @@ jobs:
                   openssl-dev \
                   pkgconfig \
                   libexecinfo-dev || true
-
+          
           # Cython 3.x már támogatott a friss grpcio-knál
           RUN pip3 install --upgrade pip setuptools wheel "Cython>=3.0"
-
+          
           # 1.62.0+ után a GRPC_PYTHON_DISABLE_LIBC_COMPATIBILITY már nem létezik
           # A wrap_memcpy is kikerült
           ENV GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
           ENV GRPC_PYTHON_BUILD_WITH_CYTHON=1
           # ENV GRPC_BUILD_WITH_BORING_SSL_ASM=false   # opcionális
-
+          
           RUN pip3 wheel "grpcio==${GRPC_VERSION}" \
               --no-binary=:all: \
               --no-cache-dir \
@@ -104,6 +96,16 @@ jobs:
               --log=/work/pip.wheel.log
           EOF
 
+          # Builder image építése (az allenporter Dockerfile-ja alapján, frissítve)
+          docker buildx build \
+            --platform linux/arm/v7 \
+            --build-arg BUILD_FROM="$BUILD_FROM" \
+            --build-arg BUILD_ARCH="$ARCH" \
+            --build-arg GRPC_VERSION="$GRPC_VERSION" \
+            --tag grpc-builder:${ARCH} \
+            --load \
+            -f Dockerfile.txt .
+          
       - name: Extract wheels
         run: |
           mkdir -p wheels
@@ -130,7 +132,7 @@ jobs:
 
           docker run --rm --platform linux/arm/v7 \
             -v "$(pwd)/wheels:/wheels" \
-            ghcr.io/villgzs/hass-core32-basepython:2026.10.0 \
+            ${{env.BUILD_FROM}} \
             sh -c "
               pip3 install /wheels/$(basename $WHEEL) &&
               python3 -c 'import grpc; print(\"grpc version:\", grpc.__version__)'
