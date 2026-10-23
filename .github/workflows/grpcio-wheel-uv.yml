@@ -1,0 +1,139 @@
+name: Build grpcio musllinux armv7 wheels
+
+on:
+  workflow_dispatch:
+    inputs:
+      grpc_version:
+        description: "grpcio version (pl. 1.70.0, 1.76.0)grpcio==1.83.1"
+        required: true
+        default: "1.83.1"
+      python_version:
+        description: "Python version (pl. 3.12, 3.13)"
+        required: true
+        default: "3.14"
+      alpine_version:
+        description: "Alpine / HA base image tag (pl. 3.20, 3.21)"
+        required: true
+        default: "3.24"
+
+  # Opcionális: automatikus futtatás új grpcio release-nél
+  # schedule:
+  #   - cron: "0 3 * * 1"   # minden hétfőn
+
+env:
+  ARCH: armv7
+  # A Home Assistant base image-ek továbbra is a legstabilabb musl + armv7 környezetet adják
+  BUILD_FROM: ghcr.io/villgzs/hass-core32-basepython:2026.10.0
+
+jobs:
+  build:
+    name: Build grpcio ${{ github.event.inputs.grpc_version }} (armv7 / musl)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build grpcio wheel
+        id: build
+        run: |
+          set -euo pipefail
+
+          GRPC_VERSION="${{ github.event.inputs.grpc_version }}"
+          PYTHON_VERSION="${{ github.event.inputs.python_version }}"
+          ALPINE_VERSION="${{ github.event.inputs.alpine_version }}"
+          ARCH=${{env.ARCH}}
+
+          BUILD_FROM=${{ env.BUILD_FROM }}
+
+          echo "Building with:"
+          echo "  BUILD_FROM = $BUILD_FROM"
+          echo "  GRPC_VERSION = $GRPC_VERSION"
+
+          cat > Dockerfile.txt <<'EOF'
+          ARG BUILD_FROM=${{ env.BUILD_FROM }}
+          FROM $BUILD_FROM
+          
+          ARG BUILD_ARCH
+          ARG GRPC_VERSION=1.83.1
+          
+          WORKDIR /work
+          
+          RUN apk add --no-cache \
+                   build-base \
+                   linux-headers \
+                  python3-dev \
+                   musl-dev \
+                   openssl-dev \
+                  zlib-dev \
+                   pkgconf \
+                   cmake \
+                   autoconf \
+                   automake \
+                  libtool
+          
+          # Cython 3.x már támogatott a friss grpcio-knál
+          RUN pip3 install --upgrade pip setuptools wheel "Cython>=3.0"
+          
+          # 1.62.0+ után a GRPC_PYTHON_DISABLE_LIBC_COMPATIBILITY már nem létezik
+          # A wrap_memcpy is kikerült
+          ENV GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=true
+          ENV GRPC_PYTHON_BUILD_WITH_CYTHON=1
+          # ENV GRPC_BUILD_WITH_BORING_SSL_ASM=false   # opcionális
+          
+          RUN pip3 wheel "grpcio==${GRPC_VERSION}" \
+              --no-binary=:all: \
+              --no-cache-dir \
+              --wheel-dir=/work/wheels \
+              --log=/work/pip.wheel.log
+          EOF
+
+          # Builder image építése (az allenporter Dockerfile-ja alapján, frissítve)
+          docker buildx build \
+            --platform linux/arm/v7 \
+            --build-arg BUILD_FROM="$BUILD_FROM" \
+            --build-arg BUILD_ARCH="$ARCH" \
+            --build-arg GRPC_VERSION="$GRPC_VERSION" \
+            --tag grpc-builder:${ARCH} \
+            --load \
+            -f Dockerfile.txt .
+          
+      - name: Extract wheels
+        run: |
+          mkdir -p wheels
+          docker create --name grpc-extract grpc-builder:armv7
+          docker cp grpc-extract:/work/wheels/. ./wheels/
+          docker rm grpc-extract
+
+          echo "Built wheels:"
+          ls -lh wheels/
+
+      - name: Upload wheels as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: grpcio-armv7-musllinux-${{ github.event.inputs.grpc_version }}-py${{ github.event.inputs.python_version }}
+          path: wheels/*.whl
+          retention-days: 30
+
+      - name: Optional – Test the wheel
+        if: success()
+        run: |
+          # Gyors import teszt
+          WHEEL=$(ls wheels/grpcio-*.whl | head -1)
+          echo "Testing wheel: $WHEEL"
+
+          docker run --rm --platform linux/arm/v7 \
+            -v "$(pwd)/wheels:/wheels" \
+            ${{env.BUILD_FROM}} \
+            sh -c "
+              pip3 install /wheels/$(basename $WHEEL) &&
+              python3 -c 'import grpc; print(\"grpc version:\", grpc.__version__)'
+            "
