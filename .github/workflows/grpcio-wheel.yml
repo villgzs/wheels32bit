@@ -77,8 +77,8 @@ jobs:
                   linux-headers \
                   musl-dev \
                   openssl-dev \
-                  pkgconfig \
-                  libexecinfo-dev || true
+                  pkgconfig 
+          #        libexecinfo-dev
           
           # Cython 3.x már támogatott a friss grpcio-knál
           RUN pip3 install --upgrade pip setuptools wheel "Cython>=3.0"
