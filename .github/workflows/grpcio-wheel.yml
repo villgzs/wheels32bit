@@ -29,8 +29,6 @@ jobs:
   build:
     name: Build grpcio ${{ github.event.inputs.grpc_version }} (armv7 / musl)
     runs-on: ubuntu-latest
-    # armv7 emulációhoz QEMU kell
-    timeout-minutes: 120
 
     steps:
       - name: Checkout
