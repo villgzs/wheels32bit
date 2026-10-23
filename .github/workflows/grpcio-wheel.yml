@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       grpc_version:
-        description: "grpcio version (pl. 1.70.0, 1.76.0)"
+        description: "grpcio version (pl. 1.70.0, 1.76.0)grpcio==1.83.1"
         required: true
-        default: "1.76.0"
+        default: "1.83.1"
       python_version:
         description: "Python version (pl. 3.12, 3.13)"
         required: true
-        default: "3.12"
+        default: "3.14"
       alpine_version:
         description: "Alpine / HA base image tag (pl. 3.20, 3.21)"
         required: true
-        default: "3.20"
+        default: "3.24"
 
   # Opcionális: automatikus futtatás új grpcio release-nél
   # schedule:
@@ -23,7 +23,7 @@ on:
 env:
   ARCH: armv7
   # A Home Assistant base image-ek továbbra is a legstabilabb musl + armv7 környezetet adják
-  BUILD_FROM: homeassistant/${{ github.event.inputs.ARCH || 'armv7' }}-base-python:${{ github.event.inputs.python_version || '3.12' }}-alpine${{ github.event.inputs.alpine_version || '3.20' }}
+  BUILD_FROM: ghcr.io/villgzs/hass-core32-basepython:2026.10.0
 
 jobs:
   build:
@@ -54,7 +54,7 @@ jobs:
           ALPINE_VERSION="${{ github.event.inputs.alpine_version }}"
           ARCH="armv7"
 
-          BUILD_FROM="homeassistant/${ARCH}-base-python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}"
+          BUILD_FROM="docker pull ghcr.io/villgzs/hass-core32-basepython:2026.10.0"
 
           echo "Building with:"
           echo "  BUILD_FROM = $BUILD_FROM"
@@ -73,7 +73,7 @@ jobs:
           FROM $BUILD_FROM
 
           ARG BUILD_ARCH
-          ARG GRPC_VERSION=1.76.0
+          ARG GRPC_VERSION=1.83.1
 
           WORKDIR /work
 
@@ -130,7 +130,7 @@ jobs:
 
           docker run --rm --platform linux/arm/v7 \
             -v "$(pwd)/wheels:/wheels" \
-            homeassistant/armv7-base-python:${{ github.event.inputs.python_version }}-alpine${{ github.event.inputs.alpine_version }} \
+            ghcr.io/villgzs/hass-core32-basepython:2026.10.0 \
             sh -c "
               pip3 install /wheels/$(basename $WHEEL) &&
               python3 -c 'import grpc; print(\"grpc version:\", grpc.__version__)'
