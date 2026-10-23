@@ -1,4 +1,4 @@
-name: Build grpcio musllinux armv7 wheels
+name: Build grpcio(uv)musllinux armv7 wheels
 
 on:
   workflow_dispatch:
@@ -79,9 +79,10 @@ jobs:
                    autoconf \
                    automake \
                   libtool
-          
-          # Cython 3.x már támogatott a friss grpcio-knál
+                    
           RUN pip3 install --upgrade pip setuptools wheel "Cython>=3.0"
+
+          RUN pip3 install --no-cache-dir uv auditwheel
           
           # 1.62.0+ után a GRPC_PYTHON_DISABLE_LIBC_COMPATIBILITY már nem létezik
           # A wrap_memcpy is kikerült
@@ -89,11 +90,13 @@ jobs:
           ENV GRPC_PYTHON_BUILD_WITH_CYTHON=1
           # ENV GRPC_BUILD_WITH_BORING_SSL_ASM=false   # opcionális
           
-          RUN pip3 wheel "grpcio==${GRPC_VERSION}" \
-              --no-binary=:all: \
-              --no-cache-dir \
-              --wheel-dir=/work/wheels \
-              --log=/work/pip.wheel.log
+          RUN uv pip wheel "grpcio==${GRPC_VERSION}" \
+                --no-binary=:all: \
+                --no-cache \
+                --wheel-dir=/work/wheels \
+            && for wheel in /work/wheels/*.whl; do \
+                auditwheel show "$wheel"; \
+            done
           EOF
 
           # Builder image építése (az allenporter Dockerfile-ja alapján, frissítve)
