@@ -272,7 +272,7 @@ jobs:
       - name: Set builder image and platform
         id: builder
         run: |
-          echo "image=ghcr.io/villgzs/wheels32bit/${{ env.ARCH }}/${{ env.TAG }}/${{ env.ABI }}:${{ env.WHEELSBRANCH }}" >> $GITHUB_OUTPUT
+          echo "${{env.BUILDER_IMAGE}}" >> $GITHUB_OUTPUT
           echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
           
       - name: Pull 32-bit builder image
