@@ -70,15 +70,17 @@ jobs:
           WORKDIR /work
           
           RUN apk add --no-cache \
-                  autoconf \
-                  automake \
-                  build-base \
-                  cmake \
-                  linux-headers \
-                  musl-dev \
-                  openssl-dev \
-                  pkgconfig 
-          #        libexecinfo-dev
+                   build-base \
+                   linux-headers \
+                  python3-dev \
+                   musl-dev \
+                   openssl-dev \
+                  zlib-dev \
+                   pkgconf \
+                   cmake \
+                   autoconf \
+                   automake \
+                  libtool
           
           # Cython 3.x már támogatott a friss grpcio-knál
           RUN pip3 install --upgrade pip setuptools wheel "Cython>=3.0"
