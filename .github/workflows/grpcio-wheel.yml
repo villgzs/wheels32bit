@@ -54,7 +54,7 @@ jobs:
           ALPINE_VERSION="${{ github.event.inputs.alpine_version }}"
           ARCH="armv7"
 
-          BUILD_FROM="docker pull ghcr.io/villgzs/hass-core32-basepython:2026.10.0"
+          BUILD_FROM="ghcr.io/villgzs/hass-core32-basepython:2026.10.0"
 
           echo "Building with:"
           echo "  BUILD_FROM = $BUILD_FROM"
