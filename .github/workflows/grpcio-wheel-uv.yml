@@ -90,10 +90,11 @@ jobs:
           ENV GRPC_PYTHON_BUILD_WITH_CYTHON=1
           # ENV GRPC_BUILD_WITH_BORING_SSL_ASM=false   # opcionális
           
-          RUN uv build --wheel "grpcio==${GRPC_VERSION}" \
-                --no-binary=:all: \
-                --no-cache \
-                --wheel-dir=/work/wheels \
+          RUN pip3 wheel "grpcio==${GRPC_VERSION}" \
+              --no-binary=:all: \
+              --no-cache-dir \
+              --wheel-dir=/work/wheels \
+              --log=/work/pip.wheel.log \
             && for wheel in /work/wheels/*.whl; do \
                 auditwheel show "$wheel"; \
             done
