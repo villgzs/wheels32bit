@@ -97,12 +97,12 @@ jobs:
               --log=/work/pip.wheel.log 
               
           RUN for wheel in /work/wheels/*.whl; do \
-                mkdir -p /work/wheels/done
+                mkdir -p /work/wheels/done \
                 case "$wheel" in \
                   *-none-any.whl) continue ;; \
                   *) auditwheel repair "$wheel" --plat musllinux_1_2_armv7l -w /work/wheels || true ;; \
                 esac; \
-                mv "$wheel" "/work/wheels/done/$wheel"
+                mv "$wheel" "/work/wheels/done/$wheel" \
               done
           EOF
 
