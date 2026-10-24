@@ -95,6 +95,8 @@ jobs:
               --no-cache-dir \
               --wheel-dir=/work/wheels \
               --log=/work/pip.wheel.log 
+
+          RUN apk add --no-cache patchelf
               
           RUN mkdir -p /work/wheels/done && \
                 for wheel in /work/wheels/*.whl; do \
