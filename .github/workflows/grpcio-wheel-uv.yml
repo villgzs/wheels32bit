@@ -96,14 +96,15 @@ jobs:
               --wheel-dir=/work/wheels \
               --log=/work/pip.wheel.log 
               
-          RUN for wheel in /work/wheels/*.whl; do \
-                mkdir -p /work/wheels/done \
-                case "$wheel" in \
-                  *-none-any.whl) continue ;; \
-                  *) auditwheel repair "$wheel" --plat musllinux_1_2_armv7l -w /work/wheels || true ;; \
-                esac; \
-                mv "$wheel" "/work/wheels/done/$wheel" \
-              done
+          RUN mkdir -p /work/wheels/done && 
+                for wheel in /work/wheels/*.whl; do 
+                    [ -f "$wheel" ] || continue; 
+                    case "$wheel" in 
+                        *-none-any.whl) ;; 
+                        *) auditwheel repair "$wheel" --plat musllinux_1_2_armv7l -w /work/wheels || true ;; 
+                    esac; 
+                    mv "$wheel" /work/wheels/done/; 
+                done
           EOF
 
           # Builder image építése (az allenporter Dockerfile-ja alapján, frissítve)
