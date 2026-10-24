@@ -169,7 +169,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           
           build-args: |            
-            BUILD_FROM=ghcr.io/villgzs/basic-python:${{env.PYTHONBRANCH}}
+            BUILD_FROM=ghcr.io/villgzs/hass-core32-basepython:${{env.PYTHONBRANCH}}
             BUILD_ARCH=${{ matrix.arch }}
             CPYTHON_ABI=${{ matrix.abi }}
           tags: |
