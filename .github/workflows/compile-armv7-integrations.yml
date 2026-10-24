@@ -33,7 +33,7 @@ env:
   BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
   PLATFORM: linux/arm/v7
-  BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.10.0-2026.10.0
+  BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.06.1-2026.07.0
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
