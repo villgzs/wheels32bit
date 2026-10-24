@@ -94,8 +94,9 @@ jobs:
               --no-binary=:all: \
               --no-cache-dir \
               --wheel-dir=/work/wheels \
-              --log=/work/pip.wheel.log \
-            && for wheel in /work/wheels/*.whl; do \
+              --log=/work/pip.wheel.log 
+              
+            RUN for wheel in /work/wheels/*.whl; do \
                 auditwheel show "$wheel"; \
             done
           EOF
