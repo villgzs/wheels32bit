@@ -27,6 +27,7 @@ jobs:
           echo "version=${VERSION}"   >> $GITHUB_STEP_SUMMARY
           
   build-armv7:
+    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -90,7 +91,7 @@ jobs:
               apk add --no-cache libtool automake autoconf
 
               echo '=== Cloning curl_cffi ==='
-              git clone --depth 1 --branch v0.17.0 https://github.com/lexiforest/curl_cffi.git
+              git clone --depth 1 --branch v${{ needs.prepare.outputs.version }}  https://github.com/lexiforest/curl_cffi.git
               cd curl_cffi
 
               echo '=== Patching build.py ==='
@@ -107,5 +108,5 @@ jobs:
       - name: Upload Built Wheels
         uses: actions/upload-artifact@v4
         with:
-          name: curl-cffi-armv7-wheels
+          name: curl-cffi-${{ needs.prepare.outputs.version }}-armv7-wheels
           path: wheelhouse/*.whl
