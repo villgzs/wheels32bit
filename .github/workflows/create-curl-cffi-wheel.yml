@@ -51,9 +51,14 @@ jobs:
           set -e
       
           echo "=== Installing dependencies ==="
-      
+          
           apk add --no-cache \
             build-base \
+            linux-headers \
+            python3-dev \
+            musl-dev \
+            pkgconf \
+            cmake \
             libffi-dev \
             openssl-dev \
             yaml-dev \
@@ -94,7 +99,8 @@ jobs:
             automake \
             autoconf \
             git \
-            py3-pip
+            py3-pip \
+            patchelf
       
           echo "=== Checking architecture ==="
           uname -m
