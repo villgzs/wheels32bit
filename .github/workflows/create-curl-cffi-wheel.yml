@@ -1,0 +1,111 @@
+name: Build curl_cffi for ARMv7
+
+on:
+  workflow_dispatch:
+    inputs:
+      reqversion:
+        description: 'curl-cffi version:'
+        required: false
+        default: "0.17.0"
+  
+
+jobs:
+  prepare:
+    name: Prepare source
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ha.outputs.version }}      
+    steps:
+      - name: Info about version
+        id: ha
+        
+        run: |
+          VERSION=${{ inputs.reqversion }}
+          
+          echo "curl-cffi version: ${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}"   >> $GITHUB_STEP_SUMMARY
+          
+  build-armv7:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Create output directories
+        run: mkdir -p dist wheelhouse
+
+      - name: Build curl_cffi inside ARMv7 container
+        run: |
+          docker run --rm \
+            --platform linux/arm/v7 \
+            -v ${{ github.workspace }}/dist:/dist \
+            -v ${{ github.workspace }}/wheelhouse:/wheelhouse \
+            ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:latest \
+            /bin/bash -c "
+              set -e
+              echo '=== Installing dependencies ==='
+              apk add --no-cache \
+                build-base \
+                libffi-dev \
+                openssl-dev \
+                yaml-dev \
+                nasm \
+                zlib-ng-dev \
+                zlib-dev \
+                jpeg-dev \
+                freetype-dev \
+                lcms2-dev \
+                openjpeg-dev \
+                tiff-dev \
+                re2-dev \
+                bluez-dev \
+                glib-dev \
+                eudev-dev \
+                libxml2-dev \
+                libxslt-dev \
+                libpng-dev \
+                libjpeg-turbo-dev \
+                gmp-dev \
+                mpfr-dev \
+                mpc1-dev \
+                ffmpeg-dev \
+                openblas-dev \
+                fftw-dev \
+                lapack-dev \
+                gfortran \
+                blas-dev \
+                eigen-dev \
+                glew-dev \
+                harfbuzz-dev \
+                hdf5-dev \
+                libtbb-dev \
+                mesa-dev \
+                openexr-dev \
+                uchardet-dev
+
+              apk add --no-cache libtool automake autoconf
+
+              echo '=== Cloning curl_cffi ==='
+              git clone --depth 1 --branch v0.17.0 https://github.com/lexiforest/curl_cffi.git
+              cd curl_cffi
+
+              echo '=== Patching build.py ==='
+              sed -i 's/libc = glibc_flavor if libc == \"glibc\" else \"musl\"/libc = \"gnueabihf\" if uname.machine in [\"armv7l\", \"armv6l\"] else (glibc_flavor if libc == \"glibc\" else \"musl\")/' scripts/build.py
+
+              echo '=== Building wheel ==='
+              make preprocess
+              pip wheel . --no-deps -w /dist/
+
+              echo '=== Repairing wheel with auditwheel ==='
+              auditwheel repair /dist/curl_cffi-*.whl -w /wheelhouse/
+            "
+
+      - name: Upload Built Wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: curl-cffi-armv7-wheels
+          path: wheelhouse/*.whl
