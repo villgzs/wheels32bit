@@ -101,6 +101,10 @@ jobs:
             git \
             py3-pip \
             patchelf
+
+          pip3 install --upgrade pip setuptools wheel "Cython>=3.0"
+          pip3 install --no-cache-dir uv auditwheel
+          
       
           echo "=== Checking architecture ==="
           uname -m
