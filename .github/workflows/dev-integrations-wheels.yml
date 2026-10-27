@@ -21,8 +21,8 @@ on:
         description: 'Sorok száma:'
         required: false
         default: "30"  
-  # schedule:
-  #   - cron: "0 5 * * 1"   # heti frissítés, ha kell
+  schedule:
+    - cron: "0 6 * * *"   
 
 env:
   KIND: combined
