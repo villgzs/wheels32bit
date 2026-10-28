@@ -312,7 +312,7 @@ jobs:
           REQ="${{ env.REQUIREMENTS }}"
           # CORE: itt csak requirements.txt van
           
-          REQ=requirements.txt
+          REQ="requirements.txt"
           #
           #
           #
