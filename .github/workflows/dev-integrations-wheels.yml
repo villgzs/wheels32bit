@@ -1,4 +1,4 @@
-mname: DEV-ARM/V7-INTEGRATIONS-wheels fabrication
+name: DEV-ARM/V7-INTEGRATIONS-wheels fabrication
 
 on:
   workflow_dispatch:
