@@ -1,4 +1,4 @@
-name: DEV-ARM/V7-INTEGRATIONS-wheels fabrication
+mname: DEV-ARM/V7-INTEGRATIONS-wheels fabrication
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ on:
         required: false
         default: "30"  
   schedule:
-    - cron: "0 2 * * *"   
+    - cron: "0 21 * * *"   
 
 env:
   KIND: combined
