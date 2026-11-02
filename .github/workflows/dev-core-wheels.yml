@@ -158,15 +158,6 @@ jobs:
           print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
           EOF
 
-      - name: Create venv and install tools
-        working-directory: ${{ env.HA_CORE_REPO_PATH }}
-        run: |
-          python -m venv venv
-          . venv/bin/activate
-          python --version
-          pip install "$(grep '^uv' < requirements.txt)"
-          uv pip install -r requirements.txt
-
       - name: Create requirements_diff file
         working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
