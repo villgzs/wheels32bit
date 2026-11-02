@@ -258,7 +258,8 @@ jobs:
           sed -i "/^uv/d" requirements_diff.txt || true
           # numpy pin eltávolítása az integrations buildhez (hivatalos gyakorlat)
           if [ -f homeassistant/package_constraints.txt ]; then
-            sed -i "/numpy/d" homeassistant/package_constraints.txt || true            
+            sed -i "/numpy/d" homeassistant/package_constraints.txt || true     
+            sed -i "/botocore/d" homeassistant/package_constraints.txt || true
           fi
           echo "req_diff"
           cat requirements_diff.txt || true
