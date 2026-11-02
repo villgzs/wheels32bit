@@ -3,20 +3,13 @@ name: DEV-ARM/V7-CORE-Wheels fabrication
 on:
   workflow_dispatch:
     inputs:
-      core_version:
-        description: "Home Assistant Core verzió (üres = legfrissebb stable)"
-        required: false
-        default: ""
+      
       test_build:
         description: 'Teszt üzemmód (csak az első néhány sor feldolgozása)'
         required: false
         type: boolean
         default: false  # Alapértelmezetten nincs bepipálva
-      force_python:
-        description: 'Python korlátozás <3.2.9'
-        required: false
-        type: boolean
-        default: false  # Alapértelmezetten nincs bepipálva
+      
       maxlines:
         description: 'Sorok száma:'
         required: false
@@ -132,32 +125,6 @@ jobs:
             ${{ env.HA_CORE_REPO_PATH }}/requirements.txt
             ${{ env.HA_CORE_REPO_PATH }}/pyproject.toml
           
-      - name: Pin Cython version in pyproject.toml
-        working-directory: ${{ env.HA_CORE_REPO_PATH }}
-        if: inputs.force_python
-        run: |
-          python3 - <<'EOF'
-          from pathlib import Path
-          import re
-
-          path = Path("pyproject.toml")
-          content = path.read_text()
-
-          # A [build-system] requires listába beszúrja a cython<=3.2.9-et
-          pattern = r'(requires\s*=\s*\[\s*"setuptools==[^"]+")(\s*\])'
-          replacement = r'\1, "cython<=3.2.9"\2'
-
-          new_content, count = re.subn(pattern, replacement, content, count=1)
-
-          if count == 0:
-              print("A setuptools==__._._ bejegyzés nem található, nincs módosítás.")
-              raise SystemExit(0)
-
-          path.write_text(new_content)
-          print("Sikeresen módosítva:")
-          print(new_content[new_content.find("[build-system]"):new_content.find("[build-system]")+300])
-          EOF
-
       - name: Create requirements_diff file
         working-directory: ${{ env.HA_CORE_REPO_PATH }}
         run: |
@@ -168,6 +135,16 @@ jobs:
             echo "NOT dispatch mode... comes from home-assistant/core/master"
             curl -s -o requirements_diff.txt https://raw.githubusercontent.com/home-assistant/core/master/requirements.txt
           fi
+
+      - name: Create venv and install tools
+        working-directory: ${{ env.HA_CORE_REPO_PATH }}
+        run: |
+          python -m venv venv
+          . venv/bin/activate
+          python --version
+          pip install "$(grep '^uv' < requirements.txt)"
+          uv pip install -r requirements.txt
+
 
       - name: Generate requirements_all_wheels
         working-directory: ${{ env.HA_CORE_REPO_PATH }}
