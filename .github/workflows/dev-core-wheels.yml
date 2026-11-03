@@ -15,7 +15,8 @@ on:
         required: false
         default: "30"  
   schedule:
-    - cron: "0 19 * * *"   
+    - cron: "17 04 * * *"   
+      timezone: 'Europe/Budapest'
 
 env:
   KIND: combined
