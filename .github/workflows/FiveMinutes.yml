@@ -13,7 +13,13 @@ jobs:
     steps:
       - name: Aktuális idő kiírása
         run: |
-          CURRENT_TIME=$(date)
+          CURRENT_TIME=$(curl -s https://worldtimeapi.org/api/timezone/Etc/UTC | sed -n 's/.*"datetime":"\([^"]*\)".*/\1/p')
+          
+          if [ -z "$CURRENT_TIME" ]; then
+            echo "Nem sikerült lekérni az időt a webes szolgáltatásból"
+            exit 1
+          fi
+      
           echo "Aktuális UTC idő: $CURRENT_TIME"
           echo "### Futás Összegzés" >> $GITHUB_STEP_SUMMARY
           echo "- **Aktuális UTC idő:** $CURRENT_TIME" >> $GITHUB_STEP_SUMMARY
