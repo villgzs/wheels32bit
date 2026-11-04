@@ -1,0 +1,16 @@
+name: 5 Percenkénti Idő Kiírása
+
+on:
+  schedule:
+    # 5 percenként fut le
+    - cron: '*/5 * * * *'
+  # Lehetővé teszi a manuális indítást is a GitHub felületéről
+  workflow_dispatch:
+
+jobs:
+  print-time:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aktuális idő kiírása
+        run: |
+          echo "Aktuális UTC idő: $(date)"
