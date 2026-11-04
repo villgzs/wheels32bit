@@ -3,7 +3,7 @@ name: FiveMinutes
 on:
   schedule:
     # 5 percenként fut le
-    - cron: '2/5 * * * *'
+    - cron: '19/30 * * * *'
   # Lehetővé teszi a manuális indítást is a GitHub felületéről
   workflow_dispatch:
 
