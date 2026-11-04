@@ -2,9 +2,9 @@ name: FiveMinutes
 
 on:
   schedule:
-    # 5 percenként fut le
     - cron: '19/30 * * * *'
-  # Lehetővé teszi a manuális indítást is a GitHub felületéről
+      timezone: 'Europe/Budapest'
+  
   workflow_dispatch:
 
 jobs:
