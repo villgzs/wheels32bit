@@ -47,6 +47,8 @@ permissions:
   actions: write
 
 jobs:
+  call-time-workflow:  
+    uses: villgzs/villgzs/.github/workflows/get-time.yml@main   # ← helyi reusable workflow
   # --------------------------------------------------
   # 1) Core verzió + requirements előkészítés
   # --------------------------------------------------
