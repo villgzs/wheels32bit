@@ -13,4 +13,7 @@ jobs:
     steps:
       - name: Aktuális idő kiírása
         run: |
-          echo "Aktuális UTC idő: $(date)"
+          CURRENT_TIME=$(date)
+          echo "Aktuális UTC idő: $CURRENT_TIME"
+          echo "### Futás Összegzés" >> $GITHUB_STEP_SUMMARY
+          echo "- **Aktuális UTC idő:** $CURRENT_TIME" >> $GITHUB_STEP_SUMMARY
