@@ -1,5 +1,5 @@
-## Musllinux wheels (armv7l) (UTC 2026-Nov-04 06:49:59)  
-### Last build from https://github.com/home-assistant/core: 2026.11.0b4  
+## Musllinux wheels (armv7l) (UTC 2026-Nov-04 07:01:50)  
+### Last build from https://github.com/home-assistant/core: dev-2026-11-04-230e6f9  
   
   During the last build - armv7 - core: 106  
   Number of wheels: 2513  
