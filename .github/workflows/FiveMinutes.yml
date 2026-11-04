@@ -2,7 +2,7 @@ name: FiveMinutes
 
 on:
   schedule:
-    - cron: '19/30 * * * *'
+    - cron: '29 5 * * *'
       timezone: 'Europe/Budapest'
   
   workflow_dispatch:
