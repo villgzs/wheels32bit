@@ -22,9 +22,8 @@ on:
         required: false
         default: "30"  
   schedule:
-    - cron: "47 05 * * *"   
-      timezone: 'Europe/Budapest'
-
+    - cron: "47 23 * * *"   
+      
 env:
   KIND: combined
   ABI: cp314
@@ -34,7 +33,7 @@ env:
   BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
   PLATFORM: linux/arm/v7
-  BUILDER_IMAGE: ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:latest
+  BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.10.3-2026.10.0
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
