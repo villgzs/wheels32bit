@@ -33,6 +33,7 @@ env:
   ABI: cp314
   TAG: musllinux_1_2
   WBRANCH: "2026.10.0-2026.10.0"
+  BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.10.3-2026.10.0
   ARCH: armv7
   BUILD_ARCH: armv7
   # LISTMAX: 30
@@ -310,7 +311,7 @@ jobs:
       - name: Set builder image and platform
         id: builder
         run: |
-          echo "image=ghcr.io/villgzs/wheels32bit/armv7/musllinux_1_2/cp314:latest" >> $GITHUB_OUTPUT
+          echo "${{env.BUILDER_IMAGE}}" >> $GITHUB_OUTPUT
           echo "platform=linux/arm/v7" >> $GITHUB_OUTPUT
           
       - name: Pull 32-bit builder image
