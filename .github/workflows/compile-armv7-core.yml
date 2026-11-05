@@ -26,11 +26,7 @@ on:
       
 env:
   KIND: combined
-  ABI: cp314
-  TAG: musllinux_1_2
-  WHEELSBRANCH: "2026.07.0"
   ARCH: armv7
-  BUILD_ARCH: armv7
   # A te 32 bites builder image-ed
   PLATFORM: linux/arm/v7
   BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.10.3-2026.10.0
