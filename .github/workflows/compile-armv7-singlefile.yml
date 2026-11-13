@@ -32,16 +32,22 @@ env:
   KIND: combined
   ABI: cp314
   TAG: musllinux_1_2
-  WBRANCH: "2026.10.0-2026.10.0"
-  BUILDER_IMAGE: ghcr.io/villgzs/hass-core32-wheeler:2026.10.3-2026.10.0
   ARCH: armv7
   BUILD_ARCH: armv7
+  PLATFORM: linux/arm/v7
   # LISTMAX: 30
   LISTMAX: ${{inputs.maxlines}}
   REQUIREMENTS: "requirements.txt requirements_all.txt"
   APK: "cargo;postgresql-dev;libffi-dev;openssl-dev;yaml-dev;nasm;zlib-ng-dev;zlib-dev;jpeg-dev;freetype-dev;lcms2-dev;openjpeg-dev;tiff-dev;re2-dev;bluez-dev;glib-dev;eudev-dev;libxml2-dev;libxslt-dev;libpng-dev;libjpeg-turbo-dev;gmp-dev;mpfr-dev;mpc1-dev;ffmpeg-dev;openblas-dev;fftw-dev;lapack-dev;gfortran;blas-dev;eigen-dev;glew-dev;harfbuzz-dev;hdf5-dev;libdc1394-dev;libtbb-dev;mesa-dev;openexr-dev;uchardet-dev;geos;geos-dev"
   SKIP_BINARY: "aiohttp;av;grpcio;multidict;propcache;yarl;SQLAlchemy;charset-normalizer;protobuf;pymicro-vad"
   OUTDIR: wheels-out
+  HA_CORE_REPO: home-assistant/core
+  HA_CORE_REPO_PATH: ha-core
+  HA_WHEELS_REPO: home-assistant/wheels
+  HA_WHEELS_REPO_PATH: ha-wheels
+  THIS_REPO: villgzs/wheels32bit
+  THIS_REPO_PATH: wheels32bit
+  HA_ALPINE_REPO: home-assistant/docker-base
 
 permissions:
   contents: read
@@ -51,12 +57,65 @@ permissions:
 jobs:
   call-time-workflow:  
     uses: villgzs/villgzs/.github/workflows/get-time.yml@main   # ← helyi reusable workflow
+
+  prepare:
+    name: Prepare source
+    runs-on: ubuntu-latest
+    outputs:
+      basever: ${{ steps.ha-ba-lat.outputs.basever }}
+      wheelsver: ${{ steps.ha-we-lat.outputs.wheelsver }}      
+
+    steps:
+      - name: Aktuális idő kiírása
+        run: |
+          CURRENT_TIME=$(date)
+          echo "Aktuális UTC idő: $CURRENT_TIME"
+          echo "### Futás Összegzés" >> $GITHUB_STEP_SUMMARY
+          echo "- **Aktuális UTC idő:** $CURRENT_TIME" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Get latest stable base version
+        id: ha-ba-lat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Get latest stable base version (alpine and python)"  >> $GITHUB_STEP_SUMMARY
+          LATESTVER="true" 
+          
+          VERSION=$(gh api repos/${{env.HA_ALPINE_REPO}}/releases/latest --jq '.tag_name')
+          echo "Legfrissebb stabil változat: $VERSION"           
+          echo "- Legfrissebb stabil változat: $VERSION" >> $GITHUB_STEP_SUMMARY
+                              
+          echo "Home Assistant base version: ${VERSION}"
+          echo "basever=${VERSION}" >> $GITHUB_OUTPUT
+          echo "base_tags=${DOCKERTAGS}" >> $GITHUB_OUTPUT         
+          echo "lat-bp=${LATESTVER}" >> $GITHUB_OUTPUT         
+          
+          echo "- basever=${VERSION}"   >> $GITHUB_STEP_SUMMARY
+          echo "- base_tags=${DOCKERTAGS}"   >> $GITHUB_STEP_SUMMARY       
+
+      - name: Get latest stable wheels version
+        id: ha-we-lat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Get latest stable wheels version"  >> $GITHUB_STEP_SUMMARY
+          LATESTVER="true"  
+          
+          VERSION=$(gh api repos/${{env.HA_WHEELS_REPO}}/releases/latest --jq '.tag_name')          
+
+          echo "OK: 'latest' tag megtalálható."
+                    
+          echo "wheelsver=${VERSION}" >> $GITHUB_OUTPUT
+                    
+          echo "- wheelsver=${VERSION}"   >> $GITHUB_STEP_SUMMARY          
+    
   # --------------------------------------------------
   # 1) Core verzió + requirements előkészítés
   # --------------------------------------------------
   inbupu:
     name: Initialize, Build, Publish (Core version + requirements)
     runs-on: ubuntu-latest
+    needs: prepare
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -316,7 +375,7 @@ jobs:
           
       - name: Pull 32-bit builder image
         run: |
-          docker pull --platform ${{ steps.builder.outputs.platform }} ${{ steps.builder.outputs.image }}
+          docker pull --platform ${{ env.PLATFORM }} ghcr.io/villgzs/hass-core32-wheeler:${{ needs.prepare.outputs.basever }}-${{ needs.prepare.outputs.wheelsver }}
 
       - name: Select requirements file
         id: req
@@ -350,8 +409,8 @@ jobs:
           mkdir -p "$OUT_DIR"
 
           # --------------------------------------------------
-          echo "steps.builder.outputs.platform ${{ steps.builder.outputs.platform }}"
-          echo "steps.builder.outputs.image ${{ steps.builder.outputs.image }}"
+          echo "env.PLATFORM ${{ env.PLATFORM }}"
+          echo "ghcr.io/villgzs/hass-core32-wheeler:${{ needs.prepare.outputs.basever }}-${{ needs.prepare.outputs.wheelsver }}"
           echo "steps.req.outputs.file ${{ steps.req.outputs.file }}"
           echo "env.SKIP_BINARY ${{ env.SKIP_BINARY }}" 
           echo "env.APK ${{ env.APK }}"
@@ -379,11 +438,11 @@ jobs:
           export QEMU_CPU=cortex-a7
           
           docker create --name "wheels-${{ env.KIND }}" -t \
-            --platform ${{ steps.builder.outputs.platform }} \
+            --platform ${{ env.PLATFORM }} \
             --workdir /data \
             --env-file .env_file \
             -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
-            ${{ steps.builder.outputs.image }} \
+            ghcr.io/villgzs/hass-core32-wheeler:${{ needs.prepare.outputs.basever }}-${{ needs.prepare.outputs.wheelsver }} \
             --index "https://villgzs.github.io" \
             --upload rsync \
             --remote "/data/output" \
@@ -397,47 +456,6 @@ jobs:
           docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ env.KIND }}:/data"
 
           echo "=== Aux konténer létrehozása és indítása ==="
-
-          # docker create --name "wheels-${{ env.KIND }}-aux" -t \
-          #   --platform ${{ steps.builder.outputs.platform }} \
-          #   --workdir /data \
-          #   --env-file .env_file \
-          #   -v ./pip-build-constraints.txt:/pip-build-constraints.txt:ro \
-          #   --entrypoint /bin/sh \
-          #   ${{ steps.builder.outputs.image }} \
-          #   -c "while true; do sleep 3600; done"
-
-          # Forrás bemásolása a konténerbe
-          # docker cp "${{ github.workspace }}/ha-core-repo/." "wheels-${{ env.KIND }}-aux:/data"            
-
-          # docker start "wheels-${{ env.KIND }}-aux"
-
-          # echo "=== Cython ellenőrzése ==="
-          # docker exec "wheels-${{ env.KIND }}-aux" \
-          #   python3 -c "import Cython; print('Telepített Cython verzió:', Cython.__version__)"
-
-          # echo "=== Build constraints ==="
-          # docker exec "wheels-${{ env.KIND }}-aux" \
-          #   cat /pip-build-constraints.txt
-
-          # echo "=== Extra checkings ==="
-          # echo "uname -m"
-          # docker exec "wheels-${{ env.KIND }}-aux" uname -m
-          # echo "python3 -c import sysconfig; print(sysconfig.get_platform())"
-          # docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import sysconfig; print(sysconfig.get_platform())"
-          # echo "python3 -c import os; print(os.environ.get('BUILD_ARCH'))"
-          # docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print(os.environ.get('BUILD_ARCH'))"
-          # echo "python3 -c import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
-          # docker exec "wheels-${{ env.KIND }}-aux" python3 -c "import os; print('ARCH=', os.environ.get('ARCH')); print('BUILD_ARCH=', os.environ.get('BUILD_ARCH'))"
-          # echo "auditwheel repair --help"
-          # docker exec -e AUDITWHEEL_PLAT="" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
-          # docker exec -e AUDITWHEEL_PLAT="musllinux_1_2_armv7l" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
-          # docker exec -e AUDITWHEEL_PLAT="auto" "wheels-${{ env.KIND }}-aux" auditwheel repair --help
-
-          # echo "=== Aux konténer leállítása és törlése ==="
-          # docker stop "wheels-${{ env.KIND }}-aux"
-          # docker rm "wheels-${{ env.KIND }}-aux"
-          echo "=== Aux konténer leállítás megtörtént ==="
 
           # === Trap: timeout / megszakítás / hiba esetén is mentsünk ki ===
           cleanup_and_save() {
